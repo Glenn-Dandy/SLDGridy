@@ -77,6 +77,8 @@ class Canvas(QGraphicsView):
     text_typed = pyqtSignal(str)
     # A library block dropped on the canvas: payload and snapped scene position.
     block_dropped = pyqtSignal(dict, QPointF)
+    # Double click where no entity is (raw scene position).
+    empty_double_clicked = pyqtSignal(QPointF)
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
@@ -113,6 +115,10 @@ class Canvas(QGraphicsView):
         self.extra_overlay: Callable[[QPainter, float], None] | None = None
         # Resolves block references in previews.
         self.expand: Callable[[Entity], list[Entity]] | None = None
+        # Takes over wheel zoom and middle-button panning (active sheet viewport).
+        self.navigator = None
+        self.background_color = BACKGROUND_COLOR
+        self.show_origin = True
         self.setAcceptDrops(True)
 
         self._pan_last: QPointF | None = None
@@ -372,10 +378,19 @@ class Canvas(QGraphicsView):
 
     # -- events -------------------------------------------------------------
 
+    def set_background(self, color: QColor, show_origin: bool) -> None:
+        self.background_color = color
+        self.show_origin = show_origin
+        self.resetCachedContent()
+        self.viewport().update()
+
     def wheelEvent(self, event: QWheelEvent) -> None:
         steps = event.angleDelta().y() / 120.0
         if steps:
-            self.zoom_at(WHEEL_ZOOM_STEP**steps, event.position())
+            factor = WHEEL_ZOOM_STEP**steps
+            scene_pos = self.map_to_scene_f(event.position())
+            if self.navigator is None or not self.navigator.zoom(factor, scene_pos):
+                self.zoom_at(factor, event.position())
         event.accept()
 
     def mousePressEvent(self, event) -> None:
@@ -408,7 +423,12 @@ class Canvas(QGraphicsView):
     def mouseMoveEvent(self, event) -> None:
         pos = event.position()
         if self._pan_last is not None:
-            self._scroll_by(self._pan_last - pos)
+            delta = self._pan_last - pos
+            scale = self.transform().m11()
+            if self.navigator is None or not self.navigator.pan(
+                QPointF(delta.x() / scale, delta.y() / scale)
+            ):
+                self._scroll_by(delta)
             self._pan_last = pos
         if self._rubber_start is not None:
             self._rubber_end = pos
@@ -459,6 +479,9 @@ class Canvas(QGraphicsView):
                 self.entity_double_clicked.emit(items[0].entity_id)
                 event.accept()
                 return
+            self.empty_double_clicked.emit(self.map_to_scene_f(event.position()))
+            event.accept()
+            return
         self.mousePressEvent(event)
 
     def dragEnterEvent(self, event) -> None:
@@ -502,6 +525,8 @@ class Canvas(QGraphicsView):
         if key == Qt.Key.Key_Escape:
             if self._tool_active():
                 controller.cancel()
+            elif self.navigator is not None:
+                self.navigator.deactivate()
             else:
                 self._rubber_start = self._rubber_end = None
                 self.scene().clearSelection()
@@ -528,10 +553,11 @@ class Canvas(QGraphicsView):
     # -- helper display (never printed) -------------------------------------
 
     def drawBackground(self, painter: QPainter, rect: QRectF) -> None:
-        painter.fillRect(rect, BACKGROUND_COLOR)
+        painter.fillRect(rect, self.background_color)
         if self._grid_visible:
             self._draw_grid(painter, rect)
-        self._draw_origin(painter)
+        if self.show_origin:
+            self._draw_origin(painter)
 
     def _draw_grid(self, painter: QPainter, rect: QRectF) -> None:
         scale = self.transform().m11()

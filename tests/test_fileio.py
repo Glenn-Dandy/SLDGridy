@@ -64,17 +64,33 @@ def test_newer_format_version_is_rejected():
 def test_migrations_run_in_order(monkeypatch):
     calls = []
 
-    def v1_to_v2(data):
+    def next_version(data):
         calls.append(1)
         data["model"]["entities"] = []
         return data
 
     data = document_to_dict(make_document())
-    monkeypatch.setattr(json_format, "FORMAT_VERSION", 2)
-    monkeypatch.setitem(json_format.MIGRATIONS, 1, v1_to_v2)
+    monkeypatch.setattr(json_format, "FORMAT_VERSION", FORMAT_VERSION + 1)
+    monkeypatch.setitem(json_format.MIGRATIONS, FORMAT_VERSION, next_version)
     doc = document_from_dict(data)
     assert calls == [1]
     assert list(doc.model_space) == []
+
+
+def test_version_1_file_gets_title_block_and_viewport():
+    v1 = {
+        "format_version": 1,
+        "layers": [{"name": "0"}],
+        "blocks": [],
+        "model": {"entities": [{"type": "line", "id": "a", "p1": [0, 0], "p2": [1, 0]}]},
+        "sheets": [{"name": "Blatt 1", "paper": "A3", "orientation": "portrait", "entities": []}],
+    }
+    doc = document_from_dict(v1)
+    sheet = doc.sheets[0]
+    assert sheet.title_block == "Schriftfeld" and "Schriftfeld" in doc.blocks
+    (vp,) = sheet.viewports()
+    assert (vp.p1.x, vp.p1.y, vp.p2.x, vp.p2.y) == (20, 10, 287, 410)
+    assert document_to_dict(doc)["format_version"] == FORMAT_VERSION
 
 
 def test_invalid_files_raise_format_error(tmp_path):

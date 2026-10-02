@@ -1,0 +1,164 @@
+"""How document entities are displayed: styles, expansion and whole-area painting.
+
+Shared by the scene items on screen and by printing and export.
+"""
+
+from dataclasses import dataclass
+
+from PyQt6.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtGui import QBrush, QColor, QPainter, QPen
+
+from sldgridy.model.blocks import BlockError, expand
+from sldgridy.model.document import Document, SheetLayout
+from sldgridy.model.entities import BlockReference, Entity, Viewport, Wire
+from sldgridy.model.sheet import frame_entities, title_block_reference
+from sldgridy.model.wires import junction_diameter, junctions, label_text
+from sldgridy.view.render import Style, entity_bounds, make_pen, paint_entity
+
+BLACK = QColor("black")
+VIEWPORT_HELPER_COLOR = QColor("#8a8a8a")
+
+
+@dataclass(frozen=True)
+class OutputOptions:
+    """Rendering choices; screen uses the defaults, printing switches helpers off."""
+
+    helpers: bool = True
+    printable_only: bool = False
+    monochrome: bool = False
+
+
+SCREEN = OutputOptions()
+
+
+def resolve_style(doc: Document, e: Entity, monochrome: bool = False) -> Style:
+    color = BLACK if monochrome else QColor(doc.effective_color(e))
+    return Style(color, doc.effective_lineweight(e), doc.effective_linetype(e))
+
+
+def expand_for_display(doc: Document, e: Entity) -> list[Entity]:
+    """Simple entities that make up ``e`` on screen and on paper."""
+    if isinstance(e, Wire):
+        label = label_text(e)
+        return [e, label] if label is not None else [e]
+    if isinstance(e, BlockReference):
+        try:
+            return expand(e, doc.blocks)
+        except BlockError:
+            return []
+    return [e]
+
+
+def _shown(doc: Document, e: Entity, options: OutputOptions) -> bool:
+    layer = doc.layer(e.layer)
+    return layer.visible and (layer.printable or not options.printable_only)
+
+
+def paint_entities(
+    painter: QPainter,
+    doc: Document,
+    entities: list[Entity],
+    px_per_mm: float,
+    options: OutputOptions,
+) -> None:
+    """Paint a container's entities (no viewports) plus the junction dots of its wires."""
+    shown = [e for e in entities if not isinstance(e, Viewport) and _shown(doc, e, options)]
+    for e in shown:
+        for part in expand_for_display(doc, e):
+            if not _shown(doc, part, options):
+                continue
+            style = resolve_style(doc, part, options.monochrome)
+            paint_entity(painter, part, style, px_per_mm, options.helpers)
+    painter.setPen(Qt.PenStyle.NoPen)
+    for p, wire in junctions(shown):
+        style = resolve_style(doc, wire, options.monochrome)
+        d = junction_diameter(style.lineweight)
+        painter.setBrush(QBrush(style.color))
+        painter.drawEllipse(QPointF(p.x, p.y), d / 2, d / 2)
+
+
+def viewport_rect(vp: Viewport) -> QRectF:
+    return QRectF(vp.left, vp.top, vp.width, vp.height)
+
+
+def paint_viewport(
+    painter: QPainter,
+    doc: Document,
+    vp: Viewport,
+    px_per_mm: float,
+    options: OutputOptions,
+) -> None:
+    """Model content clipped to the viewport, then its border if wanted."""
+    rect = viewport_rect(vp)
+    painter.save()
+    painter.setClipRect(rect, Qt.ClipOperation.IntersectClip)
+    c = vp.sheet_center
+    painter.translate(c.x, c.y)
+    painter.scale(vp.scale, vp.scale)
+    painter.translate(-vp.center.x, -vp.center.y)
+    paint_entities(painter, doc, list(doc.model_space), px_per_mm * vp.scale, options)
+    painter.restore()
+    if vp.print_border and _shown(doc, vp, options):
+        style = resolve_style(doc, vp, options.monochrome)
+        painter.setPen(make_pen(style.color, style.lineweight, px_per_mm if options.helpers else 0))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRect(rect)
+    elif options.helpers:
+        pen = QPen(VIEWPORT_HELPER_COLOR, 0, Qt.PenStyle.DashLine)
+        pen.setCosmetic(True)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRect(rect)
+
+
+def title_block_parts(doc: Document, sheet: SheetLayout) -> list[Entity]:
+    if not sheet.title_block or sheet.title_block not in doc.blocks:
+        return []
+    w, h = sheet.size
+    ref = title_block_reference(sheet.title_block, w, h, doc.field_values(sheet.id))
+    try:
+        return expand(ref, doc.blocks)
+    except BlockError:
+        return []
+
+
+def paint_frame(
+    painter: QPainter,
+    doc: Document,
+    sheet: SheetLayout,
+    px_per_mm: float,
+    options: OutputOptions,
+) -> None:
+    """Border, centring marks and the title block (opaque) of a sheet."""
+    color = BLACK
+    w, h = sheet.size
+    for e in frame_entities(w, h):
+        paint_entity(painter, e, Style(color, e.lineweight or 0.7), px_per_mm, options.helpers)
+    parts = title_block_parts(doc, sheet)
+    if not parts:
+        return
+    bounds = QRectF()
+    for part in parts:
+        bounds = bounds.united(entity_bounds(part, part.lineweight or 0.35))
+    painter.fillRect(bounds, QColor("white"))
+    for part in parts:
+        style = Style(
+            BLACK if options.monochrome or part.color is None else QColor(part.color),
+            part.lineweight if part.lineweight is not None else 0.25,
+            part.linetype or "continuous",
+        )
+        paint_entity(painter, part, style, px_per_mm, options.helpers)
+
+
+def paint_sheet(
+    painter: QPainter,
+    doc: Document,
+    sheet: SheetLayout,
+    px_per_mm: float,
+    options: OutputOptions,
+) -> None:
+    """Everything printed on a sheet, in the same stacking order as on screen."""
+    for vp in sheet.viewports():
+        paint_viewport(painter, doc, vp, px_per_mm, options)
+    paint_entities(painter, doc, list(sheet.entities), px_per_mm, options)
+    paint_frame(painter, doc, sheet, px_per_mm, options)

@@ -1,0 +1,473 @@
+{
+ "format_version": 2,
+ "type": "frame",
+ "name": "A1 quer (DIN EN ISO 5457)",
+ "paper": "A1",
+ "orientation": "landscape",
+ "title_block": "Schriftfeld",
+ "blocks": [
+  {
+   "name": "Schriftfeld",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Rahmen",
+   "description": "Schriftfeld nach DIN EN ISO 7200, 180 mm breit",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "frame",
+     "layer": "0",
+     "lineweight": 0.7,
+     "p1": [
+      -180,
+      -36
+     ],
+     "p2": [
+      0,
+      0
+     ]
+    },
+    {
+     "type": "line",
+     "id": "v1",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -120,
+      -36
+     ],
+     "p2": [
+      -120,
+      0
+     ]
+    },
+    {
+     "type": "line",
+     "id": "v2",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -40,
+      -36
+     ],
+     "p2": [
+      -40,
+      0
+     ]
+    },
+    {
+     "type": "line",
+     "id": "h0",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -180,
+      -18
+     ],
+     "p2": [
+      -120,
+      -18
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_firma",
+     "layer": "0",
+     "position": [
+      -179.0,
+      -33.2
+     ],
+     "text": "Firma",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_firma",
+     "layer": "0",
+     "tag": "FIRMA",
+     "prompt": "Firma",
+     "default": "",
+     "position": [
+      -178.5,
+      -25.5
+     ],
+     "height": 5.0,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h1",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -180,
+      -9
+     ],
+     "p2": [
+      -120,
+      -9
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_bearbeiter",
+     "layer": "0",
+     "position": [
+      -179.0,
+      -15.2
+     ],
+     "text": "Bearbeiter",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bearbeiter",
+     "layer": "0",
+     "tag": "BEARBEITER",
+     "prompt": "Bearbeiter",
+     "default": "",
+     "position": [
+      -178.5,
+      -12.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "label_geprueft",
+     "layer": "0",
+     "position": [
+      -179.0,
+      -6.2
+     ],
+     "text": "Geprüft",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_geprueft",
+     "layer": "0",
+     "tag": "GEPRUEFT",
+     "prompt": "Geprüft",
+     "default": "",
+     "position": [
+      -178.5,
+      -3.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h3",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -120,
+      -27
+     ],
+     "p2": [
+      -40,
+      -27
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_projekt",
+     "layer": "0",
+     "position": [
+      -119.0,
+      -33.2
+     ],
+     "text": "Projekt",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_projekt",
+     "layer": "0",
+     "tag": "PROJEKT",
+     "prompt": "Projekt",
+     "default": "",
+     "position": [
+      -118.5,
+      -30.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h4",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -120,
+      -9
+     ],
+     "p2": [
+      -40,
+      -9
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_titel",
+     "layer": "0",
+     "position": [
+      -119.0,
+      -24.2
+     ],
+     "text": "Titel",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_titel",
+     "layer": "0",
+     "tag": "TITEL",
+     "prompt": "Titel",
+     "default": "",
+     "position": [
+      -118.5,
+      -16.5
+     ],
+     "height": 5.0,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "label_zeichnungsnr",
+     "layer": "0",
+     "position": [
+      -119.0,
+      -6.2
+     ],
+     "text": "Zeichnungsnummer",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_zeichnungsnr",
+     "layer": "0",
+     "tag": "ZEICHNUNGSNR",
+     "prompt": "Zeichnungsnummer",
+     "default": "",
+     "position": [
+      -118.5,
+      -3.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h6",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -40,
+      -27
+     ],
+     "p2": [
+      0,
+      -27
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_aenderung",
+     "layer": "0",
+     "position": [
+      -39.0,
+      -33.2
+     ],
+     "text": "Änderungsindex",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_aenderung",
+     "layer": "0",
+     "tag": "AENDERUNG",
+     "prompt": "Änderungsindex",
+     "default": "",
+     "position": [
+      -38.5,
+      -30.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h7",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -40,
+      -18
+     ],
+     "p2": [
+      0,
+      -18
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_datum",
+     "layer": "0",
+     "position": [
+      -39.0,
+      -24.2
+     ],
+     "text": "Datum",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_datum",
+     "layer": "0",
+     "tag": "DATUM",
+     "prompt": "Datum",
+     "default": "",
+     "position": [
+      -38.5,
+      -21.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "h8",
+     "layer": "0",
+     "lineweight": 0.35,
+     "p1": [
+      -40,
+      -9
+     ],
+     "p2": [
+      0,
+      -9
+     ]
+    },
+    {
+     "type": "text",
+     "id": "label_blatt",
+     "layer": "0",
+     "position": [
+      -39.0,
+      -15.2
+     ],
+     "text": "Blatt",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_blatt",
+     "layer": "0",
+     "tag": "BLATT",
+     "prompt": "Blatt",
+     "default": "",
+     "position": [
+      -38.5,
+      -12.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "label_format",
+     "layer": "0",
+     "position": [
+      -39.0,
+      -6.2
+     ],
+     "text": "Format",
+     "height": 1.8,
+     "rotation": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_format",
+     "layer": "0",
+     "tag": "FORMAT",
+     "prompt": "Format",
+     "default": "",
+     "position": [
+      -38.5,
+      -3.0
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  }
+ ],
+ "entities": [
+  {
+   "type": "viewport",
+   "id": "5747ced9b57c476e8e398793e1a1a54e",
+   "layer": "0",
+   "p1": [
+    20.0,
+    10.0
+   ],
+   "p2": [
+    831.0,
+    584.0
+   ],
+   "center": [
+    405.5,
+    287.0
+   ],
+   "scale": 1.0,
+   "locked": false,
+   "print_border": false
+  }
+ ]
+}

@@ -3,7 +3,17 @@
 import math
 from dataclasses import dataclass
 
-from sldgridy.model.entities import Arc, Busbar, Circle, Entity, Line, Polyline, Rectangle, Wire
+from sldgridy.model.entities import (
+    Arc,
+    Busbar,
+    Circle,
+    Entity,
+    Line,
+    Polyline,
+    Rectangle,
+    Viewport,
+    Wire,
+)
 from sldgridy.model.geometry import Point, angle_deg, midpoint, point_at_angle
 
 EPS = 1e-9
@@ -33,7 +43,7 @@ class ArcPrim:
 Primitive = Segment | ArcPrim
 
 
-def rect_corners(r: Rectangle) -> list[Point]:
+def rect_corners(r: Rectangle | Viewport) -> list[Point]:
     return [r.p1, Point(r.p2.x, r.p1.y), r.p2, Point(r.p1.x, r.p2.y)]
 
 
@@ -48,7 +58,7 @@ def primitives(e: Entity) -> list[Primitive]:
             if e.closed:
                 pts.append(pts[0])
             return [Segment(a, b) for a, b in zip(pts, pts[1:], strict=False)]
-        case Rectangle():
+        case Rectangle() | Viewport():
             c = rect_corners(e)
             return [Segment(c[i], c[(i + 1) % 4]) for i in range(4)]
         case Circle():

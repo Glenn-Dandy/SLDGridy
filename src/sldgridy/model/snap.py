@@ -4,7 +4,17 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import StrEnum
 
-from sldgridy.model.entities import Arc, Busbar, Circle, Entity, Line, Polyline, Rectangle, Wire
+from sldgridy.model.entities import (
+    Arc,
+    Busbar,
+    Circle,
+    Entity,
+    Line,
+    Polyline,
+    Rectangle,
+    Viewport,
+    Wire,
+)
 from sldgridy.model.geometry import Point, distance
 from sldgridy.model.primitives import (
     arc_endpoints,
@@ -57,8 +67,8 @@ def candidates(e: Entity, modes: frozenset[SnapMode]) -> list[SnapHit]:
         case Wire():
             if end in modes:
                 hits += [SnapHit(p, end) for p in e.points]
-        case Polyline() | Rectangle():
-            pts = rect_corners(e) if isinstance(e, Rectangle) else list(e.points)
+        case Polyline() | Rectangle() | Viewport():
+            pts = list(e.points) if isinstance(e, Polyline) else rect_corners(e)
             if end in modes:
                 hits += [SnapHit(p, end) for p in pts]
         case Circle():
@@ -71,7 +81,7 @@ def candidates(e: Entity, modes: frozenset[SnapMode]) -> list[SnapHit]:
                 hits.append(SnapHit(arc_midpoint(e), mid))
             if cen in modes:
                 hits.append(SnapHit(e.center, cen))
-    if mid in modes and isinstance(e, Line | Polyline | Rectangle | Wire | Busbar):
+    if mid in modes and isinstance(e, Line | Polyline | Rectangle | Wire | Busbar | Viewport):
         hits += [SnapHit(segment_midpoint(s), mid) for s in primitives(e)]
     return hits
 

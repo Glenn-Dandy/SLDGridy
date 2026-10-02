@@ -5,9 +5,16 @@ from dataclasses import dataclass, field
 
 from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.container import EntityContainer
-from sldgridy.model.entities import Entity
+from sldgridy.model.entities import Entity, Viewport, new_id
 from sldgridy.model.layers import DEFAULT_LAYER, Layer
 from sldgridy.model.paper import DEFAULT_FORMAT, DEFAULT_ORIENTATION, Orientation, sheet_size
+from sldgridy.model.sheet import default_viewport
+from sldgridy.model.title_block import (
+    DOCUMENT_FIELDS,
+    SHEET_FIELDS,
+    TITLE_BLOCK_NAME,
+    title_block_definition,
+)
 
 
 class ModelSpace(EntityContainer):
@@ -16,16 +23,38 @@ class ModelSpace(EntityContainer):
 
 @dataclass
 class SheetLayout:
-    """A drawing frame: a paper sheet with border, title block and viewports."""
+    """A drawing frame: a paper sheet with border, title block and viewports.
+
+    Sheet objects and viewports live in ``entities``. Border and title block
+    position follow from the format.
+    """
 
     name: str
     paper: str = DEFAULT_FORMAT
     orientation: Orientation = DEFAULT_ORIENTATION
     entities: EntityContainer = field(default_factory=EntityContainer)
+    id: str = field(default_factory=new_id)
+    title_block: str = TITLE_BLOCK_NAME
+    # Per-sheet title block values (TITEL, ZEICHNUNGSNR, DATUM, GEPRUEFT, AENDERUNG).
+    fields: dict[str, str] = field(default_factory=dict)
 
     @property
     def size(self) -> tuple[float, float]:
         return sheet_size(self.paper, self.orientation)
+
+    def viewports(self) -> list[Viewport]:
+        return [e for e in self.entities if isinstance(e, Viewport)]
+
+
+def new_sheet(
+    name: str,
+    paper: str = DEFAULT_FORMAT,
+    orientation: Orientation = DEFAULT_ORIENTATION,
+) -> SheetLayout:
+    """Sheet with one viewport filling the drawing area."""
+    sheet = SheetLayout(name=name, paper=paper, orientation=orientation)
+    sheet.entities.add(default_viewport(*sheet.size))
+    return sheet
 
 
 @dataclass
@@ -34,6 +63,11 @@ class Document:
     sheets: list[SheetLayout] = field(default_factory=list)
     layers: list[Layer] = field(default_factory=lambda: [Layer(DEFAULT_LAYER)])
     blocks: dict[str, BlockDefinition] = field(default_factory=dict)
+    # Drawing-wide title block values (PROJEKT, FIRMA, BEARBEITER).
+    properties: dict[str, str] = field(default_factory=dict)
+    _sheet_listeners: list[Callable[[], None]] = field(
+        default_factory=list, repr=False, compare=False
+    )
     _layer_listeners: list[Callable[[], None]] = field(
         default_factory=list, repr=False, compare=False
     )
@@ -43,8 +77,69 @@ class Document:
 
     @classmethod
     def new(cls, first_sheet_name: str) -> "Document":
-        """Create an empty drawing with one A0 landscape sheet."""
-        return cls(sheets=[SheetLayout(name=first_sheet_name)])
+        """Create an empty drawing with one A0 landscape sheet and the standard title block."""
+        doc = cls(sheets=[new_sheet(first_sheet_name)])
+        doc.blocks[TITLE_BLOCK_NAME] = title_block_definition()
+        return doc
+
+    # -- sheets -------------------------------------------------------------
+
+    def subscribe_sheets(self, listener: Callable[[], None]) -> None:
+        self._sheet_listeners.append(listener)
+
+    def unsubscribe_sheets(self, listener: Callable[[], None]) -> None:
+        self._sheet_listeners.remove(listener)
+
+    def sheets_changed(self) -> None:
+        """Notify listeners; called after any change to the sheet list or sheet settings."""
+        for listener in list(self._sheet_listeners):
+            listener()
+
+    def sheet_index(self, sheet_id: str) -> int:
+        for i, s in enumerate(self.sheets):
+            if s.id == sheet_id:
+                return i
+        raise KeyError(sheet_id)
+
+    def sheet(self, sheet_id: str) -> SheetLayout:
+        return self.sheets[self.sheet_index(sheet_id)]
+
+    def insert_sheet(self, index: int, sheet: SheetLayout) -> None:
+        self.sheets.insert(index, sheet)
+        self.sheets_changed()
+
+    def remove_sheet(self, sheet_id: str) -> tuple[int, SheetLayout]:
+        if len(self.sheets) <= 1:
+            raise ValueError("a drawing keeps at least one sheet")
+        i = self.sheet_index(sheet_id)
+        sheet = self.sheets.pop(i)
+        self.sheets_changed()
+        return i, sheet
+
+    def move_sheet(self, old: int, new: int) -> None:
+        sheet = self.sheets.pop(old)
+        self.sheets.insert(new, sheet)
+        self.sheets_changed()
+
+    def unique_sheet_name(self, base: str) -> str:
+        names = {s.name for s in self.sheets}
+        if base not in names:
+            return base
+        n = 2
+        while f"{base} ({n})" in names:
+            n += 1
+        return f"{base} ({n})"
+
+    def field_values(self, sheet_id: str) -> dict[str, str]:
+        """Title block values of a sheet including computed ones."""
+        index = self.sheet_index(sheet_id)
+        sheet = self.sheets[index]
+        values = {tag: self.properties.get(tag, "") for tag in DOCUMENT_FIELDS}
+        values.update({tag: sheet.fields.get(tag, "") for tag in SHEET_FIELDS})
+        values["BLATT"] = f"{index + 1} von {len(self.sheets)}"
+        orientation = "quer" if sheet.orientation is Orientation.LANDSCAPE else "hoch"
+        values["FORMAT"] = f"{sheet.paper} {orientation}"
+        return values
 
     def containers(self) -> Iterator[EntityContainer]:
         """Every entity container of the drawing."""

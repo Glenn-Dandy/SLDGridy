@@ -19,16 +19,40 @@ from sldgridy.model.entities import (
     Polyline,
     Rectangle,
     Text,
+    Viewport,
     Wire,
+    new_id,
 )
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER, Layer
-from sldgridy.model.paper import Orientation
+from sldgridy.model.paper import Orientation, sheet_size
+from sldgridy.model.sheet import default_viewport
+from sldgridy.model.title_block import TITLE_BLOCK_NAME, title_block_definition
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
+
+
+def _migrate_1_to_2(data: dict) -> dict:
+    """Version 2 adds sheet ids, title blocks, title block fields and viewports."""
+    if data.get("type") in ("library", "frame"):
+        return data  # nothing changed for these file types
+    data.setdefault("properties", {})
+    blocks = data.setdefault("blocks", [])
+    if not any(b.get("name") == TITLE_BLOCK_NAME for b in blocks if isinstance(b, dict)):
+        blocks.append(block_to_dict(title_block_definition()))
+    for sheet in data.get("sheets", []):
+        sheet.setdefault("id", new_id())
+        sheet.setdefault("title_block", TITLE_BLOCK_NAME)
+        sheet.setdefault("fields", {})
+        entities = sheet.setdefault("entities", [])
+        if not any(e.get("type") == "viewport" for e in entities):
+            w, h = sheet_size(str(sheet.get("paper", "A0")), Orientation(sheet["orientation"]))
+            entities.insert(0, entity_to_dict(default_viewport(w, h)))
+    return data
+
 
 # Migration from version N to N + 1, keyed by N.
-MIGRATIONS: dict[int, Callable[[dict], dict]] = {}
+MIGRATIONS: dict[int, Callable[[dict], dict]] = {1: _migrate_1_to_2}
 
 
 class FileFormatError(Exception):
@@ -61,6 +85,7 @@ _TYPE_NAMES: dict[type, str] = {
     BlockReference: "block_ref",
     Wire: "wire",
     Busbar: "busbar",
+    Viewport: "viewport",
 }
 
 
@@ -102,6 +127,9 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
             d["visible"], d["halign"], d["valign"] = e.visible, e.halign, e.valign
         case ConnectionPoint():
             d["name"], d["position"], d["direction"] = e.name, _pt(e.position), e.direction
+        case Viewport():
+            d["p1"], d["p2"], d["center"] = _pt(e.p1), _pt(e.p2), _pt(e.center)
+            d["scale"], d["locked"], d["print_border"] = e.scale, e.locked, e.print_border
         case BlockReference():
             d["name"], d["insert"] = e.name, _pt(e.insert)
             d["rotation"], d["mirrored"] = e.rotation, e.mirrored_x
@@ -123,6 +151,19 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
             return Line(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
         case "rectangle":
             return Rectangle(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
+        case "viewport":
+            scale = float(d.get("scale", 1.0))
+            if not scale > 0:
+                raise FileFormatError("viewport scale must be positive")
+            return Viewport(
+                p1=_to_pt(d["p1"]),
+                p2=_to_pt(d["p2"]),
+                center=_to_pt(d["center"]),
+                scale=scale,
+                locked=bool(d.get("locked", False)),
+                print_border=bool(d.get("print_border", False)),
+                **common,
+            )
         case "busbar":
             return Busbar(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
         case "wire":
@@ -279,18 +320,11 @@ def document_to_dict(doc: Document) -> dict[str, Any]:
     return {
         "format_version": FORMAT_VERSION,
         "application": f"SLDGridy {__version__}",
+        "properties": dict(doc.properties),
         "layers": [_layer_to_dict(layer) for layer in doc.layers],
         "blocks": [block_to_dict(b) for b in doc.blocks.values()],
         "model": {"entities": [entity_to_dict(e) for e in doc.model_space]},
-        "sheets": [
-            {
-                "name": s.name,
-                "paper": s.paper,
-                "orientation": s.orientation.value,
-                "entities": [entity_to_dict(e) for e in s.entities],
-            }
-            for s in doc.sheets
-        ],
+        "sheets": [sheet_to_dict(s) for s in doc.sheets],
     }
 
 
@@ -318,15 +352,39 @@ def document_from_dict(data: dict[str, Any]) -> Document:
         if not any(layer.name == DEFAULT_LAYER for layer in layers):
             layers.insert(0, Layer(DEFAULT_LAYER))
         model = ModelSpace(entity_from_dict(d) for d in data["model"]["entities"])
-        sheets = [
-            SheetLayout(
-                name=str(s["name"]),
-                paper=str(s["paper"]),
-                orientation=Orientation(s["orientation"]),
-                entities=EntityContainer(entity_from_dict(d) for d in s.get("entities", [])),
-            )
-            for s in data["sheets"]
-        ]
+        sheets = [sheet_from_dict(s) for s in data["sheets"]]
+        if not sheets:
+            raise FileFormatError("a drawing needs at least one sheet")
+        properties = {str(k): str(v) for k, v in data.get("properties", {}).items()}
     except (KeyError, TypeError, ValueError) as exc:
         raise FileFormatError(f"invalid drawing data: {exc}") from exc
-    return Document(model_space=model, sheets=sheets, layers=layers, blocks=blocks)
+    return Document(
+        model_space=model, sheets=sheets, layers=layers, blocks=blocks, properties=properties
+    )
+
+
+def sheet_to_dict(s: SheetLayout) -> dict[str, Any]:
+    return {
+        "id": s.id,
+        "name": s.name,
+        "paper": s.paper,
+        "orientation": s.orientation.value,
+        "title_block": s.title_block,
+        "fields": dict(s.fields),
+        "entities": [entity_to_dict(e) for e in s.entities],
+    }
+
+
+def sheet_from_dict(s: dict[str, Any]) -> SheetLayout:
+    paper = str(s["paper"])
+    orientation = Orientation(s["orientation"])
+    sheet_size(paper, orientation)  # validates the format
+    return SheetLayout(
+        id=str(s.get("id") or new_id()),
+        name=str(s["name"]),
+        paper=paper,
+        orientation=orientation,
+        title_block=str(s.get("title_block", TITLE_BLOCK_NAME)),
+        fields={str(k): str(v) for k, v in s.get("fields", {}).items()},
+        entities=EntityContainer(entity_from_dict(d) for d in s.get("entities", [])),
+    )

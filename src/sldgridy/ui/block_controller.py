@@ -544,9 +544,9 @@ class BlockController(QObject):
         stack = QUndoStack(self.w)
         space = self.w._make_space(BLOCK, working.entities, stack)
         space.extra["definition"] = working
+        space.extra["overlay"] = self._draw_base_point
         self.editor_space = space
         self._show_bar(name)
-        self.w.canvas.extra_overlay = self._draw_base_point
         self.w.activate_space(space)
         self.w.canvas.zoom_extents()
 
@@ -647,7 +647,6 @@ class BlockController(QObject):
                 return False
         self.w.tools.cancel()
         self.editor_space = None
-        self.w.canvas.extra_overlay = None
         if self._editor_bar is not None:
             self._editor_bar.hide()
         self.w.activate_space(self.w.model_view)

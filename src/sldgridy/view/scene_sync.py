@@ -24,9 +24,11 @@ class SceneSync:
         resolve_style: StyleResolver,
         layer_state: LayerState = _always_visible,
         expand: Expander = _identity,
+        item_factory: Callable[[Entity], EntityItem | None] | None = None,
     ) -> None:
         self._layer_state = layer_state
         self._expand = expand
+        self._item_factory = item_factory
         self._scene = scene
         self._container = container
         self._resolve_style = resolve_style
@@ -56,7 +58,9 @@ class SceneSync:
             item.set_layer_state(*self._layer_state(item.entity))
 
     def _add(self, e: Entity) -> None:
-        item = EntityItem(e, self._resolve_style, self._expand)
+        item = self._item_factory(e) if self._item_factory is not None else None
+        if item is None:
+            item = EntityItem(e, self._resolve_style, self._expand)
         item.set_layer_state(*self._layer_state(e))
         self._items[e.id] = item
         self._scene.addItem(item)

@@ -14,6 +14,7 @@ from sldgridy.model.entities import (
     Polyline,
     Rectangle,
     Text,
+    Viewport,
     Wire,
 )
 from sldgridy.model.geometry import Point, angle_deg
@@ -32,7 +33,7 @@ def grip_points(e: Entity) -> list[Point]:
             return [e.position]
         case Polyline():
             return list(e.points)
-        case Rectangle():
+        case Rectangle() | Viewport():
             return rect_corners(e)
         case Circle():
             return [e.center]
@@ -58,7 +59,7 @@ def move_grip(e: Entity, index: int, p: Point) -> Entity | None:
             pts = list(e.points)
             pts[index] = p
             return replace(e, points=tuple(pts))
-        case Rectangle():
+        case Rectangle() | Viewport():
             opposite = rect_corners(e)[(index + 2) % 4]
             if p.x == opposite.x or p.y == opposite.y:
                 return None

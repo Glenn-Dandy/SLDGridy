@@ -271,3 +271,68 @@ class Busbar(Entity):
 
     def _mapped(self, fn, quarters):
         return replace(self, p1=fn(self.p1), p2=fn(self.p2))
+
+
+@dataclass(frozen=True, kw_only=True)
+class Viewport(Entity):
+    """Window on a sheet showing part of the model.
+
+    ``p1``/``p2`` are opposite corners on the sheet, ``center`` is the model
+    point shown in the middle and ``scale`` is sheet mm per model mm
+    (1 = 1:1, 0.5 = 1:2, 2 = 2:1).
+    """
+
+    p1: Point
+    p2: Point
+    center: Point
+    scale: float = 1.0
+    locked: bool = False
+    print_border: bool = False
+
+    def _mapped(self, fn, quarters):
+        return replace(self, p1=fn(self.p1), p2=fn(self.p2))
+
+    @property
+    def left(self) -> float:
+        return min(self.p1.x, self.p2.x)
+
+    @property
+    def top(self) -> float:
+        return min(self.p1.y, self.p2.y)
+
+    @property
+    def width(self) -> float:
+        return abs(self.p2.x - self.p1.x)
+
+    @property
+    def height(self) -> float:
+        return abs(self.p2.y - self.p1.y)
+
+    @property
+    def sheet_center(self) -> Point:
+        return Point(self.left + self.width / 2, self.top + self.height / 2)
+
+    def model_to_sheet(self, p: Point) -> Point:
+        c = self.sheet_center
+        return Point(
+            c.x + (p.x - self.center.x) * self.scale, c.y + (p.y - self.center.y) * self.scale
+        )
+
+    def sheet_to_model(self, p: Point) -> Point:
+        c = self.sheet_center
+        return Point(
+            self.center.x + (p.x - c.x) / self.scale, self.center.y + (p.y - c.y) / self.scale
+        )
+
+    def model_rect(self) -> tuple[Point, Point]:
+        """Top left and bottom right of the model area shown."""
+        hw, hh = self.width / 2 / self.scale, self.height / 2 / self.scale
+        return (
+            Point(self.center.x - hw, self.center.y - hh),
+            Point(self.center.x + hw, self.center.y + hh),
+        )
+
+    def contains(self, p: Point) -> bool:
+        return (
+            self.left <= p.x <= self.left + self.width and self.top <= p.y <= self.top + self.height
+        )

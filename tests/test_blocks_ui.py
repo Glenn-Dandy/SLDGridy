@@ -164,7 +164,7 @@ def test_library_drop_copies_definitions(window):
     window.library_dock.reload()
     assert str(path) in window.library_dock.libraries
     window.canvas.block_dropped.emit({"path": str(path), "name": "Feld"}, QPointF(40, 40))
-    assert set(window.document.blocks) == {"Feld", "Sicherung"}
+    assert {"Feld", "Sicherung"} <= set(window.document.blocks)
     (ref,) = refs(window)
     assert ref.name == "Feld" and ref.insert == Point(40, 40)
     window.act_undo.trigger()

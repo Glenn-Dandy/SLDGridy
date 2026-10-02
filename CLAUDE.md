@@ -91,6 +91,17 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 - Doppelklick in ein Ansichtsfenster aktiviert es, dann lässt sich der Ausschnitt verschieben und zoomen. Modellobjekte werden dort nicht bearbeitet, das geschieht nur im Reiter „Modell“.
 - Linienbreiten und Texthöhen skalieren mit dem Maßstab des Ansichtsfensters. Bei 1:1 entsprechen sie den eingestellten Millimetern.
 
+Umsetzung (M6):
+
+- Ansichtsfenster (`Viewport`) sind Objekte im Container des Blatts: verschieben, Ecken per Griff ziehen, löschen und kopieren wie andere Objekte. Auswahl nur über den Rand. `scale` ist Blatt-mm je Modell-mm. Ein neues Blatt bekommt ein Ansichtsfenster über der Zeichenfläche im Rahmen; der Modell-Nullpunkt liegt dann an der linken oberen Rahmenecke.
+- Doppelklick in ein Ansichtsfenster aktiviert es (Rand blau), Mausrad und mittlere Taste ändern Maßstab bzw. Ausschnitt; aufeinanderfolgende Schritte werden zu einem Undo-Schritt zusammengefasst. Esc oder Doppelklick außerhalb beendet. Maßstab, Sperre, Rahmen drucken und „Modellgrenzen einpassen“ im Eigenschaften-Dock (Maßstab als `1:5`, `2:1`, `1:2,5` oder Faktor).
+- Rahmen und Mittenmarken (0,7 mm) und die Lage des Schriftfelds werden aus dem Format abgeleitet und nicht gespeichert. Das Schriftfeld ist eine Blockreferenz auf `SheetLayout.title_block` (Standard „Schriftfeld“, im Blockeditor änderbar) mit Einfügepunkt an der rechten unteren Rahmenecke; es wird deckend über Ansichtsfenstern und Blattobjekten gezeichnet.
+- Reservierte Attributkennungen im Schriftfeld: dokumentweit `PROJEKT`, `FIRMA`, `BEARBEITER` (`Document.properties`), je Blatt `TITEL`, `ZEICHNUNGSNR`, `DATUM`, `GEPRUEFT`, `AENDERUNG` (`SheetLayout.fields`), berechnet `BLATT` („x von y“ aus der Reiterreihenfolge) und `FORMAT`. Ausfüllen über Blatt > Schriftfeld ausfüllen.
+- Reiter: „Modell“ bleibt vorn, Blätter lassen sich verschieben (Undo-Kommando), Kontextmenü auf dem Reiter. Das letzte Blatt kann nicht gelöscht werden.
+- Blattumrisse im Modell: gestrichelt mit Blattnamen, Blatt > Blattumrisse im Modell.
+- Rahmenvorlagen `.sldgframe`: `{"format_version", "type": "frame", "name", "paper", "orientation", "title_block", "blocks", "entities"}`; Feldwerte werden nicht übernommen. Mitgeliefert: `src/sldgridy/resources/templates/A4_hoch … A0_quer` (10 Dateien). Blöcke einer Vorlage, die es in der Zeichnung schon anders gibt, bleiben in der Fassung der Zeichnung.
+- Dateiformat Version 2: Blätter mit `id`, `title_block`, `fields`, Dokument mit `properties`; Migration 1 → 2 ergänzt Schriftfeld-Block und Ansichtsfenster. Bibliotheken bleiben unverändert.
+
 ### Zeichnen
 
 - Elemente: Linie, Polylinie, Rechteck, Kreis, Bogen, Text (einzeilig und mehrzeilig, Höhen 2,5 / 3,5 / 5 / 7 mm), Leitung, Sammelschiene.
@@ -197,7 +208,7 @@ Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Cod
 - Koordinaten: Winkel in Grad gegen den Uhrzeigersinn am Bildschirm, 0° zeigt nach +X. Text: Einfügepunkt ist das linke Ende der ersten Grundlinie, die Texthöhe ist die Versalhöhe, Zeilenabstand 1,6 × Texthöhe.
 - Zeichnung: `.sldg`, JSON in UTF-8, mit `format_version`. Enthält Ebenen, alle verwendeten Blockdefinitionen, die Objekte des Modells sowie alle Zeichnungsrahmen mit Format, Schriftfeldwerten, Blattobjekten und Ansichtsfenstern.
 - Bibliothek: `.sldglib`, JSON `{"format_version", "type": "library", "name", "blocks": [...]}`.
-- Rahmenvorlage: `.sldgframe`, JSON mit einem Zeichnungsrahmen ohne Ansichtsinhalt.
+- Rahmenvorlage: `.sldgframe`, JSON mit einem Zeichnungsrahmen ohne Ansichtsinhalt. Benutzervorlagen in `~/.local/share/sldgridy/templates/`.
 - Speichern atomar: in eine temporäre Datei schreiben, dann umbenennen. Vor dem Überschreiben eine `.bak` behalten (`name.sldg.bak`).
 - Automatische Sicherung alle 5 Minuten nach `~/.cache/sldgridy/`, beim Start Wiederherstellung anbieten.
 - Fenster- und Programmeinstellungen über `QSettings`.

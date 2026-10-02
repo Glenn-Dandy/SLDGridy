@@ -64,9 +64,10 @@ from sldgridy.ui.layers_dock import LayersDock
 from sldgridy.ui.library_dock import LibraryDock
 from sldgridy.ui.osnap_dialog import OsnapDialog
 from sldgridy.ui.properties_dock import PropertiesDock
-from sldgridy.ui.space import BLOCK, MODEL, Space
+from sldgridy.ui.sheet_controller import SheetController
+from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
 from sldgridy.ui.text_dialog import TextDialog
-from sldgridy.view.canvas import Canvas
+from sldgridy.view.canvas import BACKGROUND_COLOR, Canvas
 from sldgridy.view.items import EntityItem
 from sldgridy.view.junctions import JunctionItem
 from sldgridy.view.render import Style
@@ -115,6 +116,10 @@ class MainWindow(QMainWindow):
         self._subscribe_document()
 
         self.blocks = BlockController(self)
+        self.sheets = SheetController(self)
+        self.central_layout.insertWidget(1, self.sheets.tabs)
+        self.model_view.extra["overlay"] = self.sheets.model_overlay
+        self.canvas.extra_overlay = self.sheets.model_overlay
 
         self._create_actions()
         self._create_menus()
@@ -127,6 +132,8 @@ class MainWindow(QMainWindow):
         self.canvas.entity_double_clicked.connect(self._edit_entity)
         self.canvas.text_typed.connect(self.command_line.start_typing)
         self.canvas.block_dropped.connect(self.blocks.on_drop)
+        self.canvas.empty_double_clicked.connect(self.sheets.on_empty_double_click)
+        self.sheets.rebuild_tabs()
         self.command_line.submitted.connect(self._on_command_input)
         self.command_line.cancelled.connect(self._on_command_cancel)
 
@@ -146,9 +153,13 @@ class MainWindow(QMainWindow):
     def _sync(self) -> SceneSync:
         return self.space.sync
 
-    def _make_space(self, kind: str, container: EntityContainer, stack: QUndoStack) -> Space:
+    def _make_space(
+        self, kind: str, container: EntityContainer, stack: QUndoStack, item_factory=None
+    ) -> Space:
         scene = QGraphicsScene(self)
-        sync = SceneSync(scene, container, self._resolve_style, self._layer_state, self._expand)
+        sync = SceneSync(
+            scene, container, self._resolve_style, self._layer_state, self._expand, item_factory
+        )
         scene.selectionChanged.connect(self._on_selection_changed)
         junction_item = JunctionItem(
             container, self._resolve_style, lambda e: self._layer_state(e)[0]
@@ -163,18 +174,26 @@ class MainWindow(QMainWindow):
         editor = self.blocks.editor_space if hasattr(self, "blocks") else None
         if editor is not None:
             result.append(editor)
+        if hasattr(self, "sheets"):
+            result += self.sheets.all_spaces()
         return result
 
     def activate_space(self, space: Space) -> None:
         if space is self.space:
             return
         self.tools.cancel()
+        self.sheets.deactivate_viewport()
         self.space.view = (
             self.canvas.transform(),
             self.canvas.map_to_scene_f(QPointF(self.canvas.viewport().rect().center())),
         )
         self.space = space
         self.canvas.set_scene(space.scene)
+        self.canvas.extra_overlay = space.extra.get("overlay")
+        self.canvas.set_background(
+            space.extra.get("background", BACKGROUND_COLOR), show_origin=space.kind != SHEET
+        )
+        self.sheets.select_tab_for(space)
         if space.stack not in self.undo_group.stacks():
             self.undo_group.addStack(space.stack)
         self.undo_group.setActiveStack(space.stack)
@@ -348,6 +367,7 @@ class MainWindow(QMainWindow):
         )
 
         self.blocks.create_actions()
+        self.sheets.create_actions()
         self.act_about = self._action(self.tr("Über {app}").format(app=APP_NAME), self._show_about)
 
     def _create_menus(self) -> None:
@@ -374,6 +394,7 @@ class MainWindow(QMainWindow):
         m.addActions(self.modify_actions)
 
         self.blocks.create_menu(bar)
+        self.sheets.create_menu(bar)
 
         m = bar.addMenu(self.tr("&Ansicht"))
         m.addActions([self.act_zoom_in, self.act_zoom_out, self.act_zoom_extents])
@@ -404,6 +425,7 @@ class MainWindow(QMainWindow):
         self.properties_dock = PropertiesDock(self, self)
         self.library_dock = LibraryDock(self, self)
         self.blocks.attach_properties(self.properties_dock)
+        self.sheets.attach_properties(self.properties_dock)
         self.properties_dock.extra_type_names.update(
             {Wire: self.tr("Leitung"), Busbar: self.tr("Sammelschiene")}
         )
@@ -480,15 +502,27 @@ class MainWindow(QMainWindow):
     def _subscribe_document(self) -> None:
         self.document.subscribe_layers(self._on_layers_changed)
         self.document.subscribe_blocks(self._on_blocks_changed)
+        self.document.subscribe_sheets(self._on_sheets_changed)
+        self.document.model_space.subscribe(self._on_model_changed)
 
     def _unsubscribe_document(self) -> None:
         self.document.unsubscribe_layers(self._on_layers_changed)
         self.document.unsubscribe_blocks(self._on_blocks_changed)
+        self.document.unsubscribe_sheets(self._on_sheets_changed)
+        self.document.model_space.unsubscribe(self._on_model_changed)
+
+    def _on_sheets_changed(self) -> None:
+        self.sheets.on_sheets_changed()
+
+    def _on_model_changed(self, _event: str, _entity: Entity) -> None:
+        if hasattr(self, "sheets"):
+            self.sheets.refresh_viewports()
 
     def _refresh_all_spaces(self) -> None:
         for space in self.spaces():
             space.sync.refresh()
             space.extra["junctions"].recompute()
+        self.sheets.refresh_viewports()
         self.canvas.viewport().update()
 
     def _on_layers_changed(self) -> None:
@@ -513,14 +547,19 @@ class MainWindow(QMainWindow):
         old = self.model_view
         self.document = document
         self.file_path = path
+        self.sheets.reset()
         self.model_view = self._make_space(MODEL, document.model_space, self.undo_stack)
+        self.model_view.extra["overlay"] = self.sheets.model_overlay
         self.space = self.model_view
         self.canvas.set_scene(self.space.scene)
+        self.canvas.extra_overlay = self.sheets.model_overlay
+        self.canvas.set_background(BACKGROUND_COLOR, show_origin=True)
         self.undo_group.setActiveStack(self.undo_stack)
         self._drop_space(old)
         self._subscribe_document()
         self.undo_stack.clear()
         self.undo_stack.setClean()
+        self.sheets.rebuild_tabs()
         self.set_current_layer(DEFAULT_LAYER)
         self.properties_dock.refresh()
         self.library_dock.refresh_document()

@@ -188,7 +188,7 @@ def test_document_with_blocks_roundtrip():
     data = document_to_dict(doc)
     again = document_from_dict(data)
     assert document_to_dict(again) == data
-    assert set(again.blocks) == {"Sicherung", "Feld"}
+    assert {"Sicherung", "Feld"} <= set(again.blocks)
 
 
 def test_library_roundtrip_and_signature():
