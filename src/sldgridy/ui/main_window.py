@@ -61,6 +61,7 @@ from sldgridy.ui import clipboard
 from sldgridy.ui.autosave import AutoSaver, orphaned_backups, remove_backup
 from sldgridy.ui.block_controller import BlockController
 from sldgridy.ui.command_line import CommandLine
+from sldgridy.ui.dock_title import install_title_bar
 from sldgridy.ui.export_dialog import PDF, PNG, SVG, ExportDialog
 from sldgridy.ui.grid_dialog import GridDialog
 from sldgridy.ui.layers_dock import LayersDock
@@ -446,8 +447,34 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.properties_dock)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.library_dock)
-        for dock in (self.layers_dock, self.properties_dock, self.library_dock):
+        for dock in self.docks():
+            install_title_bar(dock)
             self.docks_menu.addAction(dock.toggleViewAction())
+        self.docks_menu.addSeparator()
+        self.docks_menu.addAction(self.tr("Alle Fenster &andocken"), self.dock_all)
+        self.docks_menu.addAction(self.tr("Fensteranordnung &zurücksetzen"), self.reset_dock_layout)
+        self.resizeDocks([self.layers_dock], [480], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.library_dock], [260], Qt.Orientation.Horizontal)
+
+    def docks(self) -> list:
+        return [self.layers_dock, self.properties_dock, self.library_dock]
+
+    def dock_all(self) -> None:
+        for dock in self.docks():
+            dock.setFloating(False)
+
+    def reset_dock_layout(self) -> None:
+        """Default arrangement: library left, layers and properties right, all shown."""
+        areas = {
+            self.layers_dock: Qt.DockWidgetArea.RightDockWidgetArea,
+            self.properties_dock: Qt.DockWidgetArea.RightDockWidgetArea,
+            self.library_dock: Qt.DockWidgetArea.LeftDockWidgetArea,
+        }
+        for dock, area in areas.items():
+            dock.setFloating(False)
+            self.removeDockWidget(dock)
+            self.addDockWidget(area, dock)
+            dock.show()
         self.resizeDocks([self.layers_dock], [480], Qt.Orientation.Horizontal)
         self.resizeDocks([self.library_dock], [260], Qt.Orientation.Horizontal)
 

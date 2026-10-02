@@ -220,3 +220,23 @@ def test_dashed_pen_pattern_in_mm():
     pen = make_pen(QColor("black"), 0.25, 2.0, "dashed")
     assert pen.widthF() == pytest.approx(0.5)
     assert [v * pen.widthF() for v in pen.dashPattern()] == pytest.approx([3.0, 0.75])
+
+
+def test_floating_docks_can_be_docked_again(window):
+    from sldgridy.ui.dock_title import DockTitleBar
+
+    for dock in window.docks():
+        bar = dock.titleBarWidget()
+        assert isinstance(bar, DockTitleBar)
+        bar.btn_float.click()
+        assert dock.isFloating()
+        bar.btn_float.click()
+        assert not dock.isFloating()
+    window.layers_dock.setFloating(True)
+    window.properties_dock.close()
+    window.reset_dock_layout()
+    assert not window.layers_dock.isFloating() and window.properties_dock.isVisible()
+    assert window.dockWidgetArea(window.library_dock) == Qt.DockWidgetArea.LeftDockWidgetArea
+    window.library_dock.setFloating(True)
+    window.dock_all()
+    assert not window.library_dock.isFloating()

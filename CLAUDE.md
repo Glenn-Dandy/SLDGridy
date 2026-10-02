@@ -125,6 +125,7 @@ Umsetzung (M6):
 - Zwischenablage: eigener MIME-Typ `application/x-sldgridy-entities`, Basispunkt ist die linke untere Ecke der Auswahl. Einfügen setzt mit Klick, unbekannte Ebenen werden zu `0`.
 - Eigenschaften-Dock für Ebene, Farbe, Linienbreite, Linienart (durchgezogen, gestrichelt, strichpunktiert), Text und Blockattribute.
 - Unbegrenztes Rückgängig/Wiederholen.
+- Docks (Ebenen, Eigenschaften, Bibliothek) haben eine eigene Titelleiste mit Knopf zum Ab- und Andocken; Doppelklick auf den Titel schaltet ebenfalls um. Grund: unter Wayland lassen sich schwebende Docks mit Fensterrahmen nicht per Ziehen zurückdocken. Ansicht > Fenster bietet „Alle Fenster andocken“ und „Fensteranordnung zurücksetzen“.
 
 ### Ebenen
 
