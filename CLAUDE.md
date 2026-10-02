@@ -203,6 +203,14 @@ Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Cod
 - **PDF-Export** als Vektor mit exakter Blattgröße; Text bleibt Text. Mehrere Zeichnungsrahmen ergeben ein mehrseitiges PDF.
 - SVG-Export, PNG-Export mit wählbarer Auflösung.
 
+Umsetzung (M7):
+
+- `printing/layout.py` (ohne Qt) plant die Seiten: 1:1, Einpassen (Papier wird passend zur Blattausrichtung gedreht, zentriert), Kacheln (10 mm Überlappung, die Papierausrichtung mit weniger Bögen gewinnt, Reihenfolge zeilenweise), Schnelldruck des Modells (Modellgrenzen mit 10 mm Rand eingepasst).
+- Kacheln tragen Schnittmarken (0,18 mm, 6 mm lang) in der Mitte jeder Überlappung und links oben die Nummer `Z<Zeile>/S<Spalte>`.
+- Ausgabe zeichnet ohne Hilfsdarstellung und ohne 1-Pixel-Mindestbreite, ganzseitig ohne Ränder (`QPageLayout.FullPageMode`), 1 Einheit = 1 mm. Reihenfolge wie am Bildschirm: Ansichtsfenster, Blattobjekte, Rahmen und Schriftfeld.
+- Druckdialog: Bereich (aktuelles Blatt, Auswahl, alle, im Modell zusätzlich Schnelldruck), Modus, Papier, Schwarz-weiß, nur druckbare Ebenen (Standard an), Drucker über `QPrintDialog`, Vorschau über `QPrintPreviewDialog`. 1:1 wird gesperrt, wenn der Drucker das Blattformat nicht anbietet; ein Hinweis erscheint, wenn die Mindestränder des Druckers in den Rahmen schneiden.
+- PDF über `QPdfWriter` (1200 dpi, eine Seite je Blatt in exakter Größe, Text bleibt Text). SVG in mm (`viewBox` = Blatt), mehrere Blätter ergeben `<name>_<Blatt>.svg`; PNG ebenso, 50 bis 1200 dpi.
+
 ### Dateiformat
 
 - Koordinaten: Winkel in Grad gegen den Uhrzeigersinn am Bildschirm, 0° zeigt nach +X. Text: Einfügepunkt ist das linke Ende der ersten Grundlinie, die Texthöhe ist die Versalhöhe, Zeilenabstand 1,6 × Texthöhe.

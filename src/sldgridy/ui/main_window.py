@@ -43,6 +43,7 @@ from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode
 from sldgridy.model.wires import label_text
+from sldgridy.printing.output import export_pdf, export_png, export_svg
 from sldgridy.tools.controller import ToolController, ToolFactory
 from sldgridy.tools.coord_input import CoordinateError, parse_coordinate
 from sldgridy.tools.draw import (
@@ -59,10 +60,12 @@ from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, Rotat
 from sldgridy.ui import clipboard
 from sldgridy.ui.block_controller import BlockController
 from sldgridy.ui.command_line import CommandLine
+from sldgridy.ui.export_dialog import PDF, PNG, SVG, ExportDialog
 from sldgridy.ui.grid_dialog import GridDialog
 from sldgridy.ui.layers_dock import LayersDock
 from sldgridy.ui.library_dock import LibraryDock
 from sldgridy.ui.osnap_dialog import OsnapDialog
+from sldgridy.ui.print_dialog import PrintDialog
 from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
@@ -279,6 +282,10 @@ class MainWindow(QMainWindow):
         self.act_save = self._action(self.tr("&Speichern"), self.save, sk.Save)
         self.act_save_as = self._action(self.tr("Speichern &unter …"), self.save_as, "Ctrl+Shift+S")
         self.act_quit = self._action(self.tr("&Beenden"), self.close, sk.Quit)
+        self.act_print = self._action(self.tr("&Drucken …"), self.print_document, sk.Print)
+        self.act_export_pdf = self._action(self.tr("&PDF …"), lambda: self.export(PDF))
+        self.act_export_svg = self._action(self.tr("&SVG …"), lambda: self.export(SVG))
+        self.act_export_png = self._action(self.tr("P&NG …"), lambda: self.export(PNG))
 
         self.act_undo = self._action(self.tr("&Rückgängig"), self.undo, sk.Undo)
         self.act_redo = self._action(self.tr("&Wiederholen"), self.redo, sk.Redo)
@@ -375,6 +382,9 @@ class MainWindow(QMainWindow):
         m = bar.addMenu(self.tr("&Datei"))
         m.addActions([self.act_new, self.act_open, self.act_save, self.act_save_as])
         m.addSeparator()
+        m.addAction(self.act_print)
+        export = m.addMenu(self.tr("&Exportieren"))
+        export.addActions([self.act_export_pdf, self.act_export_svg, self.act_export_png])
         self.file_menu_tail = m.addSeparator()
         m.addAction(self.act_quit)
         self.file_menu = m
@@ -665,6 +675,64 @@ class MainWindow(QMainWindow):
         self._update_title()
         self.message(self.tr("Gespeichert: {path}").format(path=path))
         return True
+
+    # -- printing and export ------------------------------------------------
+
+    def print_document(self) -> None:
+        self.tools.cancel()
+        dialog = PrintDialog(self.document, self.sheets.current_sheet(), parent=self)
+        dialog.exec()
+
+    def export(self, kind: str) -> None:
+        self.tools.cancel()
+        current = self.sheets.current_sheet()
+        dialog = ExportDialog(kind, current is not None, self)
+        if dialog.exec() != ExportDialog.DialogCode.Accepted:
+            return
+        sheets = list(self.document.sheets) if dialog.all_sheets() else [current]
+        base = self.file_path.with_suffix("") if self.file_path else Path(self.last_dir()) / "plan"
+        if kind != PDF and len(sheets) == 1 and len(self.document.sheets) > 1:
+            base = base.with_name(f"{base.name}_{sheets[0].name}")
+        filters = {
+            PDF: self.tr("PDF (*.pdf)"),
+            SVG: self.tr("SVG (*.svg)"),
+            PNG: self.tr("PNG-Bild (*.png)"),
+        }
+        name, _ = QFileDialog.getSaveFileName(
+            self, self.tr("Exportieren"), str(base) + "." + kind, filters[kind]
+        )
+        if not name:
+            return
+        path = Path(name)
+        if path.suffix.lower() != "." + kind:
+            path = path.with_name(path.name + "." + kind)
+        try:
+            written = self.export_to(kind, path, sheets, dialog.options(), dialog.dpi.value())
+        except OSError as exc:
+            QMessageBox.critical(self, self.tr("Exportieren"), str(exc))
+            return
+        self.remember_dir(path)
+        self.message(
+            self.tr("Exportiert: {files}").format(files=", ".join(p.name for p in written))
+        )
+
+    def export_to(self, kind: str, path: Path, sheets, options, dpi: int = 300) -> list[Path]:
+        """Write the export file(s); several SVG/PNG sheets get the sheet name appended."""
+        if kind == PDF:
+            export_pdf(path, self.document, sheets, options)
+            return [path]
+        written = []
+        for sheet in sheets:
+            target = path
+            if len(sheets) > 1:
+                safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in sheet.name)
+                target = path.with_name(f"{path.stem}_{safe}{path.suffix}")
+            if kind == SVG:
+                export_svg(target, self.document, sheet, options)
+            else:
+                export_png(target, self.document, sheet, dpi, options)
+            written.append(target)
+        return written
 
     # -- editing ------------------------------------------------------------
 
