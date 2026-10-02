@@ -240,3 +240,13 @@ def test_floating_docks_can_be_docked_again(window):
     window.library_dock.setFloating(True)
     window.dock_all()
     assert not window.library_dock.isFloating()
+
+
+def test_dock_context_menu_docks_to_area(window):
+    bar = window.library_dock.titleBarWidget()
+    bar.dock_to(Qt.DockWidgetArea.BottomDockWidgetArea)
+    assert window.dockWidgetArea(window.library_dock) == Qt.DockWidgetArea.BottomDockWidgetArea
+    window.library_dock.setFloating(True)
+    bar.dock_to(Qt.DockWidgetArea.RightDockWidgetArea)
+    assert not window.library_dock.isFloating()
+    assert window.dockWidgetArea(window.library_dock) == Qt.DockWidgetArea.RightDockWidgetArea
