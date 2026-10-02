@@ -16,7 +16,9 @@ Nicht im Umfang: allgemeines 2D-CAD (Bemaßung, Schraffur, Splines), Stromlaufpl
 - PyQt6 aus den Distributionspaketen: QtWidgets (QGraphicsView), QtPrintSupport, QtSvg
 - Zur Laufzeit keine pip-Abhängigkeiten. Neue Abhängigkeiten nur nach Rückfrage.
 - Entwicklung: pytest, ruff
-- Lizenz: GPL-3.0-or-later (folgt aus PyQt6)
+- Lizenz: GPL-3.0-or-later (folgt aus PyQt6), Volltext in `LICENSE`
+- Öffentliches Repository: https://github.com/Glenn-Dandy/SLDGridy (Autor in Commits und Paket: Glenn-Dandy). Releases tragen das `.deb` als Asset (`v<version>`); die Update-Prüfung im Über-Dialog liest `releases/latest`.
+- Über-Dialog wie bei BoatSpeedy: Fehler melden / Funktion vorschlagen (vorausgefülltes Issue mit Version, System, Qt, Sitzungstyp), Stern auf GitHub, Quellcode, Projekt unterstützen (https://paypal.me/GlennDandy), Update-Prüfung. Konstanten in `src/sldgridy/project.py`. Unterstützen, Stern und Fehler melden stehen zusätzlich im Hilfe-Menü.
 - Zielsystem: Ubuntu 24.04 LTS, X11 und Wayland. Entwickelt und getestet wird nur dagegen.
 
 ## Grundregeln
@@ -48,7 +50,9 @@ sldgridy/
 │   ├── commands/            # QUndoCommand-Klassen
 │   ├── ui/                  # Hauptfenster, Docks (Ebenen, Blöcke, Eigenschaften), Dialoge
 │   ├── printing/            # Drucken, Vorschau, Kacheln, PDF/SVG/PNG
-│   └── resources/           # Icons, mitgelieferte Symbolbibliothek, Rahmenvorlagen
+│   ├── project.py           # GitHub-Koordinaten, Unterstützen-Link
+│   ├── update.py            # Update-Prüfung über GitHub-Releases
+│   └── resources/           # icons/sldgridy.svg (Programmsymbol), library/, templates/
 ├── tests/
 └── packaging/
     ├── build-deb.sh
@@ -56,8 +60,7 @@ sldgridy/
     ├── sldgridy.1           # Manpage
     ├── copyright            # DEP-5, landet in /usr/share/doc/sldgridy/
     ├── sldgridy.desktop
-    ├── sldgridy.xml         # MIME-Typ
-    └── sldgridy.svg         # Programmsymbol
+    └── sldgridy.xml         # MIME-Typ
 ```
 
 ## Funktionsumfang
@@ -256,7 +259,7 @@ sudo apt install ./dist/sldgridy_*_all.deb       # Installationstest
 | `/usr/bin/sldgridy` | Startskript, setzt den Modulpfad und ruft `main()` auf |
 | `/usr/share/applications/sldgridy.desktop` | Menüeintrag, `MimeType=application/x-sldgridy` |
 | `/usr/share/mime/packages/sldgridy.xml` | MIME-Typ für `*.sldg` |
-| `/usr/share/icons/hicolor/scalable/apps/sldgridy.svg` | Programmsymbol |
+| `/usr/share/icons/hicolor/scalable/apps/sldgridy.svg` | Programmsymbol (Quelle: `src/sldgridy/resources/icons/`) |
 | `/usr/share/doc/sldgridy/copyright` | Lizenz |
 | `/usr/share/doc/sldgridy/changelog.gz` | wird von `build-deb.sh` erzeugt |
 | `/usr/share/man/man1/sldgridy.1.gz` | Manpage |

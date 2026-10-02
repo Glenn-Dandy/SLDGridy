@@ -31,7 +31,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from sldgridy import __version__
+from sldgridy import project
 from sldgridy.commands.entities import RemoveEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.fileio.files import DRAWING_SUFFIX, load_document, save_document
 from sldgridy.fileio.json_format import FileFormatError
@@ -58,6 +58,7 @@ from sldgridy.tools.draw import (
 )
 from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, RotateTool
 from sldgridy.ui import clipboard
+from sldgridy.ui.about_dialog import AboutDialog, app_icon, issue_url, open_url
 from sldgridy.ui.autosave import AutoSaver, orphaned_backups, remove_backup
 from sldgridy.ui.block_controller import BlockController
 from sldgridy.ui.command_line import CommandLine
@@ -143,6 +144,7 @@ class MainWindow(QMainWindow):
         self.command_line.submitted.connect(self._on_command_input)
         self.command_line.cancelled.connect(self._on_command_cancel)
 
+        self.setWindowIcon(app_icon())
         self.resize(1280, 800)
         self._restore_settings()
         self._update_title()
@@ -379,6 +381,15 @@ class MainWindow(QMainWindow):
         self.blocks.create_actions()
         self.sheets.create_actions()
         self.act_about = self._action(self.tr("Über {app}").format(app=APP_NAME), self._show_about)
+        self.act_support = self._action(
+            self.tr("♥ Projekt &unterstützen"), lambda: open_url(project.SUPPORT_URL)
+        )
+        self.act_report_bug = self._action(
+            self.tr("&Fehler melden …"), lambda: open_url(issue_url("[Bug] ", "bug"))
+        )
+        self.act_star = self._action(
+            self.tr("★ &Stern auf GitHub geben"), lambda: open_url(project.URL)
+        )
 
     def _create_menus(self) -> None:
         bar = self.menuBar()
@@ -419,6 +430,8 @@ class MainWindow(QMainWindow):
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
+        m.addActions([self.act_report_bug, self.act_star, self.act_support])
+        m.addSeparator()
         m.addAction(self.act_about)
 
     def _create_toolbars(self) -> None:
@@ -995,16 +1008,7 @@ class MainWindow(QMainWindow):
         self.lbl_zoom.setText(self.tr("Zoom: {percent} %").format(percent=percent))
 
     def _show_about(self) -> None:
-        QMessageBox.about(
-            self,
-            self.tr("Über {app}").format(app=APP_NAME),
-            self.tr(
-                "<b>{app}</b> {version}<br>"
-                "Einpolige Übersichtsschaltpläne für Photovoltaik, "
-                "Transformatorstationen und Niederspannungsverteilungen.<br><br>"
-                "Lizenz: GPL-3.0-or-later"
-            ).format(app=APP_NAME, version=__version__),
-        )
+        AboutDialog(self).exec()
 
     # -- settings -----------------------------------------------------------
 

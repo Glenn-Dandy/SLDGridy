@@ -1,0 +1,10 @@
+"""Project coordinates on GitHub (about dialog, issues, update check)."""
+
+OWNER = "Glenn-Dandy"
+NAME = "SLDGridy"
+URL = f"https://github.com/{OWNER}/{NAME}"
+LATEST_RELEASE_URL = f"{URL}/releases/latest"
+ISSUES_NEW_URL = f"{URL}/issues/new"
+SUPPORT_URL = "https://paypal.me/GlennDandy"
+API_LATEST = f"https://api.github.com/repos/{OWNER}/{NAME}/releases/latest"
+LICENSE = "GPL-3.0-or-later"

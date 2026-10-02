@@ -35,7 +35,7 @@ rmdir --ignore-fail-on-non-empty "$STAGE/usr/share/$PKG/library" "$STAGE/usr/sha
 install -D -m 0755 "$ROOT/packaging/$PKG.sh" "$STAGE/usr/bin/$PKG"
 install -D -m 0644 "$ROOT/packaging/$PKG.desktop" "$STAGE/usr/share/applications/$PKG.desktop"
 install -D -m 0644 "$ROOT/packaging/$PKG.xml" "$STAGE/usr/share/mime/packages/$PKG.xml"
-install -D -m 0644 "$ROOT/packaging/$PKG.svg" \
+install -D -m 0644 "$ROOT/src/$PKG/resources/icons/$PKG.svg" \
     "$STAGE/usr/share/icons/hicolor/scalable/apps/$PKG.svg"
 install -D -m 0644 "$ROOT/packaging/copyright" "$STAGE/usr/share/doc/$PKG/copyright"
 mkdir -p "$STAGE/usr/share/man/man1"
@@ -48,7 +48,7 @@ CHANGELOG="$STAGE/usr/share/doc/$PKG/changelog.gz"
     echo
     echo "  * Release $VERSION."
     echo
-    echo " -- Florian <kewl0@arcor.de>  $(date -R -d "@$(git -C "$ROOT" log -1 --format=%ct 2>/dev/null || date +%s)")"
+    echo " -- Glenn-Dandy <kewl0@arcor.de>  $(date -R -d "@$(git -C "$ROOT" log -1 --format=%ct 2>/dev/null || date +%s)")"
 } | gzip -9n > "$CHANGELOG"
 chmod 0644 "$CHANGELOG"
 
@@ -62,9 +62,10 @@ Version: $VERSION
 Architecture: all
 Section: graphics
 Priority: optional
-Maintainer: Florian <kewl0@arcor.de>
+Maintainer: Glenn-Dandy <kewl0@arcor.de>
 Installed-Size: $INSTALLED_SIZE
 Depends: python3 (>= 3.12), python3-pyqt6, python3-pyqt6.qtsvg
+Homepage: https://github.com/Glenn-Dandy/SLDGridy
 Description: CAD-style editor for single-line electrical diagrams
  SLDGridy draws single-line diagrams for photovoltaic systems,
  transformer stations and low-voltage distribution boards. It works in

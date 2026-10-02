@@ -1,13 +1,21 @@
 # SLDGridy
 
+[![Release](https://img.shields.io/github/v/release/Glenn-Dandy/SLDGridy)](https://github.com/Glenn-Dandy/SLDGridy/releases/latest)
+[![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+[![Unterstützen](https://img.shields.io/badge/♥-Projekt%20unterstützen-c62828)](https://paypal.me/GlennDandy)
+
+*CAD-style editor for single-line electrical diagrams (PV systems, transformer stations, LV distribution) for Linux. User interface in German.*
+
 Einpolige Übersichtsschaltpläne (Single-Line-Diagramme) für Photovoltaikanlagen, Transformatorstationen und Niederspannungsverteilungen, gezeichnet wie in einem CAD-Programm: maßhaltig in Millimetern, mit Modell und Zeichnungsrahmen, Raster und Objektfang, Ebenen, Blöcken mit Attributen und Drucken bis A0.
 
 Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 (X11 und Wayland).
 
 ## Installation
 
+Das Paket `sldgridy_<version>_all.deb` aus den [Releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) herunterladen und installieren:
+
 ```bash
-sudo apt install ./dist/sldgridy_<version>_all.deb
+sudo apt install ./sldgridy_<version>_all.deb
 ```
 
 Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich per Doppelklick. Deinstallation mit `sudo apt remove sldgridy`.
@@ -109,3 +117,13 @@ lintian dist/sldgridy_*.deb
 ```
 
 Die Spezifikation und alle Festlegungen stehen in `CLAUDE.md`.
+
+## Feedback und Unterstützung
+
+- Fehler und Wünsche: [Issues](https://github.com/Glenn-Dandy/SLDGridy/issues) (im Programm unter Hilfe > Fehler melden, mit Versionsangaben vorausgefüllt)
+- Gefällt dir SLDGridy? Gib dem Projekt einen ⭐ auf GitHub.
+- [♥ Projekt unterstützen](https://paypal.me/GlennDandy)
+
+## Lizenz
+
+GPL-3.0-or-later, siehe [LICENSE](LICENSE). © Glenn-Dandy

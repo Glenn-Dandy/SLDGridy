@@ -1,8 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: sldgridy
+Upstream-Contact: Glenn-Dandy <kewl0@arcor.de>
+Source: https://github.com/Glenn-Dandy/SLDGridy
 
 Files: *
-Copyright: 2026 Florian
+Copyright: 2026 Glenn-Dandy
 License: GPL-3.0+
 
 License: GPL-3.0+

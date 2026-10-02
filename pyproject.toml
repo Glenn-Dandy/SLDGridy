@@ -9,8 +9,13 @@ description = "CAD-style editor for single-line electrical diagrams"
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Glenn-Dandy" }]
 # PyQt6 comes from the distribution packages (python3-pyqt6, python3-pyqt6.qtsvg).
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Glenn-Dandy/SLDGridy"
+Issues = "https://github.com/Glenn-Dandy/SLDGridy/issues"
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
