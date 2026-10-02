@@ -6,7 +6,14 @@ from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesComman
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_points, move_grip
+from sldgridy.model.wires import follow_connections
 from sldgridy.tools.base import Tool, tr
+
+
+def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
+    """``new`` plus wires whose ends were attached to moved connection points."""
+    blocks = getattr(ctx, "block_definitions", {})
+    return new + follow_connections(list(ctx.container), old, new, blocks)
 
 
 class _SelectionTool(Tool):
@@ -68,13 +75,19 @@ class MoveTool(_SelectionTool):
             return
         dx, dy = p.x - self._base.x, p.y - self._base.y
         if dx or dy:
-            moved = [e.translated(dx, dy) for e in self._entities]
+            moved = with_followers(
+                self.ctx, self._entities, [e.translated(dx, dy) for e in self._entities]
+            )
             self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, moved, tr("Verschieben")))
         self.done = True
 
     def preview(self) -> list[Entity]:
         offset = self._offset()
-        return [e.translated(*offset) for e in self._entities] if offset else []
+        if not offset:
+            return []
+        return with_followers(
+            self.ctx, self._entities, [e.translated(*offset) for e in self._entities]
+        )
 
 
 class CopyTool(_SelectionTool):
@@ -122,7 +135,9 @@ class RotateTool(_SelectionTool):
             return
         k = self._quarters(p)
         if k:
-            rotated = [e.rotated(self._base, k) for e in self._entities]
+            rotated = with_followers(
+                self.ctx, self._entities, [e.rotated(self._base, k) for e in self._entities]
+            )
             self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, rotated, tr("Drehen")))
         self.done = True
 
@@ -130,7 +145,9 @@ class RotateTool(_SelectionTool):
         if self._base is None:
             return []
         k = self._quarters(self.cursor)
-        return [e.rotated(self._base, k) for e in self._entities]
+        return with_followers(
+            self.ctx, self._entities, [e.rotated(self._base, k) for e in self._entities]
+        )
 
 
 class MirrorTool(_SelectionTool):
@@ -154,7 +171,9 @@ class MirrorTool(_SelectionTool):
         if p == self._base:
             return
         horizontal = self._horizontal(p)
-        mirrored = [e.mirrored(self._base, horizontal) for e in self._entities]
+        mirrored = with_followers(
+            self.ctx, self._entities, [e.mirrored(self._base, horizontal) for e in self._entities]
+        )
         self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, mirrored, tr("Spiegeln")))
         self.done = True
 
@@ -162,7 +181,9 @@ class MirrorTool(_SelectionTool):
         if self._base is None or self.cursor is None or self.cursor == self._base:
             return []
         horizontal = self._horizontal(self.cursor)
-        return [e.mirrored(self._base, horizontal) for e in self._entities]
+        return with_followers(
+            self.ctx, self._entities, [e.mirrored(self._base, horizontal) for e in self._entities]
+        )
 
 
 class PasteTool(Tool):
@@ -207,11 +228,12 @@ class GripEditTool(Tool):
     def pick(self, p: Point) -> None:
         new = move_grip(self._entity, self._index, p)
         if new is not None and new != self._entity:
-            self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, [new], tr("Griff ziehen")))
+            changed = with_followers(self.ctx, [self._entity], [new])
+            self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, changed, tr("Griff ziehen")))
         self.done = True
 
     def preview(self) -> list[Entity]:
         if self.cursor is None:
             return []
         new = move_grip(self._entity, self._index, self.cursor)
-        return [new] if new is not None else []
+        return with_followers(self.ctx, [self._entity], [new]) if new is not None else []

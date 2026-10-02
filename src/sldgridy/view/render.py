@@ -9,6 +9,7 @@ from PyQt6.QtGui import QColor, QFont, QFontMetricsF, QPainter, QPainterPath, QP
 from sldgridy.model.entities import (
     Arc,
     AttributeDefinition,
+    Busbar,
     Circle,
     ConnectionPoint,
     Entity,
@@ -16,6 +17,7 @@ from sldgridy.model.entities import (
     Polyline,
     Rectangle,
     Text,
+    Wire,
 )
 from sldgridy.model.geometry import Point
 
@@ -56,9 +58,13 @@ def entity_path(e: Entity) -> QPainterPath:
     """Outline path of a non-text entity in scene mm."""
     path = QPainterPath()
     match e:
-        case Line():
+        case Line() | Busbar():
             path.moveTo(qpt(e.p1))
             path.lineTo(qpt(e.p2))
+        case Wire():
+            path.moveTo(qpt(e.points[0]))
+            for p in e.points[1:]:
+                path.lineTo(qpt(p))
         case Polyline():
             path.moveTo(qpt(e.points[0]))
             for p in e.points[1:]:

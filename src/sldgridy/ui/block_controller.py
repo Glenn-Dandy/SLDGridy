@@ -168,7 +168,7 @@ class BlockController(QObject):
                 ConnectionPoint: self.tr("Anschlusspunkt"),
             }
         )
-        dock.extra_editor = self._attribute_editor
+        dock.extra_editors.append(self._attribute_editor)
 
     def _attribute_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
         if len(entities) != 1 or not isinstance(entities[0], BlockReference):

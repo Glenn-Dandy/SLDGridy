@@ -30,8 +30,15 @@ def write_json_atomic(path: Path, data: dict) -> None:
             f.write("\n")
             f.flush()
             os.fsync(f.fileno())
+        # mkstemp creates 0600; keep the old file's mode or use the umask default.
         if path.exists():
+            mode = path.stat().st_mode & 0o7777
             shutil.copy2(path, path.with_name(path.name + ".bak"))
+        else:
+            umask = os.umask(0)
+            os.umask(umask)
+            mode = 0o666 & ~umask
+        os.chmod(tmp_name, mode)
         os.replace(tmp_name, path)
     except BaseException:
         Path(tmp_name).unlink(missing_ok=True)

@@ -1,8 +1,21 @@
 """Tools that create new entities."""
 
 from sldgridy.commands.entities import AddEntitiesCommand
-from sldgridy.model.entities import Arc, Circle, Entity, Line, Polyline, Rectangle, Text, new_id
-from sldgridy.model.geometry import Point, angle_deg, distance
+from sldgridy.model.entities import (
+    DEFAULT_BUSBAR_WEIGHT,
+    Arc,
+    Busbar,
+    Circle,
+    Entity,
+    Line,
+    Polyline,
+    Rectangle,
+    Text,
+    Wire,
+    new_id,
+)
+from sldgridy.model.geometry import Point, angle_deg, distance, ortho
+from sldgridy.model.wires import elbow, simplify
 from sldgridy.tools.base import PREVIEW_ID, Tool, tr
 
 
@@ -214,3 +227,86 @@ class TextTool(_DrawTool):
                 )
                 self._add(text, tr("Text einfügen"))
         self.done = True
+
+
+class WireTool(_DrawTool):
+    """Orthogonal wire; points that are not aligned get an automatic corner."""
+
+    def __init__(self, ctx) -> None:
+        super().__init__(ctx)
+        self._points: list[Point] = []
+
+    def prompt(self) -> str:
+        if not self._points:
+            return tr("Leitung: Startpunkt angeben")
+        return tr("Leitung: Nächsten Punkt angeben (Enter beendet)")
+
+    def pick(self, p: Point) -> None:
+        if not self._points:
+            self._points.append(p)
+            return
+        if p == self._points[-1]:
+            return
+        self._points += elbow(self._points[-1], p)
+
+    def finish(self) -> None:
+        points = simplify(self._points)
+        if len(points) >= 2:
+            wire = Wire(id=new_id(), layer=self.ctx.current_layer, points=points)
+            self._add(wire, tr("Leitung zeichnen"))
+        self.done = True
+
+    def base_point(self) -> Point | None:
+        return self._points[-1] if self._points else None
+
+    def preview(self) -> list[Entity]:
+        if not self._points or self.cursor is None:
+            return []
+        pts = simplify([*self._points, *elbow(self._points[-1], self.cursor)])
+        if len(pts) < 2:
+            return []
+        return [Wire(id=PREVIEW_ID, layer=self.ctx.current_layer, points=pts)]
+
+
+class BusbarTool(_DrawTool):
+    """Straight horizontal or vertical bus bar."""
+
+    def __init__(self, ctx) -> None:
+        super().__init__(ctx)
+        self._start: Point | None = None
+
+    def prompt(self) -> str:
+        if self._start is None:
+            return tr("Sammelschiene: Startpunkt angeben")
+        return tr("Sammelschiene: Endpunkt angeben")
+
+    def _bar(self, p: Point, entity_id: str) -> Busbar | None:
+        assert self._start is not None
+        end = ortho(self._start, p)
+        if end == self._start:
+            return None
+        return Busbar(
+            id=entity_id,
+            layer=self.ctx.current_layer,
+            lineweight=DEFAULT_BUSBAR_WEIGHT,
+            p1=self._start,
+            p2=end,
+        )
+
+    def pick(self, p: Point) -> None:
+        if self._start is None:
+            self._start = p
+            return
+        bar = self._bar(p, new_id())
+        if bar is not None:
+            self._add(bar, tr("Sammelschiene zeichnen"))
+            self.done = True
+
+    def base_point(self) -> Point | None:
+        return self._start
+
+    def preview(self) -> list[Entity]:
+        if self._start is None or self.cursor is None:
+            return []
+        bar = self._bar(self.cursor, PREVIEW_ID)
+        return [bar] if bar else []

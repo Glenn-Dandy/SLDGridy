@@ -242,3 +242,32 @@ class BlockReference(Entity):
         attrs = [(t, v) for t, v in self.attributes if t != tag]
         attrs.append((tag, value))
         return replace(self, attributes=tuple(sorted(attrs)))
+
+
+DEFAULT_BUSBAR_WEIGHT = 0.7
+DEFAULT_WIRE_LABEL_HEIGHT = 2.5
+
+
+@dataclass(frozen=True, kw_only=True)
+class Wire(Entity):
+    """Orthogonal wire. ``label`` is shown at the longest segment; ``label_side``
+    1 puts it above (horizontal) or left (vertical), -1 below or right."""
+
+    points: tuple[Point, ...]
+    label: str = ""
+    label_side: int = 1
+    label_height: float = DEFAULT_WIRE_LABEL_HEIGHT
+
+    def _mapped(self, fn, quarters):
+        return replace(self, points=tuple(fn(p) for p in self.points))
+
+
+@dataclass(frozen=True, kw_only=True)
+class Busbar(Entity):
+    """Bus bar; wires may connect anywhere along it."""
+
+    p1: Point
+    p2: Point
+
+    def _mapped(self, fn, quarters):
+        return replace(self, p1=fn(self.p1), p2=fn(self.p2))

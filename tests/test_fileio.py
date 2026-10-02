@@ -94,3 +94,16 @@ def test_missing_layer_zero_is_restored():
     data = document_to_dict(Document.new("Blatt 1"))
     data["layers"] = []
     assert [layer.name for layer in document_from_dict(data).layers] == ["0"]
+
+
+def test_saved_file_gets_normal_permissions(tmp_path):
+    import os
+
+    path = tmp_path / "rechte.sldg"
+    save_document(Document.new("Blatt 1"), path)
+    umask = os.umask(0)
+    os.umask(umask)
+    assert path.stat().st_mode & 0o777 == 0o666 & ~umask
+    os.chmod(path, 0o640)
+    save_document(Document.new("Blatt 1"), path)
+    assert path.stat().st_mode & 0o777 == 0o640

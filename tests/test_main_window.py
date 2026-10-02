@@ -96,4 +96,6 @@ def test_save_and_open_roundtrip(window, tmp_path):
     assert len(window.document.model_space) == 0
     assert window.open_path(path)
     assert document_to_dict(window.document) == document_to_dict(load_document(path))
-    assert len(window.scene.items()) == 6
+    from sldgridy.view.items import EntityItem
+
+    assert len([i for i in window.scene.items() if isinstance(i, EntityItem)]) == 6

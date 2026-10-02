@@ -125,7 +125,8 @@ class PropertiesDock(QDockWidget):
         layout.addLayout(self.extra_area)
         layout.addStretch(1)
         self.setWidget(widget)
-        self.extra_editor: Callable[[list[Entity], QVBoxLayout], None] | None = None
+        # Type specific editors, each called with the selection and a layout to fill.
+        self.extra_editors: list[Callable[[list[Entity], QVBoxLayout], None]] = []
         self.refresh()
 
     # -- refresh ------------------------------------------------------------
@@ -174,8 +175,9 @@ class PropertiesDock(QDockWidget):
             item = self.extra_area.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-        if self.extra_editor is not None and has:
-            self.extra_editor(entities, self.extra_area)
+        if has:
+            for editor in self.extra_editors:
+                editor(entities, self.extra_area)
 
     def _add_mixed(self, combo: QComboBox, value: object) -> None:
         if value == MIXED:

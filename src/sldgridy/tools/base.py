@@ -1,10 +1,12 @@
 """Tool base class and the context tools operate in."""
 
+from collections.abc import Mapping
 from typing import Protocol
 
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QUndoCommand
 
+from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point
@@ -22,6 +24,9 @@ class ToolContext(Protocol):
 
     @property
     def current_layer(self) -> str: ...
+
+    @property
+    def block_definitions(self) -> Mapping[str, BlockDefinition]: ...
 
     def push(self, command: QUndoCommand) -> None: ...
 

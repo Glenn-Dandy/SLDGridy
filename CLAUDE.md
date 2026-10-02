@@ -131,6 +131,15 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 - Sammelschiene: breite Linie (Standard 0,7 mm), an beliebiger Stelle anschließbar.
 - Leitungen können eine Beschriftung tragen (z. B. Kabeltyp und Querschnitt), die mit der Leitung verschoben wird.
 
+Umsetzung (M5):
+
+- Verbindungspunkte werden nicht gespeichert, sondern aus der Geometrie abgeleitet: Ein Leitungsende im Inneren einer anderen Leitung oder drei und mehr Leitungsenden an einem Punkt ergeben einen gefüllten Punkt (Durchmesser 4 × Linienbreite, mindestens 1 mm). Zwei Enden, die sich treffen, sind eine Fortsetzung ohne Punkt. Leitungsenden auf Sammelschienen bekommen keinen Punkt.
+- Das Leitungswerkzeug fügt bei nicht fluchtenden Punkten automatisch einen Knick ein (zuerst entlang der größeren Differenz). Enter oder Rechtsklick beendet.
+- Sammelschienen sind immer waagerecht oder senkrecht und werden mit 0,7 mm angelegt. Der Objektfang bietet jeden Punkt einer Sammelschiene als Anschlusspunkt an.
+- Mitziehen: Verschieben, Drehen, Spiegeln, Ziehen und Griffe ziehen Leitungsenden mit, die auf Anschlusspunkten der bewegten Blöcke (oder auf bewegten einzelnen Anschlusspunkten) liegen. Der letzte Knick wird dabei so angepasst, dass alle Segmente orthogonal bleiben; liegen beide Enden auf gleich bewegten Punkten, wird die Leitung als Ganzes verschoben.
+- Die Beschriftung sitzt mittig am längsten Segment, 1 mm Abstand, oben bzw. links (`label_side` 1) oder unten bzw. rechts (-1), Höhe 2,5 mm. Bearbeiten per Doppelklick oder im Eigenschaften-Dock.
+- Leitungen haben nur an ihren Enden Griffe.
+
 ### Blöcke
 
 Kernfunktion. Ein Block ist eine benannte Definition, die beliebig oft als Referenz eingefügt wird.
@@ -167,7 +176,7 @@ Symbole nach DIN EN 60617 im 2,5-mm-Raster, jeweils mit Anschlusspunkten und den
 - Erzeugung und Speicher: PV-Generator, PV-String, Generatoranschlusskasten, DC-Freischalter, Wechselrichter, Batteriespeicher, Generator, NA-Schutz, Kuppelschalter
 - Verbraucher und Sonstiges: Motor, allgemeiner Verbraucher, Ladeeinrichtung, Wärmepumpe, Erdung, Potentialausgleichsschiene
 
-Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Code erzeugt.
+Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Code erzeugt. Datei: `src/sldgridy/resources/library/din_en_60617.sldglib` (Bibliothek „DIN EN 60617“, 40 Symbole, jeweils mit Kategorie und Beschreibung). Konventionen: Durchgangsgeräte senkrecht, Anschluss 1 oben bei (0, 0) mit Richtung 90°, Anschluss 2 unten mit Richtung 270°, Basispunkt am Anschluss 1; Quellen (Netz, PV, Generator) haben ihren Anschluss unten am Basispunkt. Alle Anschlusspunkte liegen im 2,5-mm-Raster (wird getestet). Attribute rechts neben dem Symbol, 2,5 mm hoch, Abstand 3,5 mm, Vorgabe nur für `BMK`.
 
 ### Drucken und Export
 

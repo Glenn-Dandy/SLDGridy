@@ -11,6 +11,7 @@ from sldgridy.model.entities import (
     Arc,
     AttributeDefinition,
     BlockReference,
+    Busbar,
     Circle,
     ConnectionPoint,
     Entity,
@@ -18,6 +19,7 @@ from sldgridy.model.entities import (
     Polyline,
     Rectangle,
     Text,
+    Wire,
 )
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER, Layer
@@ -57,6 +59,8 @@ _TYPE_NAMES: dict[type, str] = {
     AttributeDefinition: "attdef",
     ConnectionPoint: "connection",
     BlockReference: "block_ref",
+    Wire: "wire",
+    Busbar: "busbar",
 }
 
 
@@ -67,8 +71,16 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
         if value is not None:
             d[key] = value
     match e:
-        case Line() | Rectangle():
+        case Line() | Rectangle() | Busbar():
             d["p1"], d["p2"] = _pt(e.p1), _pt(e.p2)
+        case Wire():
+            d["points"] = [_pt(p) for p in e.points]
+            if e.label:
+                d["label"], d["label_side"], d["label_height"] = (
+                    e.label,
+                    e.label_side,
+                    e.label_height,
+                )
         case Polyline():
             d["points"] = [_pt(p) for p in e.points]
             d["closed"] = e.closed
@@ -111,6 +123,16 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
             return Line(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
         case "rectangle":
             return Rectangle(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
+        case "busbar":
+            return Busbar(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
+        case "wire":
+            return Wire(
+                points=tuple(_to_pt(p) for p in d["points"]),
+                label=str(d.get("label", "")),
+                label_side=1 if int(d.get("label_side", 1)) >= 0 else -1,
+                label_height=float(d.get("label_height", 2.5)),
+                **common,
+            )
         case "polyline":
             return Polyline(
                 points=tuple(_to_pt(p) for p in d["points"]),

@@ -1,0 +1,224 @@
+import pytest
+from PyQt6.QtGui import QUndoStack
+
+from blocks_fixtures import blocks
+from sldgridy.fileio.files import load_library
+from sldgridy.fileio.json_format import entity_from_dict, entity_to_dict
+from sldgridy.fileio.paths import system_library_dir
+from sldgridy.model.document import Document
+from sldgridy.model.entities import BlockReference, Busbar, ConnectionPoint, Wire
+from sldgridy.model.geometry import Point
+from sldgridy.model.grips import move_grip
+from sldgridy.model.snap import SnapMode, find_snap
+from sldgridy.model.wires import (
+    drag_end,
+    elbow,
+    follow_connections,
+    junction_points,
+    label_text,
+    simplify,
+)
+from sldgridy.tools.controller import ToolController
+from sldgridy.tools.draw import BusbarTool, WireTool
+from sldgridy.tools.edit import MoveTool, RotateTool
+
+
+def W(id_, *pts, **kw):
+    return Wire(id=id_, points=tuple(Point(*p) for p in pts), **kw)
+
+
+def test_elbow_and_simplify():
+    assert elbow(Point(0, 0), Point(10, 0)) == [Point(10, 0)]
+    assert elbow(Point(0, 0), Point(10, 5)) == [Point(10, 0), Point(10, 5)]
+    assert elbow(Point(0, 0), Point(3, 10)) == [Point(0, 10), Point(3, 10)]
+    pts = [Point(0, 0), Point(5, 0), Point(5, 0), Point(10, 0), Point(10, 5)]
+    assert simplify(pts) == (Point(0, 0), Point(10, 0), Point(10, 5))
+
+
+def test_junction_t_and_crossing():
+    a = W("a", (0, 0), (20, 0))
+    b = W("b", (10, 0), (10, 10))  # ends on a: T junction
+    c = W("c", (5, -5), (5, 5))  # crosses a without ending: no junction
+    assert junction_points([a, b, c]) == [Point(10, 0)]
+
+
+def test_junction_three_ends_but_not_two():
+    a = W("a", (0, 0), (10, 0))
+    b = W("b", (10, 0), (10, 10))
+    assert junction_points([a, b]) == []
+    c = W("c", (10, 0), (20, 0))
+    assert junction_points([a, b, c]) == [Point(10, 0)]
+
+
+def test_label_on_longest_segment():
+    w = W("w", (0, 0), (0, 30), (5, 30), label="NYY-J 5x16")
+    t = label_text(w)
+    assert t.rotation == 90 and t.position == Point(-1, 15) and t.halign == "center"
+    h = W("h", (0, 0), (40, 0), label="X", label_side=-1)
+    t = label_text(h)
+    assert t.rotation == 0 and t.position == Point(20, 3.5)
+    assert label_text(W("n", (0, 0), (1, 0))) is None
+
+
+def test_drag_end_keeps_orthogonal():
+    w = W("w", (0, 0), (10, 0), (10, 20))
+    moved = drag_end(w, -1, Point(15, 25))
+    assert moved.points == (Point(0, 0), Point(15, 0), Point(15, 25))
+    single = W("s", (0, 0), (0, 20))
+    assert drag_end(single, -1, Point(5, 25)).points == (
+        Point(0, 0),
+        Point(0, 25),
+        Point(5, 25),
+    )
+    assert drag_end(single, 0, Point(0, -5)).points == (Point(0, -5), Point(0, 20))
+
+
+def test_follow_connections_of_moved_block():
+    b = blocks()
+    ref = BlockReference(id="r", name="Sicherung", insert=Point(0, 0))
+    wire = W("w", (0, 10), (0, 30), (20, 30))  # starts at connection 2
+    other = W("o", (50, 50), (60, 50))
+    moved = ref.translated(5, 0)
+    (new,) = follow_connections([ref, wire, other], [ref], [moved], b)
+    assert new.points[0] == Point(5, 10)
+    assert all(p.x == q.x or p.y == q.y for p, q in zip(new.points, new.points[1:], strict=False))
+
+
+def test_follow_translates_wire_between_two_moved_blocks():
+    b = blocks()
+    r1 = BlockReference(id="r1", name="Sicherung", insert=Point(0, 0))
+    r2 = BlockReference(id="r2", name="Sicherung", insert=Point(0, 20))
+    wire = W("w", (0, 10), (0, 20))
+    new = follow_connections(
+        [r1, r2, wire], [r1, r2], [r1.translated(3, 4), r2.translated(3, 4)], b
+    )
+    assert new[0].points == (Point(3, 14), Point(3, 24))
+
+
+def test_wire_and_busbar_roundtrip_and_grips():
+    w = W("w", (0, 0), (10, 0), label="L1", label_side=-1)
+    bb = Busbar(id="b", p1=Point(0, 0), p2=Point(50, 0), lineweight=0.7)
+    for e in (w, bb):
+        assert entity_from_dict(entity_to_dict(e)) == e
+    assert move_grip(w, 1, Point(10, 5)).points == (Point(0, 0), Point(10, 0), Point(10, 5))
+
+
+def test_busbar_accepts_snap_anywhere():
+    bb = Busbar(id="b", p1=Point(0, 0), p2=Point(50, 0))
+    hit = find_snap(Point(17.3, 0.4), [bb], aperture=1)
+    assert hit.mode is SnapMode.CONNECTION and hit.point == Point(17.3, 0)
+
+
+class Ctx:
+    def __init__(self):
+        self.document = Document.new("Blatt 1")
+        self.stack = QUndoStack()
+        self.selection = []
+
+    container = property(lambda self: self.document.model_space)
+    current_layer = property(lambda self: "0")
+    block_definitions = property(lambda self: self.document.blocks)
+
+    def push(self, c):
+        self.stack.push(c)
+
+    def selected_ids(self):
+        return list(self.selection)
+
+    def ask_text(self, *a):
+        return None
+
+    def message(self, t):
+        pass
+
+
+def test_wire_tool_inserts_corners():
+    ctx = Ctx()
+    tools = ToolController(ctx)
+    tools.start(WireTool)
+    tools.pick(Point(0, 0))
+    tools.pick(Point(20, 10))
+    tools.pick(Point(20, 30))
+    tools.finish()
+    (wire,) = list(ctx.container)
+    assert wire.points == (Point(0, 0), Point(20, 0), Point(20, 30))
+
+
+def test_busbar_tool_is_orthogonal_and_thick():
+    ctx = Ctx()
+    tools = ToolController(ctx)
+    tools.start(BusbarTool)
+    tools.pick(Point(0, 0))
+    tools.pick(Point(40, 3))
+    (bar,) = list(ctx.container)
+    assert (bar.p1, bar.p2, bar.lineweight) == (Point(0, 0), Point(40, 0), 0.7)
+
+
+def test_move_and_rotate_tool_drag_attached_wires():
+    ctx = Ctx()
+    ctx.document.blocks.update(blocks())
+    ms = ctx.container
+    ms.add(BlockReference(id="r", name="Sicherung", insert=Point(0, 0)))
+    ms.add(W("w", (0, 10), (0, 30)))
+    ctx.selection = ["r"]
+    tools = ToolController(ctx)
+    tools.start(MoveTool)
+    tools.pick(Point(0, 0))
+    tools.pick(Point(0, -5))
+    assert ms.get("w").points == (Point(0, 5), Point(0, 30))
+    ctx.stack.undo()
+    assert ms.get("w").points == (Point(0, 10), Point(0, 30))
+    tools.start(RotateTool)
+    tools.pick(Point(0, 0))
+    tools.pick(Point(10, 0.1))  # 0 quarters: nothing
+    assert ms.get("w").points == (Point(0, 10), Point(0, 30))
+
+
+def test_standalone_connection_point_drags_wire():
+    a = ConnectionPoint(id="c", name="1", position=Point(0, 0))
+    w = W("w", (0, 0), (10, 0))
+    (new,) = follow_connections([a, w], [a], [a.translated(0, 5)], {})
+    assert new.points[0] == Point(0, 5)
+
+
+def test_shipped_library_complete():
+    path = system_library_dir() / "din_en_60617.sldglib"
+    title, defs = load_library(path)
+    names = {d.name for d in defs}
+    required = {
+        "Leitungsschutzschalter",
+        "Schmelzsicherung",
+        "NH-Sicherungslasttrenner",
+        "Lasttrennschalter",
+        "Leistungsschalter",
+        "Schütz",
+        "Fehlerstromschutzschalter",
+        "Überspannungsableiter",
+        "Netzanschluss",
+        "Hausanschlusskasten",
+        "Zähler Bezug",
+        "Zähler Lieferung",
+        "Zähler Zweirichtung",
+        "Stromwandler",
+        "Transformator",
+        "PV-Generator",
+        "Wechselrichter",
+        "Batteriespeicher",
+        "Generator",
+        "NA-Schutz",
+        "Kuppelschalter",
+        "Motor",
+        "Verbraucher",
+        "Ladeeinrichtung",
+        "Wärmepumpe",
+        "Erdung",
+        "Potentialausgleichsschiene",
+    }
+    assert required <= names
+    for d in defs:
+        tags = {a.tag for a in d.attribute_definitions()}
+        assert tags == {"BMK", "TYP", "WERT"}, d.name
+        assert d.connection_points(), d.name
+        for c in d.connection_points():
+            for v in (c.position.x, c.position.y):
+                assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)

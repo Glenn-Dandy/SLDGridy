@@ -14,11 +14,17 @@ from PyQt6.QtGui import (
     QUndoStack,
 )
 from PyQt6.QtWidgets import (
+    QComboBox,
     QFileDialog,
+    QFormLayout,
     QGraphicsScene,
+    QGroupBox,
+    QInputDialog,
     QLabel,
+    QLineEdit,
     QMainWindow,
     QMessageBox,
+    QPushButton,
     QToolBar,
     QToolButton,
     QVBoxLayout,
@@ -32,13 +38,23 @@ from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.model.blocks import BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
-from sldgridy.model.entities import BlockReference, ConnectionPoint, Entity, Text
+from sldgridy.model.entities import BlockReference, Busbar, ConnectionPoint, Entity, Text, Wire
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode
+from sldgridy.model.wires import label_text
 from sldgridy.tools.controller import ToolController, ToolFactory
 from sldgridy.tools.coord_input import CoordinateError, parse_coordinate
-from sldgridy.tools.draw import ArcTool, CircleTool, LineTool, PolylineTool, RectangleTool, TextTool
+from sldgridy.tools.draw import (
+    ArcTool,
+    BusbarTool,
+    CircleTool,
+    LineTool,
+    PolylineTool,
+    RectangleTool,
+    TextTool,
+    WireTool,
+)
 from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, RotateTool
 from sldgridy.ui import clipboard
 from sldgridy.ui.block_controller import BlockController
@@ -52,6 +68,7 @@ from sldgridy.ui.space import BLOCK, MODEL, Space
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import Canvas
 from sldgridy.view.items import EntityItem
+from sldgridy.view.junctions import JunctionItem
 from sldgridy.view.render import Style
 from sldgridy.view.scene_sync import SceneSync
 
@@ -133,7 +150,13 @@ class MainWindow(QMainWindow):
         scene = QGraphicsScene(self)
         sync = SceneSync(scene, container, self._resolve_style, self._layer_state, self._expand)
         scene.selectionChanged.connect(self._on_selection_changed)
-        return Space(kind, container, scene, sync, stack)
+        junction_item = JunctionItem(
+            container, self._resolve_style, lambda e: self._layer_state(e)[0]
+        )
+        scene.addItem(junction_item)
+        space = Space(kind, container, scene, sync, stack)
+        space.extra["junctions"] = junction_item
+        return space
 
     def spaces(self) -> list[Space]:
         result = [self.model_view]
@@ -167,6 +190,7 @@ class MainWindow(QMainWindow):
 
     def _drop_space(self, space: Space) -> None:
         space.detach()
+        space.extra["junctions"].detach()
         if space.stack in self.undo_group.stacks() and space.stack is not self.undo_stack:
             self.undo_group.removeStack(space.stack)
         space.scene.deleteLater()
@@ -183,6 +207,10 @@ class MainWindow(QMainWindow):
         self.current_layer = name
         self.lbl_layer.setText(self.tr("Ebene: {name}").format(name=name))
         self.layers_dock.rebuild()
+
+    @property
+    def block_definitions(self):
+        return self.document.blocks
 
     @property
     def active_stack(self) -> QUndoStack:
@@ -253,7 +281,12 @@ class MainWindow(QMainWindow):
         self.act_circle = self._tool_action(self.tr("&Kreis"), CircleTool)
         self.act_arc = self._tool_action(self.tr("&Bogen"), ArcTool)
         self.act_text = self._tool_action(self.tr("&Text"), TextTool)
+        self.act_wire = self._tool_action(self.tr("Lei&tung"), WireTool)
+        self.act_wire.setShortcut(QKeySequence("Ctrl+W"))
+        self.act_busbar = self._tool_action(self.tr("&Sammelschiene"), BusbarTool)
         self.draw_actions = [
+            self.act_wire,
+            self.act_busbar,
             self.act_line,
             self.act_polyline,
             self.act_rectangle,
@@ -371,6 +404,10 @@ class MainWindow(QMainWindow):
         self.properties_dock = PropertiesDock(self, self)
         self.library_dock = LibraryDock(self, self)
         self.blocks.attach_properties(self.properties_dock)
+        self.properties_dock.extra_type_names.update(
+            {Wire: self.tr("Leitung"), Busbar: self.tr("Sammelschiene")}
+        )
+        self.properties_dock.extra_editors.append(self._wire_label_editor)
         self.library_dock.insert_requested.connect(self.blocks.insert_from_source)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.properties_dock)
@@ -415,6 +452,9 @@ class MainWindow(QMainWindow):
         return layer.visible, layer.locked
 
     def _expand(self, entity: Entity) -> list[Entity]:
+        if isinstance(entity, Wire):
+            label = label_text(entity)
+            return [entity, label] if label is not None else [entity]
         if isinstance(entity, BlockReference):
             try:
                 return expand(entity, self.document.blocks)
@@ -448,6 +488,7 @@ class MainWindow(QMainWindow):
     def _refresh_all_spaces(self) -> None:
         for space in self.spaces():
             space.sync.refresh()
+            space.extra["junctions"].recompute()
         self.canvas.viewport().update()
 
     def _on_layers_changed(self) -> None:
@@ -702,6 +743,17 @@ class MainWindow(QMainWindow):
         entity = self.container.get(entity_id)
         if self.blocks.edit_entity(entity):
             return
+        if isinstance(entity, Wire):
+            label, ok = QInputDialog.getText(
+                self, self.tr("Leitung"), self.tr("Beschriftung:"), text=entity.label
+            )
+            if ok and label != entity.label:
+                self.push(
+                    ReplaceEntitiesCommand(
+                        self.container, [replace(entity, label=label)], self.tr("Beschriftung")
+                    )
+                )
+            return
         if not isinstance(entity, Text):
             return
         result = self.ask_text(entity.text, entity.height)
@@ -712,6 +764,34 @@ class MainWindow(QMainWindow):
             return
         changed = replace(entity, text=content, height=height)
         self.push(ReplaceEntitiesCommand(self.container, [changed], self.tr("Text ändern")))
+
+    def _wire_label_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
+        wires = [e for e in entities if isinstance(e, Wire)]
+        if len(wires) != 1 or len(entities) != 1:
+            return
+        wire = wires[0]
+        box = QGroupBox(self.tr("Beschriftung"))
+        form = QFormLayout(box)
+        edit = QLineEdit(wire.label)
+        edit.setPlaceholderText(self.tr("z. B. NYY-J 5x16"))
+        side = QComboBox()
+        side.addItem(self.tr("oben / links"), 1)
+        side.addItem(self.tr("unten / rechts"), -1)
+        side.setCurrentIndex(0 if wire.label_side > 0 else 1)
+        apply = QPushButton(self.tr("Beschriftung übernehmen"))
+        form.addRow(self.tr("Text:"), edit)
+        form.addRow(self.tr("Lage:"), side)
+        form.addRow(apply)
+        layout.addWidget(box)
+
+        def on_apply() -> None:
+            current = self.container.get(wire.id)
+            new = replace(current, label=edit.text(), label_side=int(side.currentData()))
+            if new != current:
+                self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Beschriftung")))
+
+        apply.clicked.connect(on_apply)
+        edit.returnPressed.connect(on_apply)
 
     def _edit_grid_settings(self) -> None:
         dialog = GridDialog(self.canvas.grid_spacing(), self.canvas.snap_spacing, self)

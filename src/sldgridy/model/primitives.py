@@ -3,7 +3,7 @@
 import math
 from dataclasses import dataclass
 
-from sldgridy.model.entities import Arc, Circle, Entity, Line, Polyline, Rectangle
+from sldgridy.model.entities import Arc, Busbar, Circle, Entity, Line, Polyline, Rectangle, Wire
 from sldgridy.model.geometry import Point, angle_deg, midpoint, point_at_angle
 
 EPS = 1e-9
@@ -39,8 +39,10 @@ def rect_corners(r: Rectangle) -> list[Point]:
 
 def primitives(e: Entity) -> list[Primitive]:
     match e:
-        case Line():
+        case Line() | Busbar():
             return [Segment(e.p1, e.p2)]
+        case Wire():
+            return [Segment(a, b) for a, b in zip(e.points, e.points[1:], strict=False)]
         case Polyline():
             pts = list(e.points)
             if e.closed:

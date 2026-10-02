@@ -1,0 +1,5930 @@
+{
+ "format_version": 1,
+ "type": "library",
+ "name": "DIN EN 60617",
+ "blocks": [
+  {
+   "name": "Leitungsschutzschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Leitungsschutzschalter mit thermischem und magnetischem Auslöser",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1,
+      4
+     ],
+     "p2": [
+      1,
+      6
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      -1,
+      6
+     ],
+     "p2": [
+      1,
+      4
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r8",
+     "layer": "0",
+     "p1": [
+      -8.75,
+      6.25
+     ],
+     "p2": [
+      -5,
+      8.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l9",
+     "layer": "0",
+     "lineweight": 0.18,
+     "linetype": "dashed",
+     "p1": [
+      -5,
+      7.5
+     ],
+     "p2": [
+      -1.25,
+      7.5
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Schmelzsicherung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Schmelzsicherung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      3.75
+     ],
+     "p2": [
+      1.25,
+      11.25
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp3",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "NH-Sicherungslasttrenner",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "NH-Sicherungslasttrennschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "polyline",
+     "id": "p6",
+     "layer": "0",
+     "points": [
+      [
+       -1.1382,
+       9.4007
+      ],
+      [
+       -2.7034,
+       6.2702
+      ],
+      [
+       -1.3618,
+       5.5993
+      ],
+      [
+       0.2034,
+       8.7298
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c8",
+     "layer": "0",
+     "center": [
+      0,
+      4.25
+     ],
+     "radius": 0.75
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Lasttrennschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Lasttrennschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c7",
+     "layer": "0",
+     "center": [
+      0,
+      4.25
+     ],
+     "radius": 0.75
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Leistungsschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Leistungsschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1,
+      4
+     ],
+     "p2": [
+      1,
+      6
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      -1,
+      6
+     ],
+     "p2": [
+      1,
+      4
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Schütz",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Schütz, Schließer",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "arc",
+     "id": "a6",
+     "layer": "0",
+     "center": [
+      0,
+      5
+     ],
+     "radius": 1.25,
+     "start_angle": 0,
+     "end_angle": 180
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Fehlerstromschutzschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Fehlerstromschutzschalter (RCD)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "rectangle",
+     "id": "r6",
+     "layer": "0",
+     "p1": [
+      -11.25,
+      5
+     ],
+     "p2": [
+      -5,
+      10
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t7",
+     "layer": "0",
+     "position": [
+      -8.125,
+      7.5
+     ],
+     "text": "IΔ",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l8",
+     "layer": "0",
+     "lineweight": 0.18,
+     "linetype": "dashed",
+     "p1": [
+      -5,
+      7.5
+     ],
+     "p2": [
+      -1.25,
+      7.5
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Überspannungsableiter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Schalten und Schützen",
+   "description": "Überspannungsschutzeinrichtung (SPD) mit Erdung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      3.75
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      3.75
+     ],
+     "p2": [
+      1.25,
+      11.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      5
+     ],
+     "p2": [
+      0,
+      9.5
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p4",
+     "layer": "0",
+     "points": [
+      [
+       -0.75,
+       8.25
+      ],
+      [
+       0,
+       9.5
+      ],
+      [
+       0.75,
+       8.25
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      0,
+      11.25
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      15
+     ],
+     "p2": [
+      2.5,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      -1.5,
+      16.25
+     ],
+     "p2": [
+      1.5,
+      16.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l8",
+     "layer": "0",
+     "p1": [
+      -0.5,
+      17.5
+     ],
+     "p2": [
+      0.5,
+      17.5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Netzanschluss",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Anschluss an das Verteilnetz",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      -5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "lineweight": 0.5,
+     "p1": [
+      -6.25,
+      -5
+     ],
+     "p2": [
+      6.25,
+      -5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      -5,
+      -5
+     ],
+     "p2": [
+      -6.25,
+      -7.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      -5
+     ],
+     "p2": [
+      -3.75,
+      -7.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      0,
+      -5
+     ],
+     "p2": [
+      -1.25,
+      -7.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      2.5,
+      -5
+     ],
+     "p2": [
+      1.25,
+      -7.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      5,
+      -5
+     ],
+     "p2": [
+      3.75,
+      -7.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t8",
+     "layer": "0",
+     "position": [
+      0,
+      -10
+     ],
+     "text": "Netz",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "",
+     "position": [
+      8.75,
+      -8.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      8.75,
+      -5.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      8.75,
+      -1.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Hausanschlusskasten",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Hausanschlusskasten mit Sicherung",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -5,
+      0
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r3",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      3.75
+     ],
+     "p2": [
+      1.25,
+      8.75
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F0",
+     "position": [
+      7.5,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "HAK",
+     "position": [
+      7.5,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Zähler Bezug",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Elektrizitätszähler für Bezug",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -7.5,
+      2.5
+     ],
+     "p2": [
+      7.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t4",
+     "layer": "0",
+     "position": [
+      -1.75,
+      6.25
+     ],
+     "text": "kWh",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      4.25,
+      3.5
+     ],
+     "p2": [
+      4.25,
+      9
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p6",
+     "layer": "0",
+     "points": [
+      [
+       3.5,
+       7.75
+      ],
+      [
+       4.25,
+       9
+      ],
+      [
+       5,
+       7.75
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "connection",
+     "id": "cp7",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp8",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-P1",
+     "position": [
+      10,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      10,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      10,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Zähler Lieferung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Elektrizitätszähler für Lieferung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -7.5,
+      2.5
+     ],
+     "p2": [
+      7.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t4",
+     "layer": "0",
+     "position": [
+      -1.75,
+      6.25
+     ],
+     "text": "kWh",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      4.25,
+      3.5
+     ],
+     "p2": [
+      4.25,
+      9
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p6",
+     "layer": "0",
+     "points": [
+      [
+       3.5,
+       4.75
+      ],
+      [
+       4.25,
+       3.5
+      ],
+      [
+       5.0,
+       4.75
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "connection",
+     "id": "cp7",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp8",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-P1",
+     "position": [
+      10,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      10,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      10,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Zähler Zweirichtung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Zweirichtungszähler",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -7.5,
+      2.5
+     ],
+     "p2": [
+      7.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t4",
+     "layer": "0",
+     "position": [
+      -1.75,
+      6.25
+     ],
+     "text": "kWh",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      4.25,
+      3.5
+     ],
+     "p2": [
+      4.25,
+      9
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p6",
+     "layer": "0",
+     "points": [
+      [
+       3.5,
+       7.75
+      ],
+      [
+       4.25,
+       9
+      ],
+      [
+       5,
+       7.75
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      5.75,
+      3.5
+     ],
+     "p2": [
+      5.75,
+      9
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p8",
+     "layer": "0",
+     "points": [
+      [
+       5.0,
+       4.75
+      ],
+      [
+       5.75,
+       3.5
+      ],
+      [
+       6.5,
+       4.75
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp10",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-P1",
+     "position": [
+      10,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      10,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      10,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Stromwandler",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Stromwandler",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      7.5
+     ],
+     "radius": 2.5
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      2.5,
+      7.5
+     ],
+     "p2": [
+      5,
+      7.5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-T1",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Spannungswandler",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Spannungswandler",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      5
+     ],
+     "radius": 2.5
+    },
+    {
+     "type": "circle",
+     "id": "c3",
+     "layer": "0",
+     "center": [
+      0,
+      8.75
+     ],
+     "radius": 2.5
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      0,
+      11.25
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp6",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-T2",
+     "position": [
+      5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Transformator",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Transformator mit zwei Wicklungen",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      7.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "circle",
+     "id": "c3",
+     "layer": "0",
+     "center": [
+      0,
+      12.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      0,
+      17.5
+     ],
+     "p2": [
+      0,
+      20
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp6",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      20
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-T1",
+     "position": [
+      7.5,
+      6.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      10.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      13.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "MS-Leistungsschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Mittelspannungs-Leistungsschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      5
+     ],
+     "p2": [
+      2.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      5
+     ],
+     "p2": [
+      2.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      10
+     ],
+     "p2": [
+      2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp6",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp7",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "MS-Lasttrennschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Mittelspannungs-Lasttrennschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c7",
+     "layer": "0",
+     "center": [
+      0,
+      4.25
+     ],
+     "radius": 0.75
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Trennschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Trennschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Erdungsschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Erdungsschalter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      12.5
+     ],
+     "p2": [
+      2.5,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1.5,
+      13.75
+     ],
+     "p2": [
+      1.5,
+      13.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      -0.5,
+      15
+     ],
+     "p2": [
+      0.5,
+      15
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp8",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q8",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "HH-Sicherung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Hochspannungs-Hochleistungssicherung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      3.75
+     ],
+     "p2": [
+      1.25,
+      11.25
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r3",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      3.75
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Kabelendverschluss",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Kabelendverschluss",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p2",
+     "layer": "0",
+     "points": [
+      [
+       -2.5,
+       5
+      ],
+      [
+       2.5,
+       5
+      ],
+      [
+       0,
+       10
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "",
+     "position": [
+      5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Schutzrelais",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Schutzrelais (Überstromzeitschutz)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      7.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      5
+     ],
+     "text": "I>",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "A",
+     "position": [
+      5,
+      5
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F11",
+     "position": [
+      7.5,
+      1.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      5.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      8.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Kurzschlussanzeiger",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Kurzschluss- und Erdschlussanzeiger",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -3.75,
+      2.5
+     ],
+     "p2": [
+      3.75,
+      7.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      5
+     ],
+     "text": "KA",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-P5",
+     "position": [
+      6.25,
+      1.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      6.25,
+      5.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      6.25,
+      8.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Ortsnetztransformator",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Mittelspannung und Transformatorstation",
+   "description": "Ortsnetz- bzw. Kundentransformator, Dreieck/Stern",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      7.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "circle",
+     "id": "c3",
+     "layer": "0",
+     "center": [
+      0,
+      12.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      0,
+      17.5
+     ],
+     "p2": [
+      0,
+      20
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p5",
+     "layer": "0",
+     "points": [
+      [
+       -1.5,
+       6.5
+      ],
+      [
+       1.5,
+       6.5
+      ],
+      [
+       0,
+       4
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      0,
+      14
+     ],
+     "p2": [
+      0,
+      16.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      0,
+      14
+     ],
+     "p2": [
+      -1.75,
+      12.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l8",
+     "layer": "0",
+     "p1": [
+      0,
+      14
+     ],
+     "p2": [
+      1.75,
+      12.75
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp10",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      20
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-T1",
+     "position": [
+      7.5,
+      6.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "Dyn5",
+     "position": [
+      7.5,
+      10.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      13.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "PV-Generator",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Photovoltaik-Generator",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      -2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      -12.5
+     ],
+     "p2": [
+      5,
+      -2.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      -5,
+      -2.5
+     ],
+     "p2": [
+      5,
+      -12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -9,
+      -17
+     ],
+     "p2": [
+      -6,
+      -14
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p5",
+     "layer": "0",
+     "points": [
+      [
+       -7.25,
+       -14.25
+      ],
+      [
+       -6,
+       -14
+      ],
+      [
+       -6.25,
+       -15.25
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -6.5,
+      -18.5
+     ],
+     "p2": [
+      -3.5,
+      -15.5
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "p7",
+     "layer": "0",
+     "points": [
+      [
+       -4.75,
+       -15.75
+      ],
+      [
+       -3.5,
+       -15.5
+      ],
+      [
+       -3.75,
+       -16.75
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "text",
+     "id": "t8",
+     "layer": "0",
+     "position": [
+      -2.75,
+      -9.75
+     ],
+     "text": "+",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "t9",
+     "layer": "0",
+     "position": [
+      2.75,
+      -5
+     ],
+     "text": "−",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp10",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G1",
+     "position": [
+      7.5,
+      -11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      -7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      -4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "PV-String",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Photovoltaik-String (Reihenschaltung von Modulen)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      -2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      -7.5
+     ],
+     "p2": [
+      2.5,
+      -2.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      -2.5
+     ],
+     "p2": [
+      2.5,
+      -7.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "lineweight": 0.18,
+     "linetype": "dashed",
+     "p1": [
+      0,
+      -7.5
+     ],
+     "p2": [
+      0,
+      -10
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r5",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      -15
+     ],
+     "p2": [
+      2.5,
+      -10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      -10
+     ],
+     "p2": [
+      2.5,
+      -15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      0,
+      -15
+     ],
+     "p2": [
+      0,
+      -17.5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp8",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      -17.5
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G1",
+     "position": [
+      5,
+      -12.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      5,
+      -8.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      5,
+      -5.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Generatoranschlusskasten",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Generatoranschlusskasten (GAK)",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -7.5,
+      0
+     ],
+     "p2": [
+      7.5,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t2",
+     "layer": "0",
+     "position": [
+      0,
+      6.25
+     ],
+     "text": "GAK",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp3",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-X1",
+     "position": [
+      10,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      10,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      10,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "DC-Freischalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "DC-Freischalter (Lasttrennschalter für Gleichstrom)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      5
+     ],
+     "p2": [
+      1.25,
+      5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c7",
+     "layer": "0",
+     "center": [
+      0,
+      4.25
+     ],
+     "radius": 0.75
+    },
+    {
+     "type": "text",
+     "id": "t8",
+     "layer": "0",
+     "position": [
+      -5,
+      12.5
+     ],
+     "text": "=",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q1",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Wechselrichter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Wechselrichter",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      -5,
+      12.5
+     ],
+     "p2": [
+      5,
+      2.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -3.75,
+      4.5
+     ],
+     "p2": [
+      -1.25,
+      4.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      -3.75,
+      5.5
+     ],
+     "p2": [
+      -1.25,
+      5.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t6",
+     "layer": "0",
+     "position": [
+      2.5,
+      10
+     ],
+     "text": "~",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "p1": [
+      0,
+      12.5
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp8",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-T1",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Batteriespeicher",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Batteriespeicher",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      -5,
+      5
+     ],
+     "p2": [
+      5,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "lineweight": 0.7,
+     "p1": [
+      -2.5,
+      6.25
+     ],
+     "p2": [
+      2.5,
+      6.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -5,
+      8.75
+     ],
+     "p2": [
+      5,
+      8.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "lineweight": 0.7,
+     "p1": [
+      -2.5,
+      10
+     ],
+     "p2": [
+      2.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t7",
+     "layer": "0",
+     "position": [
+      -6.25,
+      3.75
+     ],
+     "text": "+",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "t8",
+     "layer": "0",
+     "position": [
+      -6.25,
+      11.25
+     ],
+     "text": "−",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp9",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp10",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      12.5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G2",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Generator",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Generator, Wechselstrom",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      -2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      -7.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      -8.5
+     ],
+     "text": "G",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "t4",
+     "layer": "0",
+     "position": [
+      0,
+      -4.5
+     ],
+     "text": "~",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G1",
+     "position": [
+      7.5,
+      -11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      -7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      -4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "NA-Schutz",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Netz- und Anlagenschutz nach VDE-AR-N 4105/4110",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -10,
+      2.5
+     ],
+     "p2": [
+      10,
+      7.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      5
+     ],
+     "text": "NA-Schutz",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "A",
+     "position": [
+      10,
+      5
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F2",
+     "position": [
+      12.5,
+      1.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      12.5,
+      5.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      12.5,
+      8.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Kuppelschalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Erzeugung und Speicher",
+   "description": "Kuppelschalter (vom NA-Schutz ausgelöst)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "arc",
+     "id": "a6",
+     "layer": "0",
+     "center": [
+      0,
+      5
+     ],
+     "radius": 1.25,
+     "start_angle": 0,
+     "end_angle": 180
+    },
+    {
+     "type": "line",
+     "id": "l7",
+     "layer": "0",
+     "lineweight": 0.18,
+     "linetype": "dashed",
+     "p1": [
+      -1.25,
+      7.5
+     ],
+     "p2": [
+      -7.5,
+      7.5
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-Q2",
+     "position": [
+      3.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      3.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      3.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Motor",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Drehstrommotor",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "c2",
+     "layer": "0",
+     "center": [
+      0,
+      7.5
+     ],
+     "radius": 5
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      6.5
+     ],
+     "text": "M",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "t4",
+     "layer": "0",
+     "position": [
+      0,
+      10
+     ],
+     "text": "3~",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-M1",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Verbraucher",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Allgemeiner Verbraucher",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      10
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp3",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-E1",
+     "position": [
+      7.5,
+      2.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      6.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      9.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Ladeeinrichtung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Ladeeinrichtung für Elektrofahrzeuge",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      6.5
+     ],
+     "text": "EV",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      10
+     ],
+     "p2": [
+      2.5,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l5",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      10
+     ],
+     "p2": [
+      -1.25,
+      11.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l6",
+     "layer": "0",
+     "p1": [
+      1.25,
+      10
+     ],
+     "p2": [
+      1.25,
+      11.25
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp7",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-E1",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Wärmepumpe",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Wärmepumpe",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r2",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t3",
+     "layer": "0",
+     "position": [
+      0,
+      7.5
+     ],
+     "text": "WP",
+     "height": 3.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-E1",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Erdung",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Erdung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      -3.75,
+      5
+     ],
+     "p2": [
+      3.75,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      6.25
+     ],
+     "p2": [
+      2.5,
+      6.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l4",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      7.5
+     ],
+     "p2": [
+      1.25,
+      7.5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "",
+     "position": [
+      5,
+      1.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      5,
+      5.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      5,
+      8.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Potentialausgleichsschiene",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Verbraucher und Sonstiges",
+   "description": "Potentialausgleichsschiene (PAS)",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -12.5,
+      0
+     ],
+     "p2": [
+      12.5,
+      5
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp2",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      -10,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp3",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      -5,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp6",
+     "layer": "0",
+     "name": "5",
+     "position": [
+      10,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp7",
+     "layer": "0",
+     "name": "PE",
+     "position": [
+      0,
+      5
+     ],
+     "direction": 270
+    },
+    {
+     "type": "text",
+     "id": "t8",
+     "layer": "0",
+     "position": [
+      0,
+      2.5
+     ],
+     "text": "PAS",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "",
+     "position": [
+      15,
+      -1.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      15,
+      2.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      15,
+      6.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  }
+ ]
+}
