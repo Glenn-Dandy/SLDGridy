@@ -1,3 +1,3 @@
 """SLDGridy: CAD-style editor for single-line electrical diagrams."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

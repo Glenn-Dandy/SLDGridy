@@ -1,6 +1,7 @@
 """Application entry point."""
 
 import sys
+from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication
 
@@ -22,4 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     app = create_application(sys.argv if argv is None else argv)
     window = MainWindow()
     window.show()
+    files = [a for a in app.arguments()[1:] if not a.startswith("-")]
+    if files:
+        window.open_path(Path(files[0]))
     return app.exec()

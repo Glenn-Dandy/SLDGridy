@@ -99,12 +99,14 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 - Ortho-Modus (nur waagerecht/senkrecht), umschaltbar.
 - Koordinateneingabe über eine Eingabezeile: absolut `x,y`, relativ `@dx,dy`, Länge bei aktivem Ortho.
 - Statusleiste zeigt Cursorposition in mm, Zoom, aktive Ebene, Fang- und Ortho-Zustand.
-- Bedienung: Esc bricht ab, Enter oder Rechtsklick beendet, Leertaste wiederholt den letzten Befehl. Mausrad zoomt auf den Cursor, mittlere Taste verschiebt.
+- Bedienung: Esc bricht ab, Enter oder Rechtsklick beendet, Leertaste wiederholt den letzten Befehl (bei laufendem Befehl wirkt sie wie Enter). Mausrad zoomt auf den Cursor, mittlere Taste verschiebt.
+- Tasten: F7 Raster, F8 Ortho, F9 Rasterfang, Pos1 Grenzen zoomen, Entf löscht die Auswahl. Raster, Fang und Ortho sind auch als Knöpfe in der Statusleiste umschaltbar und werden in `QSettings` gemerkt.
+- Werkzeugablauf: Linie zeichnet fortlaufend Einzelsegmente; Polylinie schließt beim Klick auf den Startpunkt; Kreis über Mittelpunkt und Umfangspunkt; Bogen über Mittelpunkt, Start- und Endpunkt gegen den Uhrzeigersinn; Text über Einfügepunkt und Dialog, Doppelklick auf einen Text bearbeitet ihn.
 
 ### Bearbeiten
 
-- Auswahl per Klick, Fenster (links nach rechts: vollständig innen) und Kreuzen (rechts nach links: berührt).
-- Verschieben, Kopieren, Drehen in 90°-Schritten, Spiegeln, Löschen, Ausschneiden/Einfügen, Griffe an Endpunkten.
+- Auswahl per Klick, Fenster (links nach rechts: vollständig innen) und Kreuzen (rechts nach links: berührt). Umschalt+Klick fügt hinzu oder entfernt, Klick ins Leere hebt die Auswahl auf.
+- Verschieben, Kopieren (mehrfach bis Enter), Drehen in 90°-Schritten (Richtung per Maus, gegen den Uhrzeigersinn positiv), Spiegeln, Löschen, Ausschneiden/Einfügen, Griffe an Endpunkten.
 - Eigenschaften-Dock für Ebene, Farbe, Linienbreite, Linienart (durchgezogen, gestrichelt, strichpunktiert), Text und Blockattribute.
 - Unbegrenztes Rückgängig/Wiederholen.
 
@@ -164,10 +166,11 @@ Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Cod
 
 ### Dateiformat
 
+- Koordinaten: Winkel in Grad gegen den Uhrzeigersinn am Bildschirm, 0° zeigt nach +X. Text: Einfügepunkt ist das linke Ende der ersten Grundlinie, die Texthöhe ist die Versalhöhe, Zeilenabstand 1,6 × Texthöhe.
 - Zeichnung: `.sldg`, JSON in UTF-8, mit `format_version`. Enthält Ebenen, alle verwendeten Blockdefinitionen, die Objekte des Modells sowie alle Zeichnungsrahmen mit Format, Schriftfeldwerten, Blattobjekten und Ansichtsfenstern.
 - Bibliothek: `.sldglib`, JSON mit einer Liste von Blockdefinitionen.
 - Rahmenvorlage: `.sldgframe`, JSON mit einem Zeichnungsrahmen ohne Ansichtsinhalt.
-- Speichern atomar: in eine temporäre Datei schreiben, dann umbenennen. Vor dem Überschreiben eine `.bak` behalten.
+- Speichern atomar: in eine temporäre Datei schreiben, dann umbenennen. Vor dem Überschreiben eine `.bak` behalten (`name.sldg.bak`).
 - Automatische Sicherung alle 5 Minuten nach `~/.cache/sldgridy/`, beim Start Wiederherstellung anbieten.
 - Fenster- und Programmeinstellungen über `QSettings`.
 

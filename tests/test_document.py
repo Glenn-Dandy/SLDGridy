@@ -9,7 +9,8 @@ MODEL_DIR = pathlib.Path(__file__).parents[1] / "src" / "sldgridy" / "model"
 
 def test_new_document_has_model_and_one_a0_landscape_sheet():
     doc = Document.new("Blatt 1")
-    assert doc.model_space.entities == []
+    assert list(doc.model_space) == []
+    assert [layer.name for layer in doc.layers] == ["0"]
     assert len(doc.sheets) == 1
     sheet = doc.sheets[0]
     assert sheet.name == "Blatt 1"
