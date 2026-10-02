@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "sldgridy"
 dynamic = ["version"]
 description = "CAD-style editor for single-line electrical diagrams"
-readme = "CLAUDE.md"
+readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "GPL-3.0-or-later" }
 # PyQt6 comes from the distribution packages (python3-pyqt6, python3-pyqt6.qtsvg).

@@ -34,6 +34,7 @@ rmdir --ignore-fail-on-non-empty "$STAGE/usr/share/$PKG/library" "$STAGE/usr/sha
 
 install -D -m 0755 "$ROOT/packaging/$PKG.sh" "$STAGE/usr/bin/$PKG"
 install -D -m 0644 "$ROOT/packaging/$PKG.desktop" "$STAGE/usr/share/applications/$PKG.desktop"
+install -D -m 0644 "$ROOT/packaging/$PKG.xml" "$STAGE/usr/share/mime/packages/$PKG.xml"
 install -D -m 0644 "$ROOT/packaging/$PKG.svg" \
     "$STAGE/usr/share/icons/hicolor/scalable/apps/$PKG.svg"
 install -D -m 0644 "$ROOT/packaging/copyright" "$STAGE/usr/share/doc/$PKG/copyright"

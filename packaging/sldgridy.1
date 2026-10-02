@@ -9,10 +9,26 @@ sldgridy \- editor for single-line electrical diagrams
 draws single-line diagrams for photovoltaic systems, transformer stations
 and low-voltage distribution boards in a CAD-style environment working in
 millimetres, and prints or plots them up to A0.
+.SH OPTIONS
+.TP
+.I file
+Drawing (.sldg) to open at start.
 .SH FILES
+.TP
+.I *.sldg
+Drawing files (JSON, MIME type application/x-sldgridy).
+.TP
+.I *.sldglib
+Block libraries.
+.TP
+.I *.sldgframe
+Frame templates.
 .TP
 .I ~/.local/share/sldgridy/
 User block library and frame templates.
+.TP
+.I ~/.cache/sldgridy/
+Automatic backups, offered for recovery after a crash.
 .TP
 .I /usr/share/sldgridy/
 Shipped symbol library and frame templates.

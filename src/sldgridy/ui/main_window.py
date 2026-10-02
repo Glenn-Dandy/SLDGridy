@@ -58,6 +58,7 @@ from sldgridy.tools.draw import (
 )
 from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, RotateTool
 from sldgridy.ui import clipboard
+from sldgridy.ui.autosave import AutoSaver, orphaned_backups, remove_backup
 from sldgridy.ui.block_controller import BlockController
 from sldgridy.ui.command_line import CommandLine
 from sldgridy.ui.export_dialog import PDF, PNG, SVG, ExportDialog
@@ -93,6 +94,7 @@ class MainWindow(QMainWindow):
         self.undo_group.setActiveStack(self.undo_stack)
         self.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.undo_group.indexChanged.connect(self._on_undo_index_changed)
+        self.autosave = AutoSaver(self)
 
         self.canvas = Canvas(QGraphicsScene(self), parent=self)
         self.canvas.resolve_style = self._resolve_style
@@ -553,6 +555,7 @@ class MainWindow(QMainWindow):
     def _set_document(self, document: Document, path: Path | None) -> None:
         self.tools.cancel()
         self.blocks.close_editor(save=False, ask=False)
+        self.autosave.discard()
         self._unsubscribe_document()
         old = self.model_view
         self.document = document
@@ -672,8 +675,45 @@ class MainWindow(QMainWindow):
         self.file_path = path
         self.remember_dir(path)
         self.undo_stack.setClean()
+        self.autosave.discard()
         self._update_title()
         self.message(self.tr("Gespeichert: {path}").format(path=path))
+        return True
+
+    def offer_recovery(self) -> None:
+        """Offer backups of instances that ended without saving."""
+        for backup in orphaned_backups():
+            name = backup.original.name if backup.original else self.tr("Unbenannt")
+            box = QMessageBox(self)
+            box.setIcon(QMessageBox.Icon.Question)
+            box.setWindowTitle(self.tr("Wiederherstellung"))
+            box.setText(
+                self.tr(
+                    "Es gibt eine automatische Sicherung von „{name}“ ({time}), "
+                    "die nicht gespeichert wurde."
+                ).format(name=name, time=backup.saved.replace("T", " "))
+            )
+            restore = box.addButton(self.tr("Wiederherstellen"), QMessageBox.ButtonRole.AcceptRole)
+            discard = box.addButton(self.tr("Verwerfen"), QMessageBox.ButtonRole.DestructiveRole)
+            box.addButton(self.tr("Später"), QMessageBox.ButtonRole.RejectRole)
+            box.exec()
+            if box.clickedButton() is discard:
+                remove_backup(backup)
+            elif box.clickedButton() is restore and self.restore_backup(backup):
+                return
+
+    def restore_backup(self, backup) -> bool:
+        if not self._maybe_save():
+            return False
+        try:
+            document = load_document(backup.path)
+        except (OSError, FileFormatError) as exc:
+            QMessageBox.critical(self, APP_NAME, str(exc))
+            return False
+        self._set_document(document, backup.original)
+        self.undo_stack.resetClean()  # recovered content counts as unsaved
+        self._update_title()
+        remove_backup(backup)
         return True
 
     # -- printing and export ------------------------------------------------
@@ -990,5 +1030,6 @@ class MainWindow(QMainWindow):
             event.ignore()
             return
         self.tools.cancel()
+        self.autosave.discard()
         self._save_settings()
         super().closeEvent(event)

@@ -11,3 +11,4 @@ Terminal=false
 Categories=Graphics;Engineering;
 Keywords=SLD;single-line;Schaltplan;Photovoltaik;PV;Trafostation;CAD;
 StartupWMClass=sldgridy
+MimeType=application/x-sldgridy;

@@ -36,6 +36,7 @@ Diese Regeln gelten für jeden Meilenstein und werden nicht aufgeweicht.
 ```
 sldgridy/
 ├── CLAUDE.md
+├── README.md                # Kurzanleitung für Benutzer
 ├── pyproject.toml
 ├── src/sldgridy/
 │   ├── __init__.py          # __version__ (einzige Versionsquelle)
@@ -218,7 +219,7 @@ Umsetzung (M7):
 - Bibliothek: `.sldglib`, JSON `{"format_version", "type": "library", "name", "blocks": [...]}`.
 - Rahmenvorlage: `.sldgframe`, JSON mit einem Zeichnungsrahmen ohne Ansichtsinhalt. Benutzervorlagen in `~/.local/share/sldgridy/templates/`.
 - Speichern atomar: in eine temporäre Datei schreiben, dann umbenennen. Vor dem Überschreiben eine `.bak` behalten (`name.sldg.bak`).
-- Automatische Sicherung alle 5 Minuten nach `~/.cache/sldgridy/`, beim Start Wiederherstellung anbieten.
+- Automatische Sicherung alle 5 Minuten nach `~/.cache/sldgridy/`, beim Start Wiederherstellung anbieten. Umsetzung: `autosave-<pid>.sldg` plus `autosave-<pid>.json` (Originalpfad, Zeitpunkt), nur bei ungespeicherten Änderungen und nur wenn sich seit der letzten Sicherung etwas geändert hat. Gelöscht beim Speichern, beim Dokumentwechsel und beim Beenden. Beim Start werden Sicherungen von nicht mehr laufenden Prozessen angeboten (Wiederherstellen, Verwerfen, Später); wiederhergestellte Zeichnungen gelten als ungespeichert.
 - Fenster- und Programmeinstellungen über `QSettings`.
 
 ## Befehle
@@ -270,7 +271,7 @@ Depends: python3 (>= 3.12), python3-pyqt6, python3-pyqt6.qtsvg
 ```
 
 - Vor dem Eintragen der Abhängigkeiten unter Ubuntu 24.04 prüfen, welche Pakete die benötigten Qt-Module wirklich liefern (`dpkg -S`, `apt-cache show`).
-- Der MIME-Eintrag (`sldgridy.xml`, `MimeType=` in der Desktop-Datei) kommt erst in M8; die Desktop-Datei und das Symbol sind seit M1 enthalten.
+- MIME-Typ `application/x-sldgridy` (`*.sldg`, Unterklasse von `application/json`) in `packaging/sldgridy.xml`, `MimeType=application/x-sldgridy;` in der Desktop-Datei. `desktop-file-validate` und `update-mime-database` akzeptieren beide Dateien.
 - Kein `postinst` nötig: Desktop- und MIME-Datenbank werden über dpkg-Trigger aktualisiert.
 - Abnahme: `lintian` ohne Fehler, Installation und Deinstallation sauber, Programm startet aus dem Menü, Doppelklick auf eine `.sldg` öffnet sie.
 

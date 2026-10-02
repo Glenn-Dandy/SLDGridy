@@ -26,4 +26,5 @@ def main(argv: list[str] | None = None) -> int:
     files = [a for a in app.arguments()[1:] if not a.startswith("-")]
     if files:
         window.open_path(Path(files[0]))
+    window.offer_recovery()
     return app.exec()
