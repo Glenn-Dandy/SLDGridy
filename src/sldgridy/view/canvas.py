@@ -1,5 +1,6 @@
 """Drawing canvas: a QGraphicsView working in millimetres."""
 
+import json
 from collections.abc import Callable
 
 from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
@@ -55,6 +56,9 @@ SNAP_MARKER_COLOR = QColor("#e07000")
 GRIP_PX = 4.0  # half size of a grip square
 MAX_GRIP_ENTITIES = 200
 
+# Drag and drop payload of a library block: JSON {"path": str, "name": str}.
+BLOCK_MIME = "application/x-sldgridy-block"
+
 # Characters that start typed coordinate input while the canvas has focus.
 COORD_INPUT_CHARS = set("0123456789@.,;-")
 
@@ -71,6 +75,8 @@ class Canvas(QGraphicsView):
     entity_double_clicked = pyqtSignal(str)
     # Printable text typed while the canvas has focus (goes to the command line).
     text_typed = pyqtSignal(str)
+    # A library block dropped on the canvas: payload and snapped scene position.
+    block_dropped = pyqtSignal(dict, QPointF)
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
@@ -105,6 +111,9 @@ class Canvas(QGraphicsView):
         self.snap_decompose: Callable[[Entity], list[Entity]] | None = None
         # Extra helper painting in scene coordinates (never printed).
         self.extra_overlay: Callable[[QPainter, float], None] | None = None
+        # Resolves block references in previews.
+        self.expand: Callable[[Entity], list[Entity]] | None = None
+        self.setAcceptDrops(True)
 
         self._pan_last: QPointF | None = None
         self._cursor_view: QPointF | None = None  # raw mouse position in view pixels
@@ -452,6 +461,35 @@ class Canvas(QGraphicsView):
                 return
         self.mousePressEvent(event)
 
+    def dragEnterEvent(self, event) -> None:
+        if event.mimeData().hasFormat(BLOCK_MIME):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event) -> None:
+        if event.mimeData().hasFormat(BLOCK_MIME):
+            self._update_cursor(event.position())
+            self.viewport().update()
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event) -> None:
+        data = event.mimeData()
+        if not data.hasFormat(BLOCK_MIME):
+            event.ignore()
+            return
+        try:
+            payload = json.loads(bytes(data.data(BLOCK_MIME)).decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            event.ignore()
+            return
+        self._update_cursor(event.position())
+        event.acceptProposedAction()
+        self.setFocus()
+        self.block_dropped.emit(payload, self._cursor_scene)
+
     def leaveEvent(self, event) -> None:
         self._cursor_view = None
         self.viewport().update()
@@ -550,7 +588,10 @@ class Canvas(QGraphicsView):
                 pen.setCosmetic(True)
                 painter.setPen(pen)
                 painter.drawLine(qpt(base), self._cursor_scene)
-            for e in self.controller.preview():
+            previews = self.controller.preview()
+            if self.expand is not None:
+                previews = [part for e in previews for part in self.expand(e)]
+            for e in previews:
                 if self.resolve_style:
                     style = self.resolve_style(e)
                     style = Style(PREVIEW_COLOR, style.lineweight, style.linetype)

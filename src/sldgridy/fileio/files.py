@@ -6,10 +6,18 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from sldgridy.fileio.json_format import FileFormatError, document_from_dict, document_to_dict
+from sldgridy.fileio.json_format import (
+    FileFormatError,
+    document_from_dict,
+    document_to_dict,
+    library_from_dict,
+    library_to_dict,
+)
+from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.document import Document
 
 DRAWING_SUFFIX = ".sldg"
+LIBRARY_SUFFIX = ".sldglib"
 
 
 def write_json_atomic(path: Path, data: dict) -> None:
@@ -34,12 +42,24 @@ def save_document(doc: Document, path: Path) -> None:
     write_json_atomic(Path(path), document_to_dict(doc))
 
 
-def load_document(path: Path) -> Document:
+def _read_json(path: Path) -> dict:
     try:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as exc:
         raise FileFormatError(f"not a valid JSON file: {exc}") from exc
     if not isinstance(data, dict):
-        raise FileFormatError("not a drawing file")
-    return document_from_dict(data)
+        raise FileFormatError("unexpected file content")
+    return data
+
+
+def load_document(path: Path) -> Document:
+    return document_from_dict(_read_json(path))
+
+
+def save_library(blocks: list[BlockDefinition], path: Path, name: str = "") -> None:
+    write_json_atomic(Path(path), library_to_dict(blocks, name))
+
+
+def load_library(path: Path) -> tuple[str, list[BlockDefinition]]:
+    return library_from_dict(_read_json(path))

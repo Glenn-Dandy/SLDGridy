@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QGraphicsScene
 
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import Entity
-from sldgridy.view.items import EntityItem, StyleResolver
+from sldgridy.view.items import EntityItem, Expander, StyleResolver, _identity
 
 # Returns (visible, locked) for an entity, derived from its layer.
 LayerState = Callable[[Entity], tuple[bool, bool]]
@@ -23,8 +23,10 @@ class SceneSync:
         container: EntityContainer,
         resolve_style: StyleResolver,
         layer_state: LayerState = _always_visible,
+        expand: Expander = _identity,
     ) -> None:
         self._layer_state = layer_state
+        self._expand = expand
         self._scene = scene
         self._container = container
         self._resolve_style = resolve_style
@@ -54,7 +56,7 @@ class SceneSync:
             item.set_layer_state(*self._layer_state(item.entity))
 
     def _add(self, e: Entity) -> None:
-        item = EntityItem(e, self._resolve_style)
+        item = EntityItem(e, self._resolve_style, self._expand)
         item.set_layer_state(*self._layer_state(e))
         self._items[e.id] = item
         self._scene.addItem(item)

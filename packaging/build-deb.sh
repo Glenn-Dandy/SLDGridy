@@ -20,6 +20,8 @@ mkdir -p "$STAGE/usr/share/$PKG"
 cp -r "$ROOT/src/$PKG" "$STAGE/usr/share/$PKG/$PKG"
 find "$STAGE/usr/share/$PKG" -name __pycache__ -type d -prune -exec rm -rf {} +
 find "$STAGE/usr/share/$PKG" -name '*.pyc' -delete
+# Library and templates live next to the module, not inside it.
+rm -rf "$STAGE/usr/share/$PKG/$PKG/resources/library" "$STAGE/usr/share/$PKG/$PKG/resources/templates"
 
 # Shipped symbol library and frame templates (filled in later milestones).
 mkdir -p "$STAGE/usr/share/$PKG/library" "$STAGE/usr/share/$PKG/templates"

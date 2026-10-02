@@ -12,6 +12,8 @@ def qapp(tmp_path_factory):
 
     # Keep tests away from the user's real settings.
     settings_dir = tmp_path_factory.mktemp("settings")
+    os.environ["XDG_DATA_HOME"] = str(tmp_path_factory.mktemp("data"))
+    os.environ["XDG_CACHE_HOME"] = str(tmp_path_factory.mktemp("cache"))
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
     QSettings.setPath(QSettings.Format.IniFormat, QSettings.Scope.UserScope, str(settings_dir))
 

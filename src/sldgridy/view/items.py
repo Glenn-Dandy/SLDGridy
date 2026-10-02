@@ -6,18 +6,35 @@ from PyQt6.QtCore import QRectF
 from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPainterPathStroker
 from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem
 
-from sldgridy.model.entities import Entity, Text
-from sldgridy.view.render import Style, entity_bounds, entity_path, paint_entity, text_scene_path
+from sldgridy.model.entities import ConnectionPoint, Entity, Text
+from sldgridy.view.render import (
+    Style,
+    connection_marker_path,
+    displayed,
+    entity_bounds,
+    entity_path,
+    paint_entity,
+    text_scene_path,
+)
 
 SELECTION_COLOR = QColor("#1e88e5")
 
 StyleResolver = Callable[[Entity], Style]
+# Resolves compound entities (block references) into simple ones; identity otherwise.
+Expander = Callable[[Entity], list[Entity]]
+
+
+def _identity(e: Entity) -> list[Entity]:
+    return [e]
 
 
 class EntityItem(QGraphicsItem):
-    def __init__(self, entity: Entity, resolve_style: StyleResolver) -> None:
+    def __init__(
+        self, entity: Entity, resolve_style: StyleResolver, expand: Expander = _identity
+    ) -> None:
         super().__init__()
         self._resolve_style = resolve_style
+        self._expand = expand
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.entity = entity
         self._update_geometry()
@@ -44,14 +61,23 @@ class EntityItem(QGraphicsItem):
         self.update()
 
     def _update_geometry(self) -> None:
-        style = self._resolve_style(self.entity)
-        self._bounds = entity_bounds(self.entity, style.lineweight)
-        if isinstance(self.entity, Text):
-            self._shape = text_scene_path(self.entity)
-        else:
-            stroker = QPainterPathStroker()
-            stroker.setWidth(max(style.lineweight, 0.01))
-            self._shape = stroker.createStroke(entity_path(self.entity))
+        self._parts = self._expand(self.entity)
+        bounds = QRectF()
+        shape = QPainterPath()
+        for part in self._parts:
+            style = self._resolve_style(part)
+            bounds = bounds.united(entity_bounds(part, style.lineweight))
+            shown = displayed(part)
+            if isinstance(shown, Text):
+                shape.addPath(text_scene_path(shown))
+            elif isinstance(shown, ConnectionPoint):
+                shape.addPath(connection_marker_path(shown))
+            else:
+                stroker = QPainterPathStroker()
+                stroker.setWidth(max(style.lineweight, 0.01))
+                shape.addPath(stroker.createStroke(entity_path(shown)))
+        self._bounds = bounds
+        self._shape = shape
 
     def boundingRect(self) -> QRectF:
         return self._bounds
@@ -60,8 +86,9 @@ class EntityItem(QGraphicsItem):
         return self._shape
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget=None) -> None:
-        style = self._resolve_style(self.entity)
-        if self.isSelected():
-            style = Style(SELECTION_COLOR, style.lineweight, style.linetype)
         lod = option.levelOfDetailFromTransform(painter.worldTransform())
-        paint_entity(painter, self.entity, style, lod)
+        for part in self._parts:
+            style = self._resolve_style(part)
+            if self.isSelected():
+                style = Style(SELECTION_COLOR, style.lineweight, style.linetype)
+            paint_entity(painter, part, style, lod)

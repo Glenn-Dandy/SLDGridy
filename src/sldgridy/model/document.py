@@ -3,6 +3,7 @@
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 
+from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import Entity
 from sldgridy.model.layers import DEFAULT_LAYER, Layer
@@ -32,7 +33,11 @@ class Document:
     model_space: ModelSpace = field(default_factory=ModelSpace)
     sheets: list[SheetLayout] = field(default_factory=list)
     layers: list[Layer] = field(default_factory=lambda: [Layer(DEFAULT_LAYER)])
+    blocks: dict[str, BlockDefinition] = field(default_factory=dict)
     _layer_listeners: list[Callable[[], None]] = field(
+        default_factory=list, repr=False, compare=False
+    )
+    _block_listeners: list[Callable[[str], None]] = field(
         default_factory=list, repr=False, compare=False
     )
 
@@ -46,6 +51,37 @@ class Document:
         yield self.model_space
         for sheet in self.sheets:
             yield sheet.entities
+        for definition in self.blocks.values():
+            yield definition.entities
+
+    # -- blocks -------------------------------------------------------------
+
+    def subscribe_blocks(self, listener: Callable[[str], None]) -> None:
+        self._block_listeners.append(listener)
+
+    def unsubscribe_blocks(self, listener: Callable[[str], None]) -> None:
+        self._block_listeners.remove(listener)
+
+    def _block_changed(self, name: str) -> None:
+        for listener in list(self._block_listeners):
+            listener(name)
+
+    def set_block(self, definition: BlockDefinition) -> None:
+        """Add or replace a block definition."""
+        self.blocks[definition.name] = definition
+        self._block_changed(definition.name)
+
+    def remove_block(self, name: str) -> BlockDefinition:
+        definition = self.blocks.pop(name)
+        self._block_changed(name)
+        return definition
+
+    def block_in_use(self, name: str) -> bool:
+        from sldgridy.model.entities import BlockReference
+
+        return any(
+            isinstance(e, BlockReference) and e.name == name for c in self.containers() for e in c
+        )
 
     # -- layers -------------------------------------------------------------
 

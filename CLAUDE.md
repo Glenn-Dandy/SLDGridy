@@ -145,6 +145,18 @@ Kernfunktion. Ein Block ist eine benannte Definition, die beliebig oft als Refer
 - **Bibliothek:** Dock mit Vorschaubildern, Suche und Drag-and-drop in die Zeichnung. Quellen sind die mitgelieferte Bibliothek (`/usr/share/sldgridy/library/`, schreibgeschützt) und die Benutzerbibliothek (`~/.local/share/sldgridy/library/`). Blöcke lassen sich aus der Zeichnung in die Benutzerbibliothek speichern, Bibliotheksdateien importieren und exportieren.
 - Beim Einfügen aus der Bibliothek wird die Definition in das Dokument kopiert, damit jede Zeichnungsdatei für sich allein vollständig ist. Bei Namensgleichheit mit abweichendem Inhalt fragen: Dokumentversion behalten, ersetzen oder umbenennen.
 
+Umsetzung (M4):
+
+- Attributdefinitionen (`AttributeDefinition`) und Anschlusspunkte (`ConnectionPoint`) sind Objekte im Container der Definition. Sie lassen sich mit den normalen Werkzeugen verschieben, löschen und per Doppelklick bearbeiten. Außerhalb von Referenzen zeigen Attributdefinitionen ihre Kennung; Anschlusspunkte erscheinen nur als Marker.
+- Transformation einer Referenz: Basispunkt abziehen, bei `mirrored` X spiegeln, um `rotation` gegen den Uhrzeigersinn drehen, Einfügepunkt addieren.
+- Objekte auf Ebene `0` innerhalb eines Blocks übernehmen Ebene und Einzelwerte (Farbe, Breite, Art) der Referenz.
+- Attributtexte: 180° wird zu 0°, 270° zu 90°, die waagerechte Ausrichtung wird dabei gespiegelt. Attribute sind standardmäßig vertikal mittig verankert, damit das Umklappen ihre Lage nicht verschiebt. Normale Texte im Block drehen starr mit.
+- Auflösen wirkt eine Ebene tief: Attribute werden zu Texten mit ihrem Wert, Anschlusspunkte entfallen, verschachtelte Referenzen bleiben Referenzen.
+- Blockeditor: arbeitet auf einer Kopie mit eigenem Undo-Stapel; „Speichern und schließen“ legt genau ein Kommando im Zeichnungsstapel ab. Im Editor können keine neuen Blöcke aus Auswahl erstellt werden. Bibliotheksdefinitionen, die beim Einfügen im Editor nötig werden, landen direkt im Zeichnungsstapel.
+- Bibliotheken: `/usr/share/sldgridy/library/*.sldglib` (im Quellbaum `src/sldgridy/resources/library/`) und `~/.local/share/sldgridy/library/*.sldglib`. „In Benutzerbibliothek speichern“ schreibt nach `eigene.sldglib`. Import kopiert eine Datei in die Benutzerbibliothek, Export schreibt ausgewählte Blöcke samt verschachtelter Abhängigkeiten.
+- Definitionen gelten als gleich, wenn sie ohne Objekt-IDs übereinstimmen (`block_signature`).
+- Die Zwischenablage trägt die nötigen Blockdefinitionen mit.
+
 ### Mitgelieferte Symbolbibliothek
 
 Symbole nach DIN EN 60617 im 2,5-mm-Raster, jeweils mit Anschlusspunkten und den Attributen `BMK` (Betriebsmittelkennzeichen), `TYP` und `WERT`:
@@ -175,7 +187,7 @@ Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Cod
 
 - Koordinaten: Winkel in Grad gegen den Uhrzeigersinn am Bildschirm, 0° zeigt nach +X. Text: Einfügepunkt ist das linke Ende der ersten Grundlinie, die Texthöhe ist die Versalhöhe, Zeilenabstand 1,6 × Texthöhe.
 - Zeichnung: `.sldg`, JSON in UTF-8, mit `format_version`. Enthält Ebenen, alle verwendeten Blockdefinitionen, die Objekte des Modells sowie alle Zeichnungsrahmen mit Format, Schriftfeldwerten, Blattobjekten und Ansichtsfenstern.
-- Bibliothek: `.sldglib`, JSON mit einer Liste von Blockdefinitionen.
+- Bibliothek: `.sldglib`, JSON `{"format_version", "type": "library", "name", "blocks": [...]}`.
 - Rahmenvorlage: `.sldgframe`, JSON mit einem Zeichnungsrahmen ohne Ansichtsinhalt.
 - Speichern atomar: in eine temporäre Datei schreiben, dann umbenennen. Vor dem Überschreiben eine `.bak` behalten (`name.sldg.bak`).
 - Automatische Sicherung alle 5 Minuten nach `~/.cache/sldgridy/`, beim Start Wiederherstellung anbieten.

@@ -118,16 +118,127 @@ class Arc(Entity):
         return s if s else 360.0
 
 
+HALIGNS = ("left", "center", "right")
+VALIGNS = ("baseline", "middle")
+
+
 @dataclass(frozen=True, kw_only=True)
 class Text(Entity):
-    """Single or multi-line text. ``position`` is the left end of the first baseline."""
+    """Single or multi-line text.
+
+    ``position`` is the anchor: by default the left end of the first baseline.
+    ``halign`` moves it to the centre or right end, ``valign`` "middle" to the
+    vertical middle between the top of the first line and the last baseline.
+    """
 
     position: Point
     text: str
     height: float = DEFAULT_TEXT_HEIGHT
     rotation: int = 0
+    halign: str = "left"
+    valign: str = "baseline"
 
     def _mapped(self, fn, quarters):
         return replace(
             self, position=fn(self.position), rotation=(self.rotation + 90 * quarters) % 360
         )
+
+
+@dataclass(frozen=True, kw_only=True)
+class AttributeDefinition(Entity):
+    """Placeholder for a text value that each block reference fills in."""
+
+    tag: str
+    prompt: str = ""
+    default: str = ""
+    position: Point
+    height: float = 2.5
+    rotation: int = 0
+    visible: bool = True
+    halign: str = "left"
+    valign: str = "middle"
+
+    def _mapped(self, fn, quarters):
+        return replace(
+            self, position=fn(self.position), rotation=(self.rotation + 90 * quarters) % 360
+        )
+
+    def as_text(self, value: str) -> Text:
+        return Text(
+            id=self.id,
+            layer=self.layer,
+            color=self.color,
+            lineweight=self.lineweight,
+            linetype=self.linetype,
+            position=self.position,
+            text=value,
+            height=self.height,
+            rotation=self.rotation,
+            halign=self.halign,
+            valign=self.valign,
+        )
+
+
+# Direction of a connection point: the side a wire leaves from, in degrees.
+DIRECTIONS = (0, 90, 180, 270)
+
+
+@dataclass(frozen=True, kw_only=True)
+class ConnectionPoint(Entity):
+    """Where wires attach to a symbol. Only shown as a helper marker."""
+
+    name: str
+    position: Point
+    direction: int = 0
+
+    def _mapped(self, fn, quarters):
+        return replace(
+            self, position=fn(self.position), direction=(self.direction + 90 * quarters) % 360
+        )
+
+    def mirrored(self, axis: Point, horizontal: bool) -> Self:
+        flipped = (-self.direction if horizontal else 180 - self.direction) % 360
+        return replace(
+            self, position=mirror_point(self.position, axis, horizontal), direction=flipped
+        )
+
+
+@dataclass(frozen=True, kw_only=True)
+class BlockReference(Entity):
+    """Placed instance of a block definition.
+
+    Local definition coordinates map to the drawing as: subtract the base
+    point, mirror X if ``mirrored_x``, rotate by ``rotation`` (counter-clockwise),
+    then add ``insert``.
+    """
+
+    name: str
+    insert: Point
+    rotation: int = 0
+    mirrored_x: bool = False
+    attributes: tuple[tuple[str, str], ...] = ()
+
+    def _mapped(self, fn, quarters):
+        return replace(self, insert=fn(self.insert), rotation=(self.rotation + 90 * quarters) % 360)
+
+    def mirrored(self, axis: Point, horizontal: bool) -> Self:
+        # M_world . R(r) . Mx^m = R(-r) . Mx^(m+1) for a vertical axis and
+        # R(180 - r) . Mx^(m+1) for a horizontal one.
+        rotation = (180 - self.rotation if horizontal else -self.rotation) % 360
+        return replace(
+            self,
+            insert=mirror_point(self.insert, axis, horizontal),
+            rotation=rotation,
+            mirrored_x=not self.mirrored_x,
+        )
+
+    def attribute(self, tag: str, default: str = "") -> str:
+        for t, v in self.attributes:
+            if t == tag:
+                return v
+        return default
+
+    def with_attribute(self, tag: str, value: str) -> "BlockReference":
+        attrs = [(t, v) for t, v in self.attributes if t != tag]
+        attrs.append((tag, value))
+        return replace(self, attributes=tuple(sorted(attrs)))

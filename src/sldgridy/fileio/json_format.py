@@ -4,9 +4,21 @@ from collections.abc import Callable
 from typing import Any
 
 from sldgridy import __version__
+from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document, ModelSpace, SheetLayout
-from sldgridy.model.entities import Arc, Circle, Entity, Line, Polyline, Rectangle, Text
+from sldgridy.model.entities import (
+    Arc,
+    AttributeDefinition,
+    BlockReference,
+    Circle,
+    ConnectionPoint,
+    Entity,
+    Line,
+    Polyline,
+    Rectangle,
+    Text,
+)
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER, Layer
 from sldgridy.model.paper import Orientation
@@ -42,6 +54,9 @@ _TYPE_NAMES: dict[type, str] = {
     Circle: "circle",
     Arc: "arc",
     Text: "text",
+    AttributeDefinition: "attdef",
+    ConnectionPoint: "connection",
+    BlockReference: "block_ref",
 }
 
 
@@ -65,6 +80,20 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
         case Text():
             d["position"], d["text"] = _pt(e.position), e.text
             d["height"], d["rotation"] = e.height, e.rotation
+            if e.halign != "left":
+                d["halign"] = e.halign
+            if e.valign != "baseline":
+                d["valign"] = e.valign
+        case AttributeDefinition():
+            d["tag"], d["prompt"], d["default"] = e.tag, e.prompt, e.default
+            d["position"], d["height"], d["rotation"] = _pt(e.position), e.height, e.rotation
+            d["visible"], d["halign"], d["valign"] = e.visible, e.halign, e.valign
+        case ConnectionPoint():
+            d["name"], d["position"], d["direction"] = e.name, _pt(e.position), e.direction
+        case BlockReference():
+            d["name"], d["insert"] = e.name, _pt(e.insert)
+            d["rotation"], d["mirrored"] = e.rotation, e.mirrored_x
+            d["attributes"] = dict(e.attributes)
     return d
 
 
@@ -104,9 +133,97 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 text=str(d["text"]),
                 height=float(d["height"]),
                 rotation=int(d.get("rotation", 0)),
+                halign=str(d.get("halign", "left")),
+                valign=str(d.get("valign", "baseline")),
+                **common,
+            )
+        case "attdef":
+            return AttributeDefinition(
+                tag=str(d["tag"]),
+                prompt=str(d.get("prompt", "")),
+                default=str(d.get("default", "")),
+                position=_to_pt(d["position"]),
+                height=float(d.get("height", 2.5)),
+                rotation=int(d.get("rotation", 0)),
+                visible=bool(d.get("visible", True)),
+                halign=str(d.get("halign", "left")),
+                valign=str(d.get("valign", "middle")),
+                **common,
+            )
+        case "connection":
+            return ConnectionPoint(
+                name=str(d["name"]),
+                position=_to_pt(d["position"]),
+                direction=int(d.get("direction", 0)) % 360,
+                **common,
+            )
+        case "block_ref":
+            attributes = d.get("attributes", {})
+            if not isinstance(attributes, dict):
+                raise FileFormatError("block attributes must be an object")
+            return BlockReference(
+                name=str(d["name"]),
+                insert=_to_pt(d["insert"]),
+                rotation=int(d.get("rotation", 0)) % 360,
+                mirrored_x=bool(d.get("mirrored", False)),
+                attributes=tuple(sorted((str(k), str(v)) for k, v in attributes.items())),
                 **common,
             )
     raise FileFormatError(f"unknown entity type {kind!r}")
+
+
+# -- blocks ---------------------------------------------------------------
+
+
+def block_to_dict(b: BlockDefinition) -> dict[str, Any]:
+    d: dict[str, Any] = {"name": b.name, "base_point": _pt(b.base_point)}
+    if b.category:
+        d["category"] = b.category
+    if b.description:
+        d["description"] = b.description
+    d["entities"] = [entity_to_dict(e) for e in b.entities]
+    return d
+
+
+def block_from_dict(d: dict[str, Any]) -> BlockDefinition:
+    try:
+        return BlockDefinition(
+            name=str(d["name"]),
+            base_point=_to_pt(d.get("base_point", [0, 0])),
+            entities=EntityContainer(entity_from_dict(e) for e in d.get("entities", [])),
+            category=str(d.get("category", "")),
+            description=str(d.get("description", "")),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        if isinstance(exc, FileFormatError):
+            raise
+        raise FileFormatError(f"invalid block definition: {exc}") from exc
+
+
+def block_signature(b: BlockDefinition) -> dict[str, Any]:
+    """Content of a definition without entity ids, for comparing definitions."""
+    d = block_to_dict(b)
+    d["entities"] = [{k: v for k, v in e.items() if k != "id"} for e in d["entities"]]
+    return d
+
+
+def library_to_dict(blocks: list[BlockDefinition], name: str = "") -> dict[str, Any]:
+    return {
+        "format_version": FORMAT_VERSION,
+        "type": "library",
+        "name": name,
+        "blocks": [block_to_dict(b) for b in blocks],
+    }
+
+
+def library_from_dict(data: dict[str, Any]) -> tuple[str, list[BlockDefinition]]:
+    data = migrate(data)
+    if data.get("type") != "library":
+        raise FileFormatError("not a library file")
+    blocks = data.get("blocks")
+    if not isinstance(blocks, list):
+        raise FileFormatError("library without blocks")
+    return str(data.get("name", "")), [block_from_dict(b) for b in blocks]
 
 
 # -- document -------------------------------------------------------------
@@ -141,7 +258,7 @@ def document_to_dict(doc: Document) -> dict[str, Any]:
         "format_version": FORMAT_VERSION,
         "application": f"SLDGridy {__version__}",
         "layers": [_layer_to_dict(layer) for layer in doc.layers],
-        "blocks": [],
+        "blocks": [block_to_dict(b) for b in doc.blocks.values()],
         "model": {"entities": [entity_to_dict(e) for e in doc.model_space]},
         "sheets": [
             {
@@ -175,6 +292,7 @@ def document_from_dict(data: dict[str, Any]) -> Document:
     data = migrate(data)
     try:
         layers = [_layer_from_dict(d) for d in data.get("layers", [])]
+        blocks = {b.name: b for b in (block_from_dict(d) for d in data.get("blocks", []))}
         if not any(layer.name == DEFAULT_LAYER for layer in layers):
             layers.insert(0, Layer(DEFAULT_LAYER))
         model = ModelSpace(entity_from_dict(d) for d in data["model"]["entities"])
@@ -189,4 +307,4 @@ def document_from_dict(data: dict[str, Any]) -> Document:
         ]
     except (KeyError, TypeError, ValueError) as exc:
         raise FileFormatError(f"invalid drawing data: {exc}") from exc
-    return Document(model_space=model, sheets=sheets, layers=layers)
+    return Document(model_space=model, sheets=sheets, layers=layers, blocks=blocks)
