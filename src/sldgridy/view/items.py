@@ -26,6 +26,17 @@ class EntityItem(QGraphicsItem):
     def entity_id(self) -> str:
         return self.entity.id
 
+    def set_layer_state(self, visible: bool, locked: bool) -> None:
+        self.setVisible(visible)
+        selectable = visible and not locked
+        if not selectable and self.isSelected():
+            self.setSelected(False)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, selectable)
+
+    def refresh(self) -> None:
+        """Style may have changed (layer properties)."""
+        self.set_entity(self.entity)
+
     def set_entity(self, entity: Entity) -> None:
         self.prepareGeometryChange()
         self.entity = entity
@@ -51,6 +62,6 @@ class EntityItem(QGraphicsItem):
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget=None) -> None:
         style = self._resolve_style(self.entity)
         if self.isSelected():
-            style = Style(SELECTION_COLOR, style.lineweight)
+            style = Style(SELECTION_COLOR, style.lineweight, style.linetype)
         lod = option.levelOfDetailFromTransform(painter.worldTransform())
         paint_entity(painter, self.entity, style, lod)

@@ -62,3 +62,14 @@ def ortho(base: Point, p: Point) -> Point:
 def quarters_towards(center: Point, p: Point) -> int:
     """Number of 90 degree steps (0..3) closest to the direction from ``center`` to ``p``."""
     return round(angle_deg(center, p) / 90.0) % 4
+
+
+def mirror_point(p: Point, axis: Point, horizontal: bool) -> Point:
+    """Mirror at the horizontal (``horizontal``) or vertical line through ``axis``."""
+    if horizontal:
+        return Point(p.x, 2 * axis.y - p.y)
+    return Point(2 * axis.x - p.x, p.y)
+
+
+def midpoint(a: Point, b: Point) -> Point:
+    return Point((a.x + b.x) / 2, (a.y + b.y) / 2)

@@ -7,7 +7,7 @@ from sldgridy.model.entities import Arc, Circle, Line, Polyline, Rectangle, Text
 from sldgridy.model.geometry import Point
 from sldgridy.tools.controller import ToolController
 from sldgridy.tools.draw import ArcTool, CircleTool, LineTool, PolylineTool, RectangleTool, TextTool
-from sldgridy.tools.edit import CopyTool, MoveTool, RotateTool
+from sldgridy.tools.edit import CopyTool, GripEditTool, MirrorTool, MoveTool, PasteTool, RotateTool
 
 
 class FakeContext:
@@ -159,10 +159,59 @@ def select_samples(ctx):
     ctx.selection = ["l1", "c1"]
 
 
-def test_edit_tool_without_selection_ends_with_message(ctx, tools):
+def test_edit_tool_without_selection_asks_for_objects(ctx, tools):
+    for e in sample_entities():
+        ctx.container.add(e)
     tools.start(MoveTool)
+    assert tools.selecting()
+    tools.pick(Point(0, 0))  # ignored while selecting
+    assert tools.base_point() is None
+    ctx.selection = ["l1"]
+    tools.finish()  # Enter confirms the selection
+    assert not tools.selecting()
+    tools.pick(Point(0, 0))
+    tools.pick(Point(0, 10))
+    assert ctx.container.get("l1").p1 == Point(0, 10)
+
+
+def test_edit_tool_finish_without_selection_ends(ctx, tools):
+    tools.start(RotateTool)
+    tools.finish()
     assert tools.active is None
-    assert ctx.messages
+
+
+def test_mirror_tool_horizontal_axis(ctx, tools):
+    select_samples(ctx)
+    tools.start(MirrorTool)
+    tools.pick(Point(0, 20))
+    tools.pick(Point(10, 20))  # horizontal axis y = 20
+    line = ctx.container.get("l1")
+    assert (line.p1, line.p2) == (Point(0, 40), Point(10, 40))
+
+
+def test_paste_tool_places_new_entities(ctx, tools):
+    entities = sample_entities()[:2]
+    tools.start(lambda c: PasteTool(c, entities, Point(0, 0)))
+    tools.pick(Point(100, 50))
+    placed = list(ctx.container)
+    assert len(placed) == 2
+    assert {e.id for e in placed}.isdisjoint({"l1", "p1"})
+    assert placed[0].p1 == Point(100, 50)
+
+
+def test_grip_tool_moves_line_end(ctx, tools):
+    select_samples(ctx)
+    tools.start(lambda c: GripEditTool(c, "l1", 1))
+    assert tools.base_point() == Point(10, 0)
+    tools.pick(Point(10, 25))
+    line = ctx.container.get("l1")
+    assert (line.p1, line.p2) == (Point(0, 0), Point(10, 25))
+
+
+def test_controller_remembers_last_point(ctx, tools):
+    tools.start(LineTool)
+    tools.pick(Point(3, 4))
+    assert tools.last_point == Point(3, 4)
 
 
 def test_move_tool(ctx, tools):

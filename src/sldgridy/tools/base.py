@@ -39,6 +39,8 @@ class Tool:
         self.ctx = ctx
         self.done = False
         self.cursor: Point | None = None
+        # While True the canvas selects objects instead of picking points.
+        self.selecting = False
 
     def start(self) -> None:
         pass

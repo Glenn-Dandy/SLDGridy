@@ -21,6 +21,8 @@ class ToolController(QObject):
         self._tool: Tool | None = None
         self._last_factory: ToolFactory | None = None
         self._cursor: Point | None = None
+        # Last point given to any tool, reference for relative input without base point.
+        self.last_point: Point | None = None
 
     @property
     def active(self) -> Tool | None:
@@ -40,7 +42,8 @@ class ToolController(QObject):
             self.start(self._last_factory)
 
     def pick(self, p: Point) -> None:
-        if self._tool:
+        if self._tool and not self._tool.selecting:
+            self.last_point = p
             self._tool.pick(p)
             self._after_event()
 
@@ -71,6 +74,9 @@ class ToolController(QObject):
 
     def base_point(self) -> Point | None:
         return self._tool.base_point() if self._tool else None
+
+    def selecting(self) -> bool:
+        return self._tool is not None and self._tool.selecting
 
     def preview(self) -> list[Entity]:
         return self._tool.preview() if self._tool else []

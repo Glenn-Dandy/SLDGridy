@@ -14,10 +14,19 @@ _FONT_LAYOUT_PX = 100
 LINE_SPACING = 1.6  # baseline distance as a multiple of the text height
 
 
+# ISO 128-20 patterns in multiples of the line width d: dashed 12d/3d,
+# long dash dot 24d/3d/0.5d/3d.
+DASH_PATTERNS: dict[str, list[float]] = {
+    "dashed": [12.0, 3.0],
+    "dashdot": [24.0, 3.0, 0.5, 3.0],
+}
+
+
 @dataclass(frozen=True)
 class Style:
     color: QColor
     lineweight: float  # mm
+    linetype: str = "continuous"
 
 
 def qpt(p: Point) -> QPointF:
@@ -111,12 +120,25 @@ def _paint_text(painter: QPainter, e: Text, color: QColor) -> None:
 # -- painting -------------------------------------------------------------
 
 
-def make_pen(color: QColor, lineweight: float, px_per_mm: float) -> QPen:
-    """Pen with a real mm width that is never thinner than one screen pixel."""
+def make_pen(
+    color: QColor, lineweight: float, px_per_mm: float, linetype: str = "continuous"
+) -> QPen:
+    """Pen with a real mm width that is never thinner than one screen pixel.
+
+    ``px_per_mm`` 0 disables the minimum width (used for output devices).
+    """
     width = max(lineweight, 1.0 / px_per_mm) if px_per_mm > 0 else lineweight
     pen = QPen(color, width)
-    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    pattern = DASH_PATTERNS.get(linetype)
+    if pattern:
+        # Qt scales dash patterns by the pen width; keep the mm lengths of the
+        # nominal width when the pen was widened for the screen.
+        k = lineweight / width
+        pen.setDashPattern([max(v * k, 0.01) for v in pattern])
+        pen.setCapStyle(Qt.PenCapStyle.FlatCap)
+    else:
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     return pen
 
 
@@ -124,7 +146,7 @@ def paint_entity(painter: QPainter, e: Entity, style: Style, px_per_mm: float) -
     if isinstance(e, Text):
         _paint_text(painter, e, style.color)
         return
-    painter.setPen(make_pen(style.color, style.lineweight, px_per_mm))
+    painter.setPen(make_pen(style.color, style.lineweight, px_per_mm, style.linetype))
     painter.setBrush(Qt.BrushStyle.NoBrush)
     painter.drawPath(entity_path(e))
 

@@ -1,16 +1,30 @@
 """Keeps the items of a QGraphicsScene in sync with an entity container."""
 
+from collections.abc import Callable
+
 from PyQt6.QtWidgets import QGraphicsScene
 
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import Entity
 from sldgridy.view.items import EntityItem, StyleResolver
 
+# Returns (visible, locked) for an entity, derived from its layer.
+LayerState = Callable[[Entity], tuple[bool, bool]]
+
+
+def _always_visible(_e: Entity) -> tuple[bool, bool]:
+    return True, False
+
 
 class SceneSync:
     def __init__(
-        self, scene: QGraphicsScene, container: EntityContainer, resolve_style: StyleResolver
+        self,
+        scene: QGraphicsScene,
+        container: EntityContainer,
+        resolve_style: StyleResolver,
+        layer_state: LayerState = _always_visible,
     ) -> None:
+        self._layer_state = layer_state
         self._scene = scene
         self._container = container
         self._resolve_style = resolve_style
@@ -30,8 +44,18 @@ class SceneSync:
     def item(self, entity_id: str) -> EntityItem:
         return self._items[entity_id]
 
+    def items(self) -> list[EntityItem]:
+        return list(self._items.values())
+
+    def refresh(self) -> None:
+        """Re-read styles and layer states, e.g. after a layer change."""
+        for item in self._items.values():
+            item.refresh()
+            item.set_layer_state(*self._layer_state(item.entity))
+
     def _add(self, e: Entity) -> None:
         item = EntityItem(e, self._resolve_style)
+        item.set_layer_state(*self._layer_state(e))
         self._items[e.id] = item
         self._scene.addItem(item)
 
@@ -52,4 +76,6 @@ class SceneSync:
             item = self._items.pop(e.id)
             self._scene.removeItem(item)
         elif event == "changed":
-            self._items[e.id].set_entity(e)
+            item = self._items[e.id]
+            item.set_entity(e)
+            item.set_layer_state(*self._layer_state(e))

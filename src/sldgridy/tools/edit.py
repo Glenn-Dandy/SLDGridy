@@ -1,23 +1,49 @@
-"""Tools that modify the current selection."""
+"""Tools that modify existing entities."""
+
+from collections.abc import Sequence
 
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, quarters_towards
+from sldgridy.model.grips import grip_points, move_grip
 from sldgridy.tools.base import Tool, tr
 
 
 class _SelectionTool(Tool):
+    """Works on the current selection; asks for one first if nothing is selected."""
+
+    name = ""
+
     def __init__(self, ctx) -> None:
         super().__init__(ctx)
         self._base: Point | None = None
         self._entities: list[Entity] = []
 
     def start(self) -> None:
+        if not self._take_selection():
+            self.selecting = True
+
+    def _take_selection(self) -> bool:
         container = self.ctx.container
         self._entities = [container.get(i) for i in self.ctx.selected_ids() if i in container]
-        if not self._entities:
-            self.ctx.message(tr("Zuerst Objekte auswählen"))
-            self.done = True
+        return bool(self._entities)
+
+    def finish(self) -> None:
+        if self.selecting:
+            if self._take_selection():
+                self.selecting = False
+            else:
+                self.done = True
+            return
+        self.done = True
+
+    def prompt(self) -> str:
+        if self.selecting:
+            return tr("{name}: Objekte wählen, Enter bestätigt").format(name=self.name)
+        return self._point_prompt()
+
+    def _point_prompt(self) -> str:
+        return ""
 
     def base_point(self) -> Point | None:
         return self._base
@@ -29,7 +55,9 @@ class _SelectionTool(Tool):
 
 
 class MoveTool(_SelectionTool):
-    def prompt(self) -> str:
+    name = tr("Verschieben")
+
+    def _point_prompt(self) -> str:
         if self._base is None:
             return tr("Verschieben: Basispunkt angeben")
         return tr("Verschieben: Zielpunkt angeben")
@@ -52,7 +80,9 @@ class MoveTool(_SelectionTool):
 class CopyTool(_SelectionTool):
     """Places copies until the user finishes."""
 
-    def prompt(self) -> str:
+    name = tr("Kopieren")
+
+    def _point_prompt(self) -> str:
         if self._base is None:
             return tr("Kopieren: Basispunkt angeben")
         return tr("Kopieren: Zielpunkt angeben (Enter beendet)")
@@ -74,7 +104,9 @@ class CopyTool(_SelectionTool):
 class RotateTool(_SelectionTool):
     """Rotate in 90 degree steps towards the cursor direction."""
 
-    def prompt(self) -> str:
+    name = tr("Drehen")
+
+    def _point_prompt(self) -> str:
         if self._base is None:
             return tr("Drehen: Drehpunkt angeben")
         return tr("Drehen: Richtung angeben (90°-Schritte)")
@@ -95,7 +127,91 @@ class RotateTool(_SelectionTool):
         self.done = True
 
     def preview(self) -> list[Entity]:
-        k = self._quarters(self.cursor)
         if self._base is None:
             return []
+        k = self._quarters(self.cursor)
         return [e.rotated(self._base, k) for e in self._entities]
+
+
+class MirrorTool(_SelectionTool):
+    """Mirror in place at a horizontal or vertical axis."""
+
+    name = tr("Spiegeln")
+
+    def _point_prompt(self) -> str:
+        if self._base is None:
+            return tr("Spiegeln: Punkt auf der Spiegelachse angeben")
+        return tr("Spiegeln: Richtung der Achse angeben (waagerecht oder senkrecht)")
+
+    def _horizontal(self, p: Point) -> bool:
+        assert self._base is not None
+        return abs(p.x - self._base.x) >= abs(p.y - self._base.y)
+
+    def pick(self, p: Point) -> None:
+        if self._base is None:
+            self._base = p
+            return
+        if p == self._base:
+            return
+        horizontal = self._horizontal(p)
+        mirrored = [e.mirrored(self._base, horizontal) for e in self._entities]
+        self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, mirrored, tr("Spiegeln")))
+        self.done = True
+
+    def preview(self) -> list[Entity]:
+        if self._base is None or self.cursor is None or self.cursor == self._base:
+            return []
+        horizontal = self._horizontal(self.cursor)
+        return [e.mirrored(self._base, horizontal) for e in self._entities]
+
+
+class PasteTool(Tool):
+    """Insert entities from the clipboard relative to their base point."""
+
+    def __init__(self, ctx, entities: Sequence[Entity], base: Point) -> None:
+        super().__init__(ctx)
+        self._entities = list(entities)
+        self._base = base
+
+    def prompt(self) -> str:
+        return tr("Einfügen: Einfügepunkt angeben")
+
+    def _placed(self, p: Point) -> list[Entity]:
+        dx, dy = p.x - self._base.x, p.y - self._base.y
+        return [e.translated(dx, dy) for e in self._entities]
+
+    def pick(self, p: Point) -> None:
+        entities = [e.with_new_id() for e in self._placed(p)]
+        self.ctx.push(AddEntitiesCommand(self.ctx.container, entities, tr("Einfügen")))
+        self.done = True
+
+    def preview(self) -> list[Entity]:
+        return self._placed(self.cursor) if self.cursor else []
+
+
+class GripEditTool(Tool):
+    """Drag one grip of one entity."""
+
+    def __init__(self, ctx, entity_id: str, index: int) -> None:
+        super().__init__(ctx)
+        self._entity = ctx.container.get(entity_id)
+        self._index = index
+        self._origin = grip_points(self._entity)[index]
+
+    def prompt(self) -> str:
+        return tr("Griff: Neue Position angeben")
+
+    def base_point(self) -> Point | None:
+        return self._origin
+
+    def pick(self, p: Point) -> None:
+        new = move_grip(self._entity, self._index, p)
+        if new is not None and new != self._entity:
+            self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, [new], tr("Griff ziehen")))
+        self.done = True
+
+    def preview(self) -> list[Entity]:
+        if self.cursor is None:
+            return []
+        new = move_grip(self._entity, self._index, self.cursor)
+        return [new] if new is not None else []

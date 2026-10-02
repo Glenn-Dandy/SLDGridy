@@ -1,13 +1,19 @@
 """Drawing canvas: a QGraphicsView working in millimetres."""
 
+from collections.abc import Callable
+
 from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor, QFont, QKeyEvent, QPainter, QPen, QWheelEvent
+from PyQt6.QtGui import QBrush, QColor, QFont, QKeyEvent, QPainter, QPen, QPolygonF, QWheelEvent
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
-from sldgridy.model.geometry import ortho, snap_to_grid
+from sldgridy.model.entities import Entity
+from sldgridy.model.geometry import Point, ortho, snap_to_grid
+from sldgridy.model.grips import grip_points
+from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, find_snap
 from sldgridy.tools.controller import ToolController
+from sldgridy.tools.edit import GripEditTool, MoveTool
 from sldgridy.view.grid import grid_lines, visible_grid_step
-from sldgridy.view.items import EntityItem, StyleResolver
+from sldgridy.view.items import SELECTION_COLOR, EntityItem, StyleResolver
 from sldgridy.view.render import Style, mpt, paint_entity, qpt
 
 MM_PER_INCH = 25.4
@@ -43,6 +49,14 @@ CROSSING_SELECT_COLOR = QColor(56, 142, 60)
 CROSSHAIR_ARM_PX = 24.0
 PICKBOX_PX = 4.0  # half size of the pick box
 DRAG_THRESHOLD_PX = 3.0
+SNAP_APERTURE_PX = 10.0
+SNAP_MARKER_PX = 6.0
+SNAP_MARKER_COLOR = QColor("#e07000")
+GRIP_PX = 4.0  # half size of a grip square
+MAX_GRIP_ENTITIES = 200
+
+# Characters that start typed coordinate input while the canvas has focus.
+COORD_INPUT_CHARS = set("0123456789@.,;-")
 
 # Area shown by "zoom extents" when the drawing is empty (A3 landscape).
 EMPTY_EXTENTS = QRectF(0.0, 0.0, 420.0, 297.0)
@@ -55,15 +69,15 @@ class Canvas(QGraphicsView):
     cursor_moved = pyqtSignal(QPointF)
     zoom_changed = pyqtSignal(float)
     entity_double_clicked = pyqtSignal(str)
+    # Printable text typed while the canvas has focus (goes to the command line).
+    text_typed = pyqtSignal(str)
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
         if scene is None:
             scene = QGraphicsScene(self)
-        scene.setSceneRect(
-            -SCENE_EXTENT_MM, -SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM
-        )
         self.setScene(scene)
+        self._prepare_scene(scene)
 
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -82,16 +96,38 @@ class Canvas(QGraphicsView):
         self.snap_enabled = True
         self.snap_spacing = DEFAULT_SNAP_SPACING_MM
         self.ortho_enabled = False
+        self.osnap_enabled = True
+        self.osnap_modes: frozenset[SnapMode] = ALL_MODES
         self.controller: ToolController | None = None
         self.resolve_style: StyleResolver | None = None
+        # Hooks for compound entities (block references) used by object snap.
+        self.snap_extra: Callable[[Entity], list[SnapHit]] | None = None
+        self.snap_decompose: Callable[[Entity], list[Entity]] | None = None
+        # Extra helper painting in scene coordinates (never printed).
+        self.extra_overlay: Callable[[QPainter, float], None] | None = None
 
         self._pan_last: QPointF | None = None
         self._cursor_view: QPointF | None = None  # raw mouse position in view pixels
         self._cursor_scene: QPointF | None = None  # snapped position in scene mm
+        self._snap_hit: SnapHit | None = None
         self._rubber_start: QPointF | None = None
         self._rubber_end: QPointF | None = None
+        # Press on a selected entity that may turn into a drag-move.
+        self._drag_start: QPointF | None = None
+        self._dragging = False
 
         self._set_scale(1.0)
+
+    def _prepare_scene(self, scene: QGraphicsScene) -> None:
+        scene.setSceneRect(
+            -SCENE_EXTENT_MM, -SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM
+        )
+
+    def set_scene(self, scene: QGraphicsScene) -> None:
+        """Switch to another scene (model, sheet, block editor)."""
+        self._prepare_scene(scene)
+        self.setScene(scene)
+        self.resetCachedContent()
 
     # -- coordinate helpers -------------------------------------------------
 
@@ -110,7 +146,7 @@ class Canvas(QGraphicsView):
     def map_from_scene_f(self, scene_pos: QPointF) -> QPointF:
         return self.viewportTransform().map(scene_pos)
 
-    # -- grid ---------------------------------------------------------------
+    # -- grid, snap and ortho ------------------------------------------------
 
     def grid_visible(self) -> bool:
         return self._grid_visible
@@ -141,10 +177,37 @@ class Canvas(QGraphicsView):
     def set_ortho_enabled(self, enabled: bool) -> None:
         self.ortho_enabled = enabled
 
+    def set_osnap_enabled(self, enabled: bool) -> None:
+        self.osnap_enabled = enabled
+
     # -- point input --------------------------------------------------------
 
+    def _visible_entities_near(self, scene_pos: QPointF, radius: float) -> list[Entity]:
+        rect = QRectF(scene_pos.x() - radius, scene_pos.y() - radius, 2 * radius, 2 * radius)
+        items = self.scene().items(rect, Qt.ItemSelectionMode.IntersectsItemBoundingRect)
+        return [i.entity for i in items if isinstance(i, EntityItem) and i.isVisible()]
+
+    def object_snap(self, scene_pos: QPointF) -> SnapHit | None:
+        if not self.osnap_enabled or not self.osnap_modes:
+            return None
+        aperture = SNAP_APERTURE_PX / self.transform().m11()
+        entities = self._visible_entities_near(scene_pos, aperture)
+        if not entities:
+            return None
+        return find_snap(
+            mpt(scene_pos),
+            entities,
+            aperture,
+            self.osnap_modes,
+            extra=self.snap_extra,
+            decompose=self.snap_decompose,
+        )
+
     def constrain(self, scene_pos: QPointF) -> QPointF:
-        """Apply grid snap and ortho mode to a raw scene position."""
+        """Apply object snap, or grid snap and ortho mode, to a raw scene position."""
+        self._snap_hit = self.object_snap(scene_pos)
+        if self._snap_hit is not None:
+            return qpt(self._snap_hit.point)
         p = mpt(scene_pos)
         if self.snap_enabled:
             p = snap_to_grid(p, self.snap_spacing)
@@ -152,6 +215,22 @@ class Canvas(QGraphicsView):
         if self.ortho_enabled and base is not None:
             p = ortho(base, p)
         return qpt(p)
+
+    def cursor_point(self) -> QPointF | None:
+        return self._cursor_scene
+
+    def ortho_direction(self) -> tuple[float, float] | None:
+        """Unit vector from the base point towards the cursor, axis-aligned, if ortho is on."""
+        if not self.ortho_enabled or self.controller is None or self._cursor_view is None:
+            return None
+        base = self.controller.base_point() or self.controller.last_point
+        if base is None:
+            return None
+        raw = mpt(self.map_to_scene_f(self._cursor_view))
+        dx, dy = raw.x - base.x, raw.y - base.y
+        if abs(dx) >= abs(dy):
+            return (1.0 if dx >= 0 else -1.0, 0.0)
+        return (0.0, 1.0 if dy >= 0 else -1.0)
 
     def _update_cursor(self, view_pos: QPointF) -> None:
         self._cursor_view = view_pos
@@ -163,7 +242,7 @@ class Canvas(QGraphicsView):
     # -- selection ----------------------------------------------------------
 
     def entity_items_at(self, view_pos: QPointF) -> list[EntityItem]:
-        """Entity items touching the pick box around ``view_pos``, topmost first."""
+        """Selectable entity items touching the pick box around ``view_pos``, topmost first."""
         r = PICKBOX_PX
         rect = QRectF(
             self.map_to_scene_f(view_pos - QPointF(r, r)),
@@ -172,7 +251,13 @@ class Canvas(QGraphicsView):
         items = self.scene().items(
             rect, Qt.ItemSelectionMode.IntersectsItemShape, Qt.SortOrder.DescendingOrder
         )
-        return [i for i in items if isinstance(i, EntityItem)]
+        return [
+            i
+            for i in items
+            if isinstance(i, EntityItem)
+            and i.isVisible()
+            and i.flags() & i.GraphicsItemFlag.ItemIsSelectable
+        ]
 
     def select_in_rect(self, rect: QRectF, crossing: bool, add: bool = False) -> None:
         """Window selection (fully inside) or crossing selection (touching)."""
@@ -184,23 +269,52 @@ class Canvas(QGraphicsView):
         if not add:
             self.scene().clearSelection()
         for item in self.scene().items(rect.normalized(), mode):
-            if isinstance(item, EntityItem):
+            if isinstance(item, EntityItem) and item.isVisible():
                 item.setSelected(True)
 
-    def _click_select(self, view_pos: QPointF, toggle: bool) -> bool:
+    def _click_select(self, view_pos: QPointF, toggle: bool) -> EntityItem | None:
         items = self.entity_items_at(view_pos)
         if not items:
-            return False
+            return None
         item = items[0]
         if toggle:
             item.setSelected(not item.isSelected())
-        else:
+        elif not item.isSelected():
             self.scene().clearSelection()
             item.setSelected(True)
-        return True
+        return item
 
     def _tool_active(self) -> bool:
         return self.controller is not None and self.controller.active is not None
+
+    def _selecting(self) -> bool:
+        """True when clicks select objects (idle, or a command asking for objects)."""
+        return not self._tool_active() or self.controller.selecting()
+
+    # -- grips --------------------------------------------------------------
+
+    def _selected_entity_items(self) -> list[EntityItem]:
+        return [i for i in self.scene().selectedItems() if isinstance(i, EntityItem)]
+
+    def _grips(self) -> list[tuple[str, int, Point]]:
+        items = self._selected_entity_items()
+        if not items or len(items) > MAX_GRIP_ENTITIES:
+            return []
+        return [
+            (item.entity_id, index, p)
+            for item in items
+            for index, p in enumerate(grip_points(item.entity))
+        ]
+
+    def grip_at(self, view_pos: QPointF) -> tuple[str, int] | None:
+        for entity_id, index, p in self._grips():
+            v = self.map_from_scene_f(qpt(p))
+            if (
+                abs(v.x() - view_pos.x()) <= GRIP_PX + 1
+                and abs(v.y() - view_pos.y()) <= GRIP_PX + 1
+            ):
+                return entity_id, index
+        return None
 
     # -- zoom and pan -------------------------------------------------------
 
@@ -258,17 +372,24 @@ class Canvas(QGraphicsView):
     def mousePressEvent(self, event) -> None:
         pos = event.position()
         button = event.button()
+        shift = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
         if button == Qt.MouseButton.MiddleButton:
             self._pan_last = pos
             self.viewport().setCursor(Qt.CursorShape.ClosedHandCursor)
         elif button == Qt.MouseButton.LeftButton:
             self._update_cursor(pos)
-            if self._tool_active():
+            if not self._selecting():
                 self.controller.pick(mpt(self._cursor_scene))
+            elif not self._tool_active() and (grip := self.grip_at(pos)) is not None:
+                entity_id, index = grip
+                self.controller.start(lambda ctx: GripEditTool(ctx, entity_id, index))
+                self._update_cursor(pos)
             else:
-                toggle = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
-                if not self._click_select(pos, toggle):
+                item = self._click_select(pos, shift)
+                if item is None:
                     self._rubber_start = self._rubber_end = pos
+                elif not shift and not self._tool_active() and item.isSelected():
+                    self._drag_start = pos
         elif button == Qt.MouseButton.RightButton:
             if self._tool_active():
                 self.controller.finish()
@@ -282,25 +403,43 @@ class Canvas(QGraphicsView):
             self._pan_last = pos
         if self._rubber_start is not None:
             self._rubber_end = pos
+        if self._drag_start is not None and not self._dragging:
+            delta = pos - self._drag_start
+            if max(abs(delta.x()), abs(delta.y())) > DRAG_THRESHOLD_PX:
+                self._begin_drag_move()
         self._update_cursor(pos)
         self.viewport().update()
         event.accept()
 
+    def _begin_drag_move(self) -> None:
+        """Turn a press on a selected entity into a move command."""
+        self._dragging = True
+        self._update_cursor(self._drag_start)
+        self.controller.start(MoveTool)
+        self.controller.pick(mpt(self._cursor_scene))
+
     def mouseReleaseEvent(self, event) -> None:
         button = event.button()
+        pos = event.position()
         if button == Qt.MouseButton.MiddleButton and self._pan_last is not None:
             self._pan_last = None
             self.viewport().setCursor(Qt.CursorShape.BlankCursor)
-        elif button == Qt.MouseButton.LeftButton and self._rubber_start is not None:
-            start, end = self._rubber_start, event.position()
-            self._rubber_start = self._rubber_end = None
-            add = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
-            delta = end - start
-            if max(abs(delta.x()), abs(delta.y())) > DRAG_THRESHOLD_PX:
-                rect = QRectF(self.map_to_scene_f(start), self.map_to_scene_f(end))
-                self.select_in_rect(rect, crossing=end.x() < start.x(), add=add)
-            elif not add:
-                self.scene().clearSelection()
+        elif button == Qt.MouseButton.LeftButton:
+            if self._dragging:
+                self._update_cursor(pos)
+                self.controller.pick(mpt(self._cursor_scene))
+            elif self._rubber_start is not None:
+                start = self._rubber_start
+                self._rubber_start = self._rubber_end = None
+                add = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
+                delta = pos - start
+                if max(abs(delta.x()), abs(delta.y())) > DRAG_THRESHOLD_PX:
+                    rect = QRectF(self.map_to_scene_f(start), self.map_to_scene_f(pos))
+                    self.select_in_rect(rect, crossing=pos.x() < start.x(), add=add)
+                elif not add and not self._tool_active():
+                    self.scene().clearSelection()
+            self._drag_start = None
+            self._dragging = False
         event.accept()
         self.viewport().update()
 
@@ -321,6 +460,7 @@ class Canvas(QGraphicsView):
     def keyPressEvent(self, event: QKeyEvent) -> None:
         key = event.key()
         controller = self.controller
+        text = event.text()
         if key == Qt.Key.Key_Escape:
             if self._tool_active():
                 controller.cancel()
@@ -335,6 +475,12 @@ class Canvas(QGraphicsView):
                 controller.finish()
             elif controller is not None:
                 controller.repeat()
+        elif (
+            text
+            and text in COORD_INPUT_CHARS
+            and not (event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+        ):
+            self.text_typed.emit(text)
         else:
             super().keyPressEvent(event)
             return
@@ -395,6 +541,8 @@ class Canvas(QGraphicsView):
 
     def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
         scale = self.transform().m11()
+        if self.extra_overlay is not None:
+            self.extra_overlay(painter, scale)
         if self.controller is not None:
             base = self.controller.base_point()
             if base is not None and self._cursor_scene is not None:
@@ -403,10 +551,62 @@ class Canvas(QGraphicsView):
                 painter.setPen(pen)
                 painter.drawLine(qpt(base), self._cursor_scene)
             for e in self.controller.preview():
-                weight = self.resolve_style(e).lineweight if self.resolve_style else 0.25
-                paint_entity(painter, e, Style(PREVIEW_COLOR, weight), scale)
+                if self.resolve_style:
+                    style = self.resolve_style(e)
+                    style = Style(PREVIEW_COLOR, style.lineweight, style.linetype)
+                else:
+                    style = Style(PREVIEW_COLOR, 0.25)
+                paint_entity(painter, e, style, scale)
+        if not self._tool_active():
+            self._draw_grips(painter)
         self._draw_rubber_band(painter)
+        self._draw_snap_marker(painter)
         self._draw_crosshair(painter)
+
+    def _draw_grips(self, painter: QPainter) -> None:
+        grips = self._grips()
+        if not grips:
+            return
+        painter.save()
+        painter.resetTransform()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        painter.setPen(QPen(QColor("#0d47a1"), 1))
+        painter.setBrush(QBrush(SELECTION_COLOR))
+        r = GRIP_PX
+        for _, _, p in grips:
+            v = self.map_from_scene_f(qpt(p))
+            painter.drawRect(QRectF(v.x() - r, v.y() - r, 2 * r, 2 * r))
+        painter.restore()
+
+    def _draw_snap_marker(self, painter: QPainter) -> None:
+        hit = self._snap_hit
+        if hit is None or self._cursor_view is None:
+            return
+        c = self.map_from_scene_f(qpt(hit.point))
+        r = SNAP_MARKER_PX
+        painter.save()
+        painter.resetTransform()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(QPen(SNAP_MARKER_COLOR, 2))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        x, y = c.x(), c.y()
+        match hit.mode:
+            case SnapMode.ENDPOINT:
+                painter.drawRect(QRectF(x - r, y - r, 2 * r, 2 * r))
+            case SnapMode.MIDPOINT:
+                painter.drawPolygon(
+                    QPolygonF([QPointF(x, y - r), QPointF(x + r, y + r), QPointF(x - r, y + r)])
+                )
+            case SnapMode.CENTER:
+                painter.drawEllipse(c, r, r)
+            case SnapMode.INTERSECTION:
+                painter.drawLine(QPointF(x - r, y - r), QPointF(x + r, y + r))
+                painter.drawLine(QPointF(x - r, y + r), QPointF(x + r, y - r))
+            case SnapMode.CONNECTION:
+                painter.drawEllipse(c, r, r)
+                painter.drawLine(QPointF(x - r, y), QPointF(x + r, y))
+                painter.drawLine(QPointF(x, y - r), QPointF(x, y + r))
+        painter.restore()
 
     def _draw_rubber_band(self, painter: QPainter) -> None:
         if self._rubber_start is None or self._rubber_end is None:
@@ -434,7 +634,7 @@ class Canvas(QGraphicsView):
         painter.setPen(QPen(CROSSHAIR_COLOR, 1))
         painter.drawLine(QPointF(c.x() - arm, c.y()), QPointF(c.x() + arm, c.y()))
         painter.drawLine(QPointF(c.x(), c.y() - arm), QPointF(c.x(), c.y() + arm))
-        if not self._tool_active():
+        if self._selecting():
             r = PICKBOX_PX
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRect(QRectF(c.x() - r, c.y() - r, 2 * r, 2 * r))

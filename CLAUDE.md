@@ -95,9 +95,9 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 
 - Elemente: Linie, Polylinie, Rechteck, Kreis, Bogen, Text (einzeilig und mehrzeilig, Höhen 2,5 / 3,5 / 5 / 7 mm), Leitung, Sammelschiene.
 - Raster (Standard 5 mm) und Rasterfang (Standard 2,5 mm), beides einstellbar und abschaltbar.
-- Objektfang: Endpunkt, Mittelpunkt, Schnittpunkt, Zentrum, Anschlusspunkt. Anschlusspunkte haben Vorrang.
+- Objektfang: Endpunkt, Mittelpunkt, Schnittpunkt, Zentrum, Anschlusspunkt. Anschlusspunkte haben Vorrang, sonst gewinnt der nächste Punkt (bei Gleichstand Endpunkt vor Schnittpunkt vor Mittelpunkt vor Zentrum). Fangradius 10 px, F3 schaltet um, aktive Fangarten unter Ansicht einstellbar. Objektfang hat Vorrang vor Rasterfang und Ortho.
 - Ortho-Modus (nur waagerecht/senkrecht), umschaltbar.
-- Koordinateneingabe über eine Eingabezeile: absolut `x,y`, relativ `@dx,dy`, Länge bei aktivem Ortho.
+- Koordinateneingabe über eine Eingabezeile unter der Zeichenfläche: absolut `x,y`, relativ `@dx,dy` (Bezug: Basispunkt des Befehls, sonst letzter Punkt), Länge bei aktivem Ortho in Richtung des Cursors. Dezimalpunkt; mit Dezimalkomma die Koordinaten mit `;` trennen (`10,5;20`). Ein Komma ohne `;` trennt immer x und y. Ziffern, `@`, `-`, `.`, `,`, `;` auf der Zeichenfläche springen direkt in die Eingabezeile. Leere Eingabe wirkt wie Enter.
 - Statusleiste zeigt Cursorposition in mm, Zoom, aktive Ebene, Fang- und Ortho-Zustand.
 - Bedienung: Esc bricht ab, Enter oder Rechtsklick beendet, Leertaste wiederholt den letzten Befehl (bei laufendem Befehl wirkt sie wie Enter). Mausrad zoomt auf den Cursor, mittlere Taste verschiebt.
 - Tasten: F7 Raster, F8 Ortho, F9 Rasterfang, Pos1 Grenzen zoomen, Entf löscht die Auswahl. Raster, Fang und Ortho sind auch als Knöpfe in der Statusleiste umschaltbar und werden in `QSettings` gemerkt.
@@ -107,6 +107,10 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 
 - Auswahl per Klick, Fenster (links nach rechts: vollständig innen) und Kreuzen (rechts nach links: berührt). Umschalt+Klick fügt hinzu oder entfernt, Klick ins Leere hebt die Auswahl auf.
 - Verschieben, Kopieren (mehrfach bis Enter), Drehen in 90°-Schritten (Richtung per Maus, gegen den Uhrzeigersinn positiv), Spiegeln, Löschen, Ausschneiden/Einfügen, Griffe an Endpunkten.
+- Ausgewählte Objekte lassen sich direkt mit der Maus ziehen (Verschieben mit Fang). Ein Klick auf einen Griff startet das Ziehen des Griffs, der nächste Klick setzt ihn. Kreis und Text haben nur einen Griff, der das Objekt verschiebt; Rechteckecken halten die gegenüberliegende Ecke fest; Bogenenden ändern nur den Winkel.
+- Ändern-Befehle ohne Auswahl fragen zuerst nach Objekten (wählen, Enter bestätigt).
+- Spiegeln ersetzt die Objekte (kein Original bleibt stehen) an einer waagerechten oder senkrechten Achse. Texte behalten ihre Leserichtung.
+- Zwischenablage: eigener MIME-Typ `application/x-sldgridy-entities`, Basispunkt ist die linke untere Ecke der Auswahl. Einfügen setzt mit Klick, unbekannte Ebenen werden zu `0`.
 - Eigenschaften-Dock für Ebene, Farbe, Linienbreite, Linienart (durchgezogen, gestrichelt, strichpunktiert), Text und Blockattribute.
 - Unbegrenztes Rückgängig/Wiederholen.
 
@@ -114,7 +118,10 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 
 - Name, Farbe, Linienbreite, Linienart, sichtbar, gesperrt, druckbar.
 - Objekte erben standardmäßig von der Ebene („VonEbene“), Einzelwerte können abweichen.
-- Ebene `0` existiert immer und kann nicht gelöscht werden.
+- Ebene `0` existiert immer und kann nicht gelöscht oder umbenannt werden. Eine Ebene mit Objekten oder die aktuelle Ebene lässt sich nicht löschen. Umbenennen zieht die Objekte mit.
+- Die aktuelle Ebene ist Fensterzustand, nicht Dokumentinhalt (wird nicht gespeichert, nach dem Öffnen ist `0` aktuell).
+- Unsichtbare Ebenen werden nicht angezeigt, gesperrte lassen sich nicht auswählen; Objektfang wirkt auf gesperrte Ebenen weiter.
+- Linienarten nach ISO 128-20 in Vielfachen der Linienbreite d: gestrichelt 12d/3d, strichpunktiert 24d/3d/0,5d/3d.
 
 ### Leitungen und Sammelschienen
 

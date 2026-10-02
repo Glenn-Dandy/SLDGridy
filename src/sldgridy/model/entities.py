@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import Self
 
-from sldgridy.model.geometry import Point, rotate_quarter
+from sldgridy.model.geometry import Point, mirror_point, rotate_quarter
 from sldgridy.model.layers import DEFAULT_LAYER
 
 TEXT_HEIGHTS = (2.5, 3.5, 5.0, 7.0)
@@ -33,6 +33,13 @@ class Entity:
 
     def rotated(self, center: Point, quarters: int) -> Self:
         return self._mapped(lambda p: rotate_quarter(p, center, quarters), quarters % 4)
+
+    def mirrored(self, axis: Point, horizontal: bool) -> Self:
+        """Mirror at the horizontal (``horizontal``) or vertical line through ``axis``.
+
+        Texts keep their reading direction; only the insertion point moves.
+        """
+        return self._mapped(lambda p: mirror_point(p, axis, horizontal), 0)
 
     def _mapped(self, fn: Callable[[Point], Point], quarters: int) -> Self:
         raise NotImplementedError
@@ -91,6 +98,18 @@ class Arc(Entity):
             center=fn(self.center),
             start_angle=(self.start_angle + 90 * quarters) % 360,
             end_angle=(self.end_angle + 90 * quarters) % 360,
+        )
+
+    def mirrored(self, axis: Point, horizontal: bool) -> Self:
+        # Mirroring reverses the direction, so start and end swap.
+        def flip(a: float) -> float:
+            return (-a if horizontal else 180.0 - a) % 360
+
+        return replace(
+            self,
+            center=mirror_point(self.center, axis, horizontal),
+            start_angle=flip(self.end_angle),
+            end_angle=flip(self.start_angle),
         )
 
     @property

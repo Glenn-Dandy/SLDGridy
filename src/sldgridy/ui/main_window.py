@@ -13,6 +13,8 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QToolBar,
     QToolButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 from sldgridy import __version__
@@ -22,11 +24,19 @@ from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
 from sldgridy.model.entities import Entity, Text
+from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER
+from sldgridy.model.snap import ALL_MODES, SnapMode
 from sldgridy.tools.controller import ToolController, ToolFactory
+from sldgridy.tools.coord_input import CoordinateError, parse_coordinate
 from sldgridy.tools.draw import ArcTool, CircleTool, LineTool, PolylineTool, RectangleTool, TextTool
-from sldgridy.tools.edit import CopyTool, MoveTool, RotateTool
+from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, RotateTool
+from sldgridy.ui import clipboard
+from sldgridy.ui.command_line import CommandLine
 from sldgridy.ui.grid_dialog import GridDialog
+from sldgridy.ui.layers_dock import LayersDock
+from sldgridy.ui.osnap_dialog import OsnapDialog
+from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import Canvas
 from sldgridy.view.items import EntityItem
@@ -42,15 +52,26 @@ class MainWindow(QMainWindow):
         self._locale = QLocale(QLocale.Language.German, QLocale.Country.Germany)
         self.document = Document.new(self.tr("Blatt 1"))
         self.file_path: Path | None = None
+        self.current_layer = DEFAULT_LAYER
 
         self.undo_stack = QUndoStack(self)
-        self.undo_stack.cleanChanged.connect(lambda clean: self.setWindowModified(not clean))
+        self.undo_stack.cleanChanged.connect(self._on_clean_changed)
 
         self.scene = QGraphicsScene(self)
         self.canvas = Canvas(self.scene, parent=self)
         self.canvas.resolve_style = self._resolve_style
-        self.setCentralWidget(self.canvas)
-        self._sync = SceneSync(self.scene, self.document.model_space, self._resolve_style)
+        self.command_line = CommandLine(self)
+        central = QWidget(self)
+        layout = QVBoxLayout(central)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.canvas, 1)
+        layout.addWidget(self.command_line)
+        self.setCentralWidget(central)
+        self._sync = SceneSync(
+            self.scene, self.document.model_space, self._resolve_style, self._layer_state
+        )
+        self.document.subscribe_layers(self._on_layers_changed)
 
         self.tools = ToolController(self, parent=self)
         self.canvas.controller = self.tools
@@ -59,11 +80,17 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self._create_menus()
         self._create_toolbars()
+        self._create_docks()
         self._create_status_bar()
 
         self.canvas.cursor_moved.connect(self._show_cursor_position)
         self.canvas.zoom_changed.connect(self._show_zoom)
         self.canvas.entity_double_clicked.connect(self._edit_entity)
+        self.canvas.text_typed.connect(self.command_line.start_typing)
+        self.command_line.submitted.connect(self._on_command_input)
+        self.command_line.cancelled.connect(self._on_command_cancel)
+        self.scene.selectionChanged.connect(self._on_selection_changed)
+        self.undo_stack.indexChanged.connect(self._on_undo_index_changed)
 
         self.resize(1280, 800)
         self._restore_settings()
@@ -77,9 +104,12 @@ class MainWindow(QMainWindow):
     def container(self) -> EntityContainer:
         return self.document.model_space
 
-    @property
-    def current_layer(self) -> str:
-        return DEFAULT_LAYER
+    def set_current_layer(self, name: str) -> None:
+        if not self.document.has_layer(name):
+            name = DEFAULT_LAYER
+        self.current_layer = name
+        self.lbl_layer.setText(self.tr("Ebene: {name}").format(name=name))
+        self.layers_dock.rebuild()
 
     def push(self, command: QUndoCommand) -> None:
         self.undo_stack.push(command)
@@ -130,6 +160,9 @@ class MainWindow(QMainWindow):
             self.tr("Alles &auswählen"), self.select_all, sk.SelectAll
         )
         self.act_delete = self._action(self.tr("&Löschen"), self.delete_selection, sk.Delete)
+        self.act_cut = self._action(self.tr("Aus&schneiden"), self.cut, sk.Cut)
+        self.act_copy_clip = self._action(self.tr("&Kopieren"), self.copy_to_clipboard, sk.Copy)
+        self.act_paste = self._action(self.tr("&Einfügen"), self.paste, sk.Paste)
 
         self.act_line = self._tool_action(self.tr("&Linie"), LineTool)
         self.act_polyline = self._tool_action(self.tr("&Polylinie"), PolylineTool)
@@ -149,7 +182,8 @@ class MainWindow(QMainWindow):
         self.act_move = self._tool_action(self.tr("&Verschieben"), MoveTool)
         self.act_copy = self._tool_action(self.tr("&Kopieren"), CopyTool)
         self.act_rotate = self._tool_action(self.tr("&Drehen 90°"), RotateTool)
-        self.modify_actions = [self.act_move, self.act_copy, self.act_rotate]
+        self.act_mirror = self._tool_action(self.tr("S&piegeln"), MirrorTool)
+        self.modify_actions = [self.act_move, self.act_copy, self.act_rotate, self.act_mirror]
 
         self.act_grid = self._action(self.tr("&Raster anzeigen"), lambda: None, "F7", "RASTER")
         self.act_grid.setCheckable(True)
@@ -164,6 +198,14 @@ class MainWindow(QMainWindow):
         self.act_snap.setCheckable(True)
         self.act_snap.setChecked(self.canvas.snap_enabled)
         self.act_snap.toggled.connect(self.canvas.set_snap_enabled)
+
+        self.act_osnap = self._action(self.tr("&Objektfang"), lambda: None, "F3", "OFANG")
+        self.act_osnap.setCheckable(True)
+        self.act_osnap.setChecked(self.canvas.osnap_enabled)
+        self.act_osnap.toggled.connect(self.canvas.set_osnap_enabled)
+        self.act_osnap_settings = self._action(
+            self.tr("Objektfang ein&stellen …"), self._edit_osnap_settings
+        )
 
         self.act_grid_settings = self._action(
             self.tr("Raster und Fang &einstellen …"), self._edit_grid_settings
@@ -195,6 +237,8 @@ class MainWindow(QMainWindow):
         m = bar.addMenu(self.tr("&Bearbeiten"))
         m.addActions([self.act_undo, self.act_redo])
         m.addSeparator()
+        m.addActions([self.act_cut, self.act_copy_clip, self.act_paste])
+        m.addSeparator()
         m.addActions([self.act_select_all, self.act_delete])
 
         m = bar.addMenu(self.tr("&Zeichnen"))
@@ -206,7 +250,10 @@ class MainWindow(QMainWindow):
         m = bar.addMenu(self.tr("&Ansicht"))
         m.addActions([self.act_zoom_in, self.act_zoom_out, self.act_zoom_extents])
         m.addSeparator()
-        m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_grid_settings])
+        m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
+        m.addActions([self.act_grid_settings, self.act_osnap_settings])
+        m.addSeparator()
+        self.docks_menu = m.addMenu(self.tr("&Fenster"))
 
         m = bar.addMenu(self.tr("&Hilfe"))
         m.addAction(self.act_about)
@@ -222,15 +269,26 @@ class MainWindow(QMainWindow):
             bar.addActions(actions)
             self.addToolBar(bar)
 
+    def _create_docks(self) -> None:
+        self.layers_dock = LayersDock(self, self)
+        self.properties_dock = PropertiesDock(self, self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.properties_dock)
+        self.docks_menu.addAction(self.layers_dock.toggleViewAction())
+        self.docks_menu.addAction(self.properties_dock.toggleViewAction())
+        self.resizeDocks([self.layers_dock], [480], Qt.Orientation.Horizontal)
+
     def _create_status_bar(self) -> None:
-        self.lbl_prompt = QLabel()
         self.lbl_position = QLabel()
+        width = self.lbl_position.fontMetrics().horizontalAdvance(
+            "X: -00000,00 mm   Y: -00000,00 mm"
+        )
+        self.lbl_position.setMinimumWidth(width)
         self.lbl_layer = QLabel(self.tr("Ebene: {name}").format(name=DEFAULT_LAYER))
         self.lbl_zoom = QLabel()
         status = self.statusBar()
-        status.addWidget(self.lbl_prompt, 1)
         status.addPermanentWidget(self.lbl_position)
-        for action in (self.act_grid, self.act_snap, self.act_ortho):
+        for action in (self.act_grid, self.act_snap, self.act_ortho, self.act_osnap):
             button = QToolButton()
             button.setDefaultAction(action)
             button.setAutoRaise(True)
@@ -244,19 +302,42 @@ class MainWindow(QMainWindow):
 
     def _resolve_style(self, entity: Entity) -> Style:
         doc = self.document
-        return Style(QColor(doc.effective_color(entity)), doc.effective_lineweight(entity))
+        return Style(
+            QColor(doc.effective_color(entity)),
+            doc.effective_lineweight(entity),
+            doc.effective_linetype(entity),
+        )
+
+    def _layer_state(self, entity: Entity) -> tuple[bool, bool]:
+        layer = self.document.layer(entity.layer)
+        return layer.visible, layer.locked
+
+    def _on_layers_changed(self) -> None:
+        if not self.document.has_layer(self.current_layer):
+            self.current_layer = DEFAULT_LAYER
+        self.lbl_layer.setText(self.tr("Ebene: {name}").format(name=self.current_layer))
+        self._sync.refresh()
+        self.layers_dock.rebuild()
+        self.properties_dock.refresh()
+        self.canvas.viewport().update()
 
     # -- document -----------------------------------------------------------
 
     def _set_document(self, document: Document, path: Path | None) -> None:
         self.tools.cancel()
         self._sync.detach()
+        self.document.unsubscribe_layers(self._on_layers_changed)
         self.scene.clear()
         self.document = document
         self.file_path = path
-        self._sync = SceneSync(self.scene, document.model_space, self._resolve_style)
+        self._sync = SceneSync(
+            self.scene, document.model_space, self._resolve_style, self._layer_state
+        )
+        document.subscribe_layers(self._on_layers_changed)
         self.undo_stack.clear()
         self.undo_stack.setClean()
+        self.set_current_layer(DEFAULT_LAYER)
+        self.properties_dock.refresh()
         self._update_title()
         self.canvas.zoom_extents()
 
@@ -378,6 +459,83 @@ class MainWindow(QMainWindow):
             self.tools.cancel()
             self.push(RemoveEntitiesCommand(self.container, ids, self.tr("Löschen")))
 
+    def selected_entities(self) -> list[Entity]:
+        return [self.container.get(i) for i in self.selected_ids()]
+
+    def _selection_base(self) -> Point:
+        """Lower left corner of the selection's bounding box."""
+        rect = None
+        for item in self.scene.selectedItems():
+            r = item.sceneBoundingRect()
+            rect = r if rect is None else rect.united(r)
+        return Point(rect.left(), rect.bottom()) if rect is not None else Point(0.0, 0.0)
+
+    def copy_to_clipboard(self) -> bool:
+        entities = self.selected_entities()
+        if not entities:
+            return False
+        clipboard.copy_entities(entities, self._selection_base())
+        return True
+
+    def cut(self) -> None:
+        if self.copy_to_clipboard():
+            self.tools.cancel()
+            self.push(
+                RemoveEntitiesCommand(self.container, self.selected_ids(), self.tr("Ausschneiden"))
+            )
+
+    def paste(self) -> None:
+        payload = clipboard.clipboard_payload()
+        result = clipboard.paste_entities(payload) if payload else None
+        if result is None:
+            self.message(self.tr("Die Zwischenablage enthält keine Zeichnungsobjekte"))
+            return
+        entities, base = result
+        entities = [
+            replace(e, layer=e.layer if self.document.has_layer(e.layer) else DEFAULT_LAYER)
+            for e in entities
+        ]
+        self._start_tool(lambda ctx: PasteTool(ctx, entities, base))
+
+    def _on_clean_changed(self, clean: bool) -> None:
+        self.setWindowModified(not clean)
+
+    def _on_undo_index_changed(self, _index: int) -> None:
+        self.properties_dock.refresh()
+
+    def _on_selection_changed(self) -> None:
+        self.properties_dock.refresh()
+        self.canvas.viewport().update()
+
+    def _on_command_input(self, text: str) -> None:
+        self.canvas.setFocus()
+        if not text.strip():
+            if self.tools.active is not None:
+                self.tools.finish()
+            else:
+                self.tools.repeat()
+            return
+        if self.tools.active is None or self.tools.selecting():
+            self.message(self.tr("Koordinaten werden nur während eines Zeichenbefehls erwartet"))
+            return
+        reference = self.tools.base_point() or self.tools.last_point
+        try:
+            p = parse_coordinate(text, reference, self.canvas.ortho_direction())
+        except CoordinateError:
+            self.message(self.tr("Ungültige Eingabe: {text}").format(text=text))
+            return
+        self.tools.hover(p)
+        self.tools.pick(p)
+
+    def _on_command_cancel(self) -> None:
+        self.tools.cancel()
+        self.canvas.setFocus()
+
+    def _edit_osnap_settings(self) -> None:
+        dialog = OsnapDialog(self.canvas.osnap_modes, self)
+        if dialog.exec() == OsnapDialog.DialogCode.Accepted:
+            self.canvas.osnap_modes = dialog.modes()
+
     def _edit_entity(self, entity_id: str) -> None:
         entity = self.container.get(entity_id)
         if not isinstance(entity, Text):
@@ -400,8 +558,8 @@ class MainWindow(QMainWindow):
     # -- slots --------------------------------------------------------------
 
     def _on_tool_changed(self) -> None:
-        prompt = self.tools.prompt() or self.tr("Bereit")
-        self.lbl_prompt.setText(prompt)
+        prompt = self.tools.prompt() or self.tr("Befehl:")
+        self.command_line.set_prompt(prompt)
         self.canvas.viewport().update()
 
     def _fmt_mm(self, value: float) -> str:
@@ -443,6 +601,14 @@ class MainWindow(QMainWindow):
         self.act_grid.setChecked(settings.value("view/grid_visible", True, type=bool))
         self.act_snap.setChecked(settings.value("view/snap_enabled", True, type=bool))
         self.act_ortho.setChecked(settings.value("view/ortho_enabled", False, type=bool))
+        self.act_osnap.setChecked(settings.value("view/osnap_enabled", True, type=bool))
+        modes = settings.value("view/osnap_modes", None)
+        if isinstance(modes, str):
+            modes = [modes] if modes else []
+        valid = {m.value for m in SnapMode}
+        self.canvas.osnap_modes = (
+            frozenset(SnapMode(m) for m in modes if m in valid) if modes is not None else ALL_MODES
+        )
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:
@@ -457,6 +623,8 @@ class MainWindow(QMainWindow):
         settings.setValue("view/grid_visible", self.act_grid.isChecked())
         settings.setValue("view/snap_enabled", self.act_snap.isChecked())
         settings.setValue("view/ortho_enabled", self.act_ortho.isChecked())
+        settings.setValue("view/osnap_enabled", self.act_osnap.isChecked())
+        settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/grid_spacing", self.canvas.grid_spacing())
         settings.setValue("view/snap_spacing", self.canvas.snap_spacing)
 
