@@ -70,13 +70,66 @@ def test_expand_mirrored_reference_with_base_point():
     (line,) = lines(parts)
     assert {line.p1, line.p2} == {Point(100, 40), Point(100, 50)}
     (text,) = [e for e in parts if isinstance(e, Text)]
-    assert text.position == Point(95, 45)
+    # Mirrored: the label stays horizontal and to the right of the symbol.
+    assert text.rotation == 0 and text.halign == "left" and text.position.x > 102
 
 
-@pytest.mark.parametrize(("rotation", "expected"), [(0, 0), (90, 90), (180, 0), (270, 90)])
-def test_attribute_text_stays_readable(rotation, expected):
+def attribute_texts(rotation, **attrs):
+    r = ref(rotation=rotation, attributes=tuple(sorted(attrs.items())))
+    parts = expand(r, blocks())
+    geometry = [p for p in parts if not isinstance(p, Text)]
+    xs = [x for g in geometry for x in _xs(g)]
+    ys = [y for g in geometry for y in _ys(g)]
+    return [p for p in parts if isinstance(p, Text)], (min(xs), min(ys), max(xs), max(ys))
+
+
+def _xs(e):
+    if isinstance(e, Line):
+        return [e.p1.x, e.p2.x]
+    return [e.center.x - e.radius, e.center.x + e.radius]
+
+
+def _ys(e):
+    if isinstance(e, Line):
+        return [e.p1.y, e.p2.y]
+    return [e.center.y - e.radius, e.center.y + e.radius]
+
+
+@pytest.mark.parametrize("rotation", [90, 270])
+def test_lying_symbol_has_label_above_left_aligned(rotation):
+    (text,), (min_x, min_y, _max_x, _max_y) = attribute_texts(rotation, BMK="-F7")
+    assert (text.rotation, text.halign) == (0, "left")
+    assert text.position.x == pytest.approx(min_x)
+    assert text.position.y < min_y  # above the symbol
+
+
+def test_upside_down_symbol_has_label_on_the_right():
+    (text,), (_min_x, min_y, max_x, max_y) = attribute_texts(180, BMK="-F7")
+    assert (text.rotation, text.halign) == (0, "left")
+    assert text.position.x > max_x
+    assert text.position.y == pytest.approx((min_y + max_y) / 2)
+
+
+def test_empty_values_skipped_and_order_kept_when_rotated():
+    definition = fuse()
+    definition.entities.add(AttributeDefinition(id="typ", tag="TYP", position=Point(5, 8.5)))
+    definition.entities.add(AttributeDefinition(id="wert", tag="WERT", position=Point(5, 12)))
+    r = ref(rotation=90, attributes=(("BMK", "-F7"), ("TYP", ""), ("WERT", "16 A")))
+    texts = [p for p in expand(r, {"Sicherung": definition}) if isinstance(p, Text)]
+    assert [t.text for t in texts] == ["-F7", "16 A"]
+    assert texts[0].position.y < texts[1].position.y
+    assert texts[0].position.x == texts[1].position.x
+
+
+def test_unrotated_symbol_keeps_defined_label_position():
+    (text,), _ = attribute_texts(0, BMK="-F7")
+    assert text.position == Point(105, 55) and text.rotation == 0
+
+
+@pytest.mark.parametrize("rotation", [0, 90, 180, 270])
+def test_attribute_text_always_horizontal(rotation):
     (text,) = [e for e in expand(ref(rotation=rotation), blocks()) if isinstance(e, Text)]
-    assert text.rotation == expected
+    assert text.rotation == 0
 
 
 def test_readable_flips_alignment():

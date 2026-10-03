@@ -5,10 +5,15 @@ from dataclasses import dataclass, field, replace
 
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import (
+    Arc,
     AttributeDefinition,
     BlockReference,
+    Circle,
     ConnectionPoint,
     Entity,
+    Line,
+    Polyline,
+    Rectangle,
     Text,
 )
 from sldgridy.model.geometry import Point
@@ -122,30 +127,116 @@ def _inherit(ref: BlockReference, e: Entity) -> Entity:
     )
 
 
+ATTRIBUTE_GAP_ABOVE = 1.5  # mm between a lying symbol and its attributes above it
+ATTRIBUTE_LINE_FACTOR = 1.4  # line pitch as a multiple of the text height
+
+
+def _bounds(entities: Iterable[Entity]) -> tuple[float, float, float, float] | None:
+    """Rough bounding box (min x, min y, max x, max y) of drawn geometry."""
+    xs: list[float] = []
+    ys: list[float] = []
+    for e in entities:
+        if isinstance(e, Line):
+            pts = [e.p1, e.p2]
+        elif isinstance(e, Polyline):
+            pts = list(e.points)
+        elif isinstance(e, Rectangle):
+            pts = [e.p1, e.p2]
+        elif isinstance(e, Circle | Arc):
+            r = e.radius
+            pts = [Point(e.center.x - r, e.center.y - r), Point(e.center.x + r, e.center.y + r)]
+        elif isinstance(e, Text):
+            pts = [e.position]
+        else:
+            continue
+        xs += [p.x for p in pts]
+        ys += [p.y for p in pts]
+    if not xs:
+        return None
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def _attribute_texts(
+    ref: BlockReference, definition: BlockDefinition, geometry: list[Entity]
+) -> list[Text]:
+    """Attribute values of a reference, always horizontal and readable.
+
+    Unrotated references keep the positions of the definition. Rotated or
+    mirrored ones place the non-empty values as a left-aligned block: above
+    the symbol when it lies (90/270 degrees), right of it otherwise.
+    """
+    attdefs = [a for a in definition.attribute_definitions() if a.visible]
+    if not attdefs:
+        return []
+    if ref.rotation % 360 == 0 and not ref.mirrored_x:
+        return [
+            readable(
+                to_world(ref, definition.base_point, a).as_text(ref.attribute(a.tag, a.default))
+            )
+            for a in attdefs
+        ]
+    world_bounds = _bounds(geometry)
+    local_bounds = _bounds(
+        e for e in definition.entities if not isinstance(e, AttributeDefinition | ConnectionPoint)
+    )
+    if world_bounds is None:
+        return []
+    min_x, min_y, max_x, max_y = world_bounds
+    ordered = sorted(attdefs, key=lambda a: (a.position.y, a.position.x))
+    lines = [(a, ref.attribute(a.tag, a.default)) for a in ordered]
+    lines = [(a, v) for a, v in lines if v.strip()]
+    if not lines:
+        return []
+    pitch = max(a.height for a, _ in lines) * ATTRIBUTE_LINE_FACTOR
+    gap_right = 2.5
+    if local_bounds is not None:
+        gap_right = max(1.0, min(a.position.x for a in attdefs) - local_bounds[2])
+    if ref.rotation % 180 == 90:
+        x = min_x
+        last_center = min_y - ATTRIBUTE_GAP_ABOVE - lines[-1][0].height / 2
+        first_center = last_center - pitch * (len(lines) - 1)
+    else:
+        x = max_x + gap_right
+        first_center = (min_y + max_y) / 2 - pitch * (len(lines) - 1) / 2
+    return [
+        Text(
+            id=a.id,
+            layer=a.layer,
+            color=a.color,
+            lineweight=a.lineweight,
+            linetype=a.linetype,
+            position=Point(x, first_center + i * pitch),
+            text=value,
+            height=a.height,
+            rotation=0,
+            halign="left",
+            valign="middle",
+        )
+        for i, (a, value) in enumerate(lines)
+    ]
+
+
 def explode(
     ref: BlockReference, blocks: Mapping[str, BlockDefinition], keep_ids: bool = False
 ) -> list[Entity]:
     """One level of a reference as drawing entities.
 
-    Attribute definitions become texts with the reference's values (invisible
-    ones are dropped), connection points are dropped, nested references stay.
+    Attribute definitions become horizontal texts with the reference's values
+    (invisible ones are dropped), connection points are dropped, nested
+    references stay.
     """
     definition = blocks.get(ref.name)
     if definition is None:
         return []
-    out: list[Entity] = []
+    geometry: list[Entity] = []
     for e in definition.entities:
-        if isinstance(e, ConnectionPoint):
+        if isinstance(e, ConnectionPoint | AttributeDefinition):
             continue
-        if isinstance(e, AttributeDefinition):
-            if not e.visible:
-                continue
-            world = to_world(ref, definition.base_point, e)
-            text = readable(world.as_text(ref.attribute(e.tag, e.default)))
-            out.append(text if keep_ids else text.with_new_id())
-            continue
-        world = to_world(ref, definition.base_point, e)
-        out.append(world if keep_ids else world.with_new_id())
+        geometry.append(to_world(ref, definition.base_point, e))
+    texts = _attribute_texts(ref, definition, geometry)
+    out = geometry + texts
+    if not keep_ids:
+        out = [e.with_new_id() for e in out]
     return [_inherit(ref, e) for e in out]
 
 
