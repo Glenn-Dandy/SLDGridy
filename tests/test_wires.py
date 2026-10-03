@@ -277,6 +277,7 @@ def test_further_symbols_library():
     assert [(c.position, c.direction) for c in module.connection_points()] == [(Point(0, 0), 270)]
     triangle = next(e for e in module.entities if e.id == "tri")
     assert triangle.points[:2] == (Point(-5, -17.5), Point(5, -17.5))  # flush with the corners
+    assert triangle.points[2] == Point(0, -11.25)  # apex half a grid step above the middle
     for d in defs:
         assert {a.tag for a in d.attribute_definitions()} >= {"BMK", "TYP", "WERT"}, d.name
         for c in d.connection_points():
@@ -319,3 +320,11 @@ def test_circuit_breaker_arrowhead_centred_on_link():
     d_link = math.atan2(link.p2.y - link.p1.y, link.p2.x - link.p1.x)
     d_tip = math.atan2(tip.y - mid.y, tip.x - mid.x)
     assert abs(d_link - d_tip) < 1e-3
+
+
+def test_current_transformer_has_measuring_connection():
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    ct = {d.name: d for d in defs}["Stromwandler"]
+    conns = {c.name: (c.position, c.direction) for c in ct.connection_points()}
+    assert conns["S"] == (Point(5, 7.5), 0)
+    assert {"1", "2"} <= set(conns)

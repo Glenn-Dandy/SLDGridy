@@ -2163,6 +2163,17 @@
      "direction": 270
     },
     {
+     "type": "connection",
+     "id": "cps",
+     "layer": "0",
+     "name": "S",
+     "position": [
+      5,
+      7.5
+     ],
+     "direction": 0
+    },
+    {
      "type": "attdef",
      "id": "att_bmk",
      "layer": "0",
