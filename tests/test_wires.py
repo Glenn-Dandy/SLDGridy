@@ -269,7 +269,9 @@ def test_further_symbols_library():
     title, defs = load_library(system_library_dir() / "weitere_symbole.sldglib")
     assert title == "Weitere Symbole (nicht nach DIN EN 60617)"
     by = {d.name: d for d in defs}
-    assert by["SHU-Schalter"].category == by["SHA-Schalter"].category == "Zählervorsicherung"
+    shu = by["Selektiver Hauptschalter netzunabhängig"]
+    sha = by["Selektiver Hauptschalter netzabhängig"]
+    assert shu.category == sha.category == "Zählervorsicherung"
     assert by["PV-Modul"].category == "Photovoltaik"
     module = by["PV-Modul"]
     assert [(c.position, c.direction) for c in module.connection_points()] == [(Point(0, 0), 270)]
@@ -280,5 +282,23 @@ def test_further_symbols_library():
         for c in d.connection_points():
             for v in (c.position.x, c.position.y):
                 assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)
-    shu = {c.name: c.position for c in by["SHU-Schalter"].connection_points()}
-    assert shu == {"1": Point(0, 0), "2": Point(0, 15)}
+    assert {c.name: c.position for c in shu.connection_points()} == {
+        "1": Point(0, 0),
+        "2": Point(0, 15),
+    }
+    assert {c.name: c.position for c in sha.connection_points()}["N"] == Point(2.5, 15)
+    assert not any(getattr(e, "text", "") in ("1", "2") for e in sha.entities)
+
+
+def test_circuit_breaker_thermal_release_parallel_to_link():
+    import math
+
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    ls = {d.name: d for d in defs}["Leitungsschutzschalter"]
+    link = next(e for e in ls.entities if e.id == "link")
+    thermal = next(e for e in ls.entities if e.id == "thermal")
+    ldir = math.atan2(link.p2.y - link.p1.y, link.p2.x - link.p1.x)
+    for a, b in zip(thermal.points, thermal.points[1:], strict=False):
+        seg = math.atan2(b.y - a.y, b.x - a.x)
+        diff = math.degrees(seg - ldir) % 180
+        assert min(diff, 180 - diff) < 0.5 or abs(diff - 90) < 0.5  # parallel or square

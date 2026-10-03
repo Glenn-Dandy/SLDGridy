@@ -544,8 +544,8 @@
  "A4 quer, Rahmen nach DIN EN ISO 5457": "A4 landscape, frame to DIN EN ISO 5457",
  "Weitere Symbole (nicht nach DIN EN 60617)": "Further symbols (not to DIN EN 60617)",
  "Zählervorsicherung": "Meter pre-fuse",
- "SHU-Schalter": "SHU switch",
- "SHA-Schalter": "SHA switch",
- "Selektiver Hauptleitungsschutzschalter, spannungsunabhängig (E DIN VDE 0645), Zählervorsicherung": "Selective main circuit breaker, voltage-independent (E DIN VDE 0645), meter pre-fuse",
- "Selektiver Hauptleitungsschutzschalter, spannungsabhängig (E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, voltage-dependent (E DIN VDE 0643), meter pre-fuse"
+ "Selektiver Hauptschalter netzunabhängig": "Selective main switch, grid-independent",
+ "Selektiver Hauptschalter netzabhängig": "Selective main switch, grid-dependent",
+ "Selektiver Hauptleitungsschutzschalter, netzunabhängig (SHU, E DIN VDE 0645), Zählervorsicherung": "Selective main circuit breaker, grid-independent (SHU, E DIN VDE 0645), meter pre-fuse",
+ "Selektiver Hauptleitungsschutzschalter, netzabhängig mit N-Anschluss (SHA, E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, grid-dependent with N connection (SHA, E DIN VDE 0643), meter pre-fuse"
 }

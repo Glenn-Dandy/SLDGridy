@@ -4,13 +4,13 @@
  "name": "Weitere Symbole (nicht nach DIN EN 60617)",
  "blocks": [
   {
-   "name": "SHU-Schalter",
+   "name": "Selektiver Hauptschalter netzunabhängig",
    "base_point": [
     0,
     0
    ],
    "category": "Zählervorsicherung",
-   "description": "Selektiver Hauptleitungsschutzschalter, spannungsunabhängig (E DIN VDE 0645), Zählervorsicherung",
+   "description": "Selektiver Hauptleitungsschutzschalter, netzunabhängig (SHU, E DIN VDE 0645), Zählervorsicherung",
    "entities": [
     {
      "type": "line",
@@ -23,6 +23,32 @@
      "p2": [
       0,
       5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "bar",
+     "layer": "0",
+     "p1": [
+      -0.75,
+      5
+     ],
+     "p2": [
+      0.75,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "blade",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -1.844,
+      4.944
      ]
     },
     {
@@ -40,89 +66,54 @@
     },
     {
      "type": "line",
-     "id": "l3",
+     "id": "arrow",
      "layer": "0",
      "p1": [
-      0,
-      10
+      -1.42,
+      6.56
      ],
      "p2": [
-      -2.59,
-      5.04
-     ]
-    },
-    {
-     "type": "line",
-     "id": "link",
-     "layer": "0",
-     "p1": [
-      -1.44,
-      7.24
-     ],
-     "p2": [
-      -3.73,
-      8.6
+      -3.042,
+      7.124
      ]
     },
     {
      "type": "polyline",
-     "id": "magnetic",
+     "id": "head",
      "layer": "0",
      "points": [
       [
-       -4.04,
-       8.11
+       -3.75,
+       7.37
       ],
       [
-       -4.39,
-       8.82
+       -3.147,
+       6.821
       ],
       [
-       -3.6,
-       8.82
+       -2.937,
+       7.426
       ]
      ],
      "closed": true
     },
     {
-     "type": "polyline",
-     "id": "thermal",
+     "type": "text",
+     "id": "s",
      "layer": "0",
-     "points": [
-      [
-       -1.97,
-       6.23
-      ],
-      [
-       -3.11,
-       6.71
-      ],
-      [
-       -3.42,
-       5.83
-      ],
-      [
-       -3.9,
-       5.79
-      ],
-      [
-       -4.52,
-       6.18
-      ],
-      [
-       -4.08,
-       7.24
-      ],
-      [
-       -4.96,
-       7.76
-      ]
+     "position": [
+      -2.4,
+      9.4
      ],
-     "closed": false
+     "text": "S",
+     "height": 1.8,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp1",
      "layer": "0",
      "name": "1",
      "position": [
@@ -133,93 +124,14 @@
     },
     {
      "type": "connection",
-     "id": "cp5",
+     "id": "cp2",
      "layer": "0",
      "name": "2",
      "position": [
       0,
-      15.0
+      15
      ],
      "direction": 270
-    },
-    {
-     "type": "line",
-     "id": "sel1",
-     "layer": "0",
-     "p1": [
-      0,
-      2.5
-     ],
-     "p2": [
-      5,
-      2.5
-     ]
-    },
-    {
-     "type": "line",
-     "id": "sel2",
-     "layer": "0",
-     "p1": [
-      5,
-      2.5
-     ],
-     "p2": [
-      5,
-      5
-     ]
-    },
-    {
-     "type": "rectangle",
-     "id": "selr",
-     "layer": "0",
-     "p1": [
-      3.75,
-      5
-     ],
-     "p2": [
-      6.25,
-      10
-     ]
-    },
-    {
-     "type": "line",
-     "id": "sel3",
-     "layer": "0",
-     "p1": [
-      5,
-      10
-     ],
-     "p2": [
-      5,
-      12.5
-     ]
-    },
-    {
-     "type": "line",
-     "id": "sel4",
-     "layer": "0",
-     "p1": [
-      5,
-      12.5
-     ],
-     "p2": [
-      0,
-      12.5
-     ]
-    },
-    {
-     "type": "text",
-     "id": "kind",
-     "layer": "0",
-     "position": [
-      -5.5,
-      13.75
-     ],
-     "text": "SHU",
-     "height": 2.5,
-     "rotation": 0,
-     "halign": "center",
-     "valign": "middle"
     },
     {
      "type": "attdef",
@@ -229,7 +141,7 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F0",
      "position": [
-      8.75,
+      3.75,
       4.0
      ],
      "height": 2.5,
@@ -246,7 +158,7 @@
      "prompt": "Typ",
      "default": "SHU E",
      "position": [
-      8.75,
+      3.75,
       7.5
      ],
      "height": 2.5,
@@ -263,7 +175,7 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
+      3.75,
       11.0
      ],
      "height": 2.5,
@@ -275,13 +187,13 @@
    ]
   },
   {
-   "name": "SHA-Schalter",
+   "name": "Selektiver Hauptschalter netzabhängig",
    "base_point": [
     0,
     0
    ],
    "category": "Zählervorsicherung",
-   "description": "Selektiver Hauptleitungsschutzschalter, spannungsabhängig (E DIN VDE 0643), Zählervorsicherung",
+   "description": "Selektiver Hauptleitungsschutzschalter, netzabhängig mit N-Anschluss (SHA, E DIN VDE 0643), Zählervorsicherung",
    "entities": [
     {
      "type": "line",
@@ -294,6 +206,32 @@
      "p2": [
       0,
       5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "bar",
+     "layer": "0",
+     "p1": [
+      -0.75,
+      5
+     ],
+     "p2": [
+      0.75,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "blade",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -1.844,
+      4.944
      ]
     },
     {
@@ -311,89 +249,54 @@
     },
     {
      "type": "line",
-     "id": "l3",
+     "id": "arrow",
      "layer": "0",
      "p1": [
-      0,
-      10
+      -1.42,
+      6.56
      ],
      "p2": [
-      -2.59,
-      5.04
-     ]
-    },
-    {
-     "type": "line",
-     "id": "link",
-     "layer": "0",
-     "p1": [
-      -1.44,
-      7.24
-     ],
-     "p2": [
-      -3.73,
-      8.6
+      -3.042,
+      7.124
      ]
     },
     {
      "type": "polyline",
-     "id": "magnetic",
+     "id": "head",
      "layer": "0",
      "points": [
       [
-       -4.04,
-       8.11
+       -3.75,
+       7.37
       ],
       [
-       -4.39,
-       8.82
+       -3.147,
+       6.821
       ],
       [
-       -3.6,
-       8.82
+       -2.937,
+       7.426
       ]
      ],
      "closed": true
     },
     {
-     "type": "polyline",
-     "id": "thermal",
+     "type": "text",
+     "id": "s",
      "layer": "0",
-     "points": [
-      [
-       -1.97,
-       6.23
-      ],
-      [
-       -3.11,
-       6.71
-      ],
-      [
-       -3.42,
-       5.83
-      ],
-      [
-       -3.9,
-       5.79
-      ],
-      [
-       -4.52,
-       6.18
-      ],
-      [
-       -4.08,
-       7.24
-      ],
-      [
-       -4.96,
-       7.76
-      ]
+     "position": [
+      -2.4,
+      9.4
      ],
-     "closed": false
+     "text": "S",
+     "height": 1.8,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp1",
      "layer": "0",
      "name": "1",
      "position": [
@@ -404,93 +307,76 @@
     },
     {
      "type": "connection",
-     "id": "cp5",
+     "id": "cp2",
      "layer": "0",
      "name": "2",
      "position": [
       0,
-      15.0
+      15
      ],
      "direction": 270
     },
     {
+     "type": "circle",
+     "id": "dot",
+     "layer": "0",
+     "center": [
+      0.75,
+      10.615
+     ],
+     "radius": 0.12,
+     "lineweight": 0.4
+    },
+    {
      "type": "line",
-     "id": "sel1",
+     "id": "n1",
      "layer": "0",
      "p1": [
-      0,
-      2.5
+      0.75,
+      10.615
      ],
      "p2": [
-      5,
-      2.5
+      2.5,
+      10.615
      ]
     },
     {
      "type": "line",
-     "id": "sel2",
+     "id": "n2",
      "layer": "0",
      "p1": [
-      5,
-      2.5
+      2.5,
+      10.615
      ],
      "p2": [
-      5,
-      5
-     ]
-    },
-    {
-     "type": "rectangle",
-     "id": "selr",
-     "layer": "0",
-     "p1": [
-      3.75,
-      5
-     ],
-     "p2": [
-      6.25,
-      10
-     ]
-    },
-    {
-     "type": "line",
-     "id": "sel3",
-     "layer": "0",
-     "p1": [
-      5,
-      10
-     ],
-     "p2": [
-      5,
-      12.5
-     ]
-    },
-    {
-     "type": "line",
-     "id": "sel4",
-     "layer": "0",
-     "p1": [
-      5,
-      12.5
-     ],
-     "p2": [
-      0,
-      12.5
+      2.5,
+      15
      ]
     },
     {
      "type": "text",
-     "id": "kind",
+     "id": "n",
      "layer": "0",
      "position": [
-      -5.5,
-      13.75
+      3.5,
+      13.5
      ],
-     "text": "SHA",
+     "text": "N",
      "height": 2.5,
      "rotation": 0,
-     "halign": "center",
+     "halign": "left",
      "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cpn",
+     "layer": "0",
+     "name": "N",
+     "position": [
+      2.5,
+      15
+     ],
+     "direction": 270
     },
     {
      "type": "attdef",
@@ -500,7 +386,7 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F0",
      "position": [
-      8.75,
+      6.25,
       4.0
      ],
      "height": 2.5,
@@ -517,7 +403,7 @@
      "prompt": "Typ",
      "default": "SHA E",
      "position": [
-      8.75,
+      6.25,
       7.5
      ],
      "height": 2.5,
@@ -534,7 +420,7 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
+      6.25,
       11.0
      ],
      "height": 2.5,
