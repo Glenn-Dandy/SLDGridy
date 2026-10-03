@@ -30,7 +30,7 @@ Diese Regeln gelten für jeden Meilenstein und werden nicht aufgeweicht.
 3. **Jede Dokumentänderung ist ein Undo-Kommando** (`QUndoCommand` auf einem `QUndoStack`). Kein Werkzeug und kein Dialog verändert das Modell direkt.
 4. **Linienbreiten sind echte Millimeter** (ISO 128: 0,18 / 0,25 / 0,35 / 0,5 / 0,7), keine kosmetischen Stifte. Am Bildschirm wird mindestens 1 Pixel breit gezeichnet.
 5. **Hilfsdarstellung wird nie ausgegeben.** Raster, Fangmarker, Auswahlgriffe, Anschlusspunkt-Marker und die Blattumrisse im Modell erscheinen weder im Druck noch im Export.
-6. **Sprache:** Oberfläche Deutsch, alle Texte über `tr()`. Code, Bezeichner, Kommentare und Commits Englisch.
+6. **Sprache:** Oberfläche Deutsch und Englisch, alle Texte über `tr()` bzw. `QCoreApplication.translate()`; Deutsch ist die Quellsprache im Code, die englischen Texte stehen in `src/sldgridy/resources/i18n/en.json`. Jeder neue Text braucht dort einen Eintrag (wird getestet, ebenso gleiche `{Platzhalter}`). Code, Bezeichner, Kommentare und Commits Englisch.
 7. **Dateiformat ist versioniert.** Ältere Dateiversionen bleiben über Migrationsfunktionen ladbar.
 
 ## Projektstruktur
@@ -103,7 +103,7 @@ Umsetzung (M6):
 - Reservierte Attributkennungen im Schriftfeld: dokumentweit `PROJEKT`, `FIRMA`, `BEARBEITER` (`Document.properties`), je Blatt `TITEL`, `ZEICHNUNGSNR`, `DATUM`, `GEPRUEFT`, `AENDERUNG` (`SheetLayout.fields`), berechnet `BLATT` („x von y“ aus der Reiterreihenfolge) und `FORMAT`. Ausfüllen über Blatt > Schriftfeld ausfüllen.
 - Reiter: „Modell“ bleibt vorn, Blätter lassen sich verschieben (Undo-Kommando), Kontextmenü auf dem Reiter. Das letzte Blatt kann nicht gelöscht werden.
 - Blattumrisse im Modell: gestrichelt mit Blattnamen, Blatt > Blattumrisse im Modell.
-- Rahmenvorlagen `.sldgframe`: `{"format_version", "type": "frame", "name", "paper", "orientation", "title_block", "blocks", "entities"}`; Feldwerte werden nicht übernommen. Mitgeliefert: `src/sldgridy/resources/templates/A4_hoch … A0_quer` (10 Dateien). Blöcke einer Vorlage, die es in der Zeichnung schon anders gibt, bleiben in der Fassung der Zeichnung.
+- Rahmenvorlagen `.sldgframe`: `{"format_version", "type": "frame", "name", "paper", "orientation", "title_block", "blocks", "entities"}`; Feldwerte werden nicht übernommen. Mitgeliefert: `src/sldgridy/resources/templates/A4_hoch … A0_quer` (10 Dateien, Name z. B. „A0 quer, Rahmen nach DIN EN ISO 5457“). Blöcke einer Vorlage, die es in der Zeichnung schon anders gibt, bleiben in der Fassung der Zeichnung.
 - Dateiformat Version 2: Blätter mit `id`, `title_block`, `fields`, Dokument mit `properties`; Migration 1 → 2 ergänzt Schriftfeld-Block und Ansichtsfenster. Bibliotheken bleiben unverändert.
 
 ### Zeichnen
@@ -198,7 +198,7 @@ Symbole nach DIN EN 60617 im 2,5-mm-Raster, jeweils mit Anschlusspunkten und (mi
 - Photovoltaik: PV-Modul (übliche Darstellung: Rechteck mit Dreieck oben, ein Anschluss unten, bewusst keine Normdarstellung), PV-Generator, PV-String, Generatoranschlusskasten, DC-Freischalter, Wechselrichter, NA-Schutzrelais (Messrelais U< U> / f< f>)
 - Messrelais nach DIN EN 60617 (Netz und Messung): Messgröße als zusätzliches Attribut `FUNKTION` im Kasten, Ausgang `A` rechts für die Wirkverbindung
 
-Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Code erzeugt. Datei: `src/sldgridy/resources/library/din_en_60617.sldglib` (Bibliothek „DIN EN 60617“, 43 Symbole, jeweils mit Kategorie und Beschreibung). Konventionen: Durchgangsgeräte senkrecht, Anschluss 1 oben bei (0, 0) mit Richtung 90°, Anschluss 2 unten mit Richtung 270°, Basispunkt am Anschluss 1; Quellen (Netz, PV, Generator) haben ihren Anschluss unten am Basispunkt. Alle Anschlusspunkte liegen im 2,5-mm-Raster (wird getestet). Attribute rechts neben dem Symbol, 2,5 mm hoch, Abstand 3,5 mm, Vorgabe nur für `BMK`.
+Die Symbole werden als Bibliotheksdatei im eigenen Format gepflegt, nicht im Code erzeugt. Datei: `src/sldgridy/resources/library/din_en_60617.sldglib` (Bibliothek „Symbole nach DIN EN 60617“, 43 Symbole, jeweils mit Kategorie und Beschreibung). Konventionen: Durchgangsgeräte senkrecht, Anschluss 1 oben bei (0, 0) mit Richtung 90°, Anschluss 2 unten mit Richtung 270°, Basispunkt am Anschluss 1; Quellen (Netz, PV, Generator) haben ihren Anschluss unten am Basispunkt. Alle Anschlusspunkte liegen im 2,5-mm-Raster (wird getestet). Attribute rechts neben dem Symbol, 2,5 mm hoch, Abstand 3,5 mm, Vorgabe nur für `BMK`.
 
 ### Drucken und Export
 
@@ -315,3 +315,13 @@ Immer nur einen Meilenstein bearbeiten. Der deb-Build wird in M1 angelegt und bl
 - Was sich nicht automatisch prüfen lässt (Bedienung, Druckbild auf Papier), als kurze Prüfliste für den Benutzer ausgeben.
 - Bei Unklarheiten im Funktionsumfang nachfragen statt raten. Nichts bauen, was hier nicht steht.
 - Diese Datei aktuell halten, wenn sich Struktur, Befehle oder Entscheidungen ändern.
+
+## Sprachen (Deutsch / Englisch)
+
+- `src/sldgridy/i18n.py`: eigener `QTranslator` (`DictTranslator`), der den deutschen Quelltext unabhängig vom Kontext in `en.json` nachschlägt. Keine Qt-Übersetzungswerkzeuge nötig. Für fehlende Einträge gibt er `None` zurück (Null-String), damit Qt den Quelltext zeigt; ein leerer String würde den Text leeren.
+- Sprache: Ansicht > „Sprache / Language“ (Menütitel bewusst zweisprachig), gespeichert als `ui/language` in `QSettings`, Standard nach Systemsprache (`de*` → Deutsch, sonst Englisch). Die Umstellung wirkt nach einem Neustart.
+- Zahlenformat folgt der Sprache (`i18n.ui_locale()`: Dezimalkomma bzw. Dezimalpunkt), Längen über `styles.mm_label()`.
+- Texte, die in Bibliotheken und Zeichnungen gespeichert sind (Symbolnamen, Kategorien, Beschreibungen, Abfragetexte, Titel von Bibliotheken und Vorlagen), werden nur in der Anzeige übersetzt (`i18n.library_text()`); die gespeicherten Namen bleiben deutsch, damit Zeichnungen sprachunabhängig zusammenpassen.
+- Zeichnungsinhalt folgt der Sprache beim Anlegen: neue Zeichnungen bekommen Schriftfeld-Beschriftungen in der aktiven Sprache (`Document.new(..., title_labels)`); „Blatt x von y“/„Sheet x of y“, quer/landscape und die Kachelnummer `Z1/S2`/`R1/C2` werden beim Zeichnen übersetzt. Bereits gespeicherte Zeichnungen behalten ihre Beschriftungen.
+- Repository-Seite (README) zweisprachig: Englisch zuerst, dann Deutsch, mit Hinweis zu Normen und Marken (DIN, IEC, VDE, Autodesk, EPLAN, LibreCAD).
+

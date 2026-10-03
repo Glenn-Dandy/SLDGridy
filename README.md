@@ -2,15 +2,135 @@
 
 [![Release](https://img.shields.io/github/v/release/Glenn-Dandy/SLDGridy)](https://github.com/Glenn-Dandy/SLDGridy/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Unterstützen](https://img.shields.io/badge/♥-Projekt%20unterstützen-c62828)](https://paypal.me/GlennDandy)
+[![Support](https://img.shields.io/badge/♥-Support%20the%20project-c62828)](https://paypal.me/GlennDandy)
 
-*CAD-style editor for single-line electrical diagrams (PV systems, transformer stations, LV distribution) for Linux. User interface in German.*
+**[English](#english) · [Deutsch](#deutsch)**
 
-Einpolige Übersichtsschaltpläne (Single-Line-Diagramme) für Photovoltaikanlagen, Transformatorstationen und Niederspannungsverteilungen, gezeichnet wie in einem CAD-Programm: maßhaltig in Millimetern, mit Modell und Zeichnungsrahmen, Raster und Objektfang, Ebenen, Blöcken mit Attributen und Drucken bis A0.
+---
+
+## English
+
+CAD-style editor for single-line electrical diagrams on Linux: photovoltaic systems, transformer stations and low-voltage distribution. Drawing in real millimetres with model space and sheet layouts, grid and object snap, layers, blocks with attributes and connection points, a symbol library to DIN EN 60617, and printing up to A0.
+
+The user interface is available in **English and German** (View > Sprache / Language).
+
+License: GPL-3.0-or-later. Target system: Ubuntu 24.04 (X11 and Wayland).
+
+### Installation
+
+Download `sldgridy_<version>_all.deb` from the [releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) and install it:
+
+```bash
+sudo apt install ./sldgridy_<version>_all.deb
+```
+
+SLDGridy then appears in the application menu and `.sldg` files open with a double click. Remove it with `sudo apt remove sldgridy`.
+
+### Quick start
+
+1. Draw in the **Model** tab. The origin is marked with axes; 1 unit = 1 mm.
+2. Drag symbols from the **Library** dock (left) into the drawing or double-click them. The shipped library “Symbols to DIN EN 60617” contains 43 symbols for PV, transformer stations and low voltage. After inserting, the program asks for the attributes `BMK` (reference designation), `TYP` and `WERT`.
+3. Connect connection points with **Draw > Wire** (Ctrl+W). Wires snap to connection points (magenta markers) and bend at right angles automatically. **Bus bar** draws a 0.7 mm bar that can be connected anywhere. Connection dots appear automatically.
+4. Label wires by double-clicking them or in the Properties dock, e.g. “NYY-J 5x16”.
+5. The **Sheet 1** tab holds an A0 landscape frame with title block. **Sheet > Fill in title block** sets project, company, title and so on.
+6. **File > Print** (Ctrl+P) or **File > Export** to PDF, SVG or PNG.
+
+### Mouse and keyboard
+
+| Action | How |
+|---|---|
+| Zoom | mouse wheel (towards the cursor) |
+| Pan | drag with the middle mouse button |
+| Zoom extents | Home |
+| Select | click; Shift+click adds or removes |
+| Window / crossing | drag left to right: fully inside; right to left: touching |
+| Move objects | drag selected objects or **Modify > Move** |
+| Grips | click a blue grip, then click the new position |
+| Cancel command | Esc |
+| End command | Enter or right click |
+| Repeat last command | Space |
+| Delete | Del |
+| Undo / Redo | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) |
+| Cut / Copy / Paste | Ctrl+X / Ctrl+C / Ctrl+V |
+| Object snap / grid / ortho / grid snap / snap tracking | F3 / F7 / F8 / F9 / F11 |
+
+Modify commands without a selection first ask for objects: select them and press Enter.
+
+**Choosing snap modes:** rest on the **OSNAP** button at the bottom or click its small arrow, or **Shift+right click** on the drawing. **Perpendicular** snaps the right-angle point from the last point, e.g. a wire straight onto the bus bar.
+
+**Right click on a point** (no command running): **Connect** places a connection dot, **Separate** suppresses an automatic dot (shown on screen as an orange ring, not printed), **Remove point** deletes a bend or corner of a wire or polyline, **Extend** continues drawing at an end.
+
+**Object snap tracking:** during a command, rest the cursor on a snap point (e.g. a connection point) until a green + appears. Moving horizontally or vertically away from it shows a dotted alignment line and the point snaps onto it, on the grid. Two acquired points give the intersection of their alignments.
+
+**Typed coordinates:** during a drawing command just start typing; input goes to the **Command** line: `120,45` absolute, `@25,0` relative to the last point, `30` length towards the cursor (ortho only). With a decimal comma separate the values with a semicolon: `12,5;7,5`.
+
+### Blocks, libraries and DXF import
+
+- **Block > Block from selection** (Ctrl+B), **Block > Edit block** (block editor with yellow bar), **Modify > Explode**.
+- **Define attribute** and **Place connection point** create placeholders and terminals, best in the block editor.
+- When a block is moved, rotated or mirrored, wire ends on its connection points follow.
+- **Block > Save to user library** stores the block in `~/.local/share/sldgridy/library/eigene.sldglib`; libraries can be imported and exported.
+- **Block > Import symbols from DXF** reads ASCII DXF files: each named block becomes a symbol; lines, polylines (with arcs), circles, arcs, ellipses, texts and attributes (ATTDEF) are taken over, nested blocks are resolved, **POINT** objects become connection points, units are converted to mm. The symbols are stored as a library named after the DXF file.
+
+### Sheets, printing and export
+
+- Tabs at the bottom: model and sheets (new, rename, duplicate, delete, format, templates via right click).
+- Formats A4 to A0, portrait and landscape, frame to DIN EN ISO 5457, title block to DIN EN ISO 7200 (180 mm; the block “Schriftfeld” can be changed in the block editor).
+- Double-click into a viewport activates it: the wheel zooms, the middle button pans, Esc ends. Scale, lock and “Fit model extents” in the Properties dock.
+- Printing **1:1** (A0 on the plotter), **fit to paper** (e.g. A0 on A3) or **tiles** (1:1 on smaller sheets with 10 mm overlap, cut marks and tile numbers); quick print of the model; black and white; printable layers only.
+- Vector PDF with exact sheet size and one page per sheet, SVG in mm, PNG with selectable resolution.
+
+### Files and locations
+
+| What | Where |
+|---|---|
+| Drawing | `*.sldg` (JSON, versioned; saving keeps `*.sldg.bak`) |
+| Library | `*.sldglib`; shipped in `/usr/share/sldgridy/library/`, own ones in `~/.local/share/sldgridy/library/` |
+| Frame template | `*.sldgframe`; shipped in `/usr/share/sldgridy/templates/`, own ones in `~/.local/share/sldgridy/templates/` |
+| Automatic backup | every 5 minutes to `~/.cache/sldgridy/`; after a crash the next start offers recovery |
+| Settings | `~/.config/sldgridy/sldgridy.conf` |
+
+### Development
+
+```bash
+sudo apt install python3-venv python3-pyqt6 python3-pyqt6.qtsvg lintian
+python3 -m venv --system-site-packages .venv
+.venv/bin/pip install -e ".[dev]"
+
+.venv/bin/python -m sldgridy                     # run
+QT_QPA_PLATFORM=offscreen .venv/bin/pytest       # tests without a display
+.venv/bin/ruff check . && .venv/bin/ruff format --check .
+./packaging/build-deb.sh                         # builds dist/sldgridy_<version>_all.deb
+lintian dist/sldgridy_*.deb
+```
+
+German is the source language of the user interface; English translations live in `src/sldgridy/resources/i18n/en.json` (a test checks that every text is translated). The specification and all design decisions are in `CLAUDE.md` (German).
+
+### Feedback and support
+
+- Bugs and ideas: [issues](https://github.com/Glenn-Dandy/SLDGridy/issues) (in the program: Help > Report a bug, prefilled with version details)
+- Like SLDGridy? Give the project a ⭐ on GitHub.
+- [♥ Support the project](https://paypal.me/GlennDandy)
+
+### Notice
+
+SLDGridy is an independent project. It is not affiliated with or endorsed by DIN, IEC, VDE, Autodesk, EPLAN or the LibreCAD project. DIN is a registered trademark of DIN Deutsches Institut für Normung e.V.; AutoCAD and DXF are trademarks of Autodesk, Inc. The symbols were drawn for this project following the standards mentioned; the standards themselves are not included.
+
+### License
+
+GPL-3.0-or-later, see [LICENSE](LICENSE). © Glenn-Dandy
+
+---
+
+## Deutsch
+
+Einpolige Übersichtsschaltpläne (Single-Line-Diagramme) für Photovoltaikanlagen, Transformatorstationen und Niederspannungsverteilungen unter Linux, gezeichnet wie in einem CAD-Programm: maßhaltig in Millimetern, mit Modell und Zeichnungsrahmen, Raster und Objektfang, Ebenen, Blöcken mit Attributen und Anschlusspunkten, einer Symbolbibliothek nach DIN EN 60617 und Drucken bis A0.
+
+Die Oberfläche gibt es auf **Deutsch und Englisch** (Ansicht > Sprache / Language).
 
 Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 (X11 und Wayland).
 
-## Installation
+### Installation
 
 Das Paket `sldgridy_<version>_all.deb` aus den [Releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) herunterladen und installieren:
 
@@ -20,12 +140,10 @@ sudo apt install ./sldgridy_<version>_all.deb
 
 Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich per Doppelklick. Deinstallation mit `sudo apt remove sldgridy`.
 
-## Kurzanleitung
-
-### Erste Zeichnung
+### Kurzanleitung
 
 1. Im Reiter **Modell** zeichnen. Der Nullpunkt ist mit einem Achsenkreuz markiert, 1 Einheit = 1 mm.
-2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „DIN EN 60617“ enthält 43 Symbole für PV, Trafostation und Niederspannung. Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
+2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „Symbole nach DIN EN 60617“ enthält 43 Symbole für PV, Trafostation und Niederspannung. Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
 3. Mit **Zeichnen > Leitung** (Strg+W) Anschlusspunkte verbinden. Die Leitung rastet auf Anschlusspunkte (magentafarbene Marker) und knickt automatisch rechtwinklig. **Sammelschiene** zeichnet eine 0,7-mm-Schiene, an die überall angeschlossen werden kann. Verbindungspunkte entstehen automatisch.
 4. Leitungen beschriften: Doppelklick auf die Leitung oder Eigenschaften-Dock, z. B. „NYY-J 5x16“.
 5. Im Reiter **Blatt 1** liegt der Zeichnungsrahmen A0 quer mit Schriftfeld. **Blatt > Schriftfeld ausfüllen** setzt Projekt, Firma, Titel usw.
@@ -58,38 +176,21 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 
 **Objektfangspur (Hilfslinien):** Während eines Befehls den Cursor kurz auf einem Fangpunkt (z. B. Anschlusspunkt) ruhen lassen, bis ein grünes + erscheint. Bewegt man sich danach waagerecht oder senkrecht davon weg, zeigt eine gepunktete Linie die Flucht, und der Punkt rastet darauf ein, im Raster. Zwei vorgemerkte Punkte ergeben den Kreuzungspunkt ihrer Fluchten.
 
-### Koordinaten eingeben
-
-Während eines Zeichenbefehls einfach lostippen, die Eingabe landet in der Zeile **Befehl** unter der Zeichenfläche:
-
-- `120,45` absoluter Punkt
-- `@25,0` relativ zum letzten Punkt
-- `30` Länge in Cursorrichtung (nur bei Ortho)
-- Mit Dezimalkomma die Werte mit Semikolon trennen: `12,5;7,5`
+**Koordinaten eingeben:** Während eines Zeichenbefehls einfach lostippen, die Eingabe landet in der Zeile **Befehl**: `120,45` absolut, `@25,0` relativ zum letzten Punkt, `30` Länge in Cursorrichtung (nur bei Ortho). Mit Dezimalkomma die Werte mit Semikolon trennen: `12,5;7,5`.
 
 ### Ebenen und Eigenschaften
 
 Im Dock **Ebenen**: Name, Farbe, Linienbreite (ISO 128: 0,18 bis 0,7 mm), Linienart, sichtbar, gesperrt, druckbar. Doppelklick setzt die aktuelle Ebene. Das Dock **Eigenschaften** ändert Ebene, Farbe, Breite, Linienart, Text, Blockattribute, Leitungsbeschriftung und Ansichtsfenster der Auswahl.
 
-### Blöcke
+### Blöcke, Bibliotheken und DXF-Import
 
 - **Block > Block aus Auswahl** (Strg+B): Namen vergeben, dann Basispunkt klicken.
 - **Block > Attribut definieren** und **Anschlusspunkt setzen** legen Platzhalter und Anschlüsse an, am besten im Blockeditor.
 - **Block > Block bearbeiten** öffnet den Blockeditor mit gelber Leiste. „Speichern und schließen“ aktualisiert alle Referenzen.
 - **Ändern > Auflösen** ersetzt eine Referenz durch ihre Einzelobjekte.
 - **Block > In Benutzerbibliothek speichern** legt den Block in `~/.local/share/sldgridy/library/eigene.sldglib` ab. Bibliotheken lassen sich importieren und exportieren.
-
-Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden auf seinen Anschlusspunkten mit.
-
-### Symbole aus DXF importieren
-
-**Block > Symbole aus DXF importieren** liest ASCII-DXF-Dateien (z. B. Herstellersymbole oder Exporte aus AutoCAD, EPLAN, LibreCAD):
-
-- Jeder benannte Block der DXF wird ein Symbol mit seinem Basispunkt. Enthält die Datei keine Blöcke, wird die ganze Zeichnung ein Symbol (Name der Datei).
-- Übernommen werden Linien, Polylinien (auch mit Bögen), Kreise, Bögen, Ellipsen, Texte und Attribute (ATTDEF). Verschachtelte Blöcke werden aufgelöst. Schraffuren und Splines werden übersprungen und gemeldet.
-- **POINT**-Objekte im Block werden zu Anschlusspunkten (1, 2, 3 …, Richtung vom Symbolmittelpunkt nach außen). Fehlen sie, im Blockeditor mit **Anschlusspunkt setzen** ergänzen.
-- Die Einheit der DXF (`$INSUNITS`) wird in mm umgerechnet.
-- In einer Vorschau wählst du die Symbole aus. Sie landen als eigene Bibliothek (Name der DXF-Datei) in `~/.local/share/sldgridy/library/` und erscheinen im Bibliotheks-Dock mit der Kategorie gleich dem Dateinamen.
+- Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden auf seinen Anschlusspunkten mit.
+- **Block > Symbole aus DXF importieren** liest ASCII-DXF-Dateien (z. B. Herstellersymbole oder Exporte aus AutoCAD, EPLAN, LibreCAD): Jeder benannte Block wird ein Symbol; Linien, Polylinien (auch mit Bögen), Kreise, Bögen, Ellipsen, Texte und Attribute (ATTDEF) werden übernommen, verschachtelte Blöcke aufgelöst, **POINT**-Objekte werden zu Anschlusspunkten, die Einheit wird in mm umgerechnet. Die Symbole landen als eigene Bibliothek mit dem Namen der DXF-Datei.
 
 ### Zeichnungsrahmen
 
@@ -108,7 +209,7 @@ Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden au
 - Optionen: Schwarz-weiß, nur druckbare Ebenen. Die Vorschau warnt, wenn der Drucker nicht bis in den Rahmen drucken kann.
 - PDF als Vektor mit exakter Blattgröße und einer Seite je Blatt, SVG in mm, PNG mit wählbarer Auflösung.
 
-## Dateien und Speicherorte
+### Dateien und Speicherorte
 
 | Was | Wo |
 |---|---|
@@ -118,28 +219,20 @@ Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden au
 | Automatische Sicherung | alle 5 Minuten nach `~/.cache/sldgridy/`; nach einem Absturz bietet der nächste Start die Wiederherstellung an |
 | Einstellungen | `~/.config/sldgridy/sldgridy.conf` |
 
-## Entwicklung
+### Entwicklung
 
-```bash
-sudo apt install python3-venv python3-pyqt6 python3-pyqt6.qtsvg lintian
-python3 -m venv --system-site-packages .venv
-.venv/bin/pip install -e ".[dev]"
+Befehle wie im englischen Teil unter *Development*. Deutsch ist die Quellsprache der Oberfläche, die englischen Texte stehen in `src/sldgridy/resources/i18n/en.json` (ein Test prüft, dass jeder Text übersetzt ist). Die Spezifikation und alle Festlegungen stehen in `CLAUDE.md`.
 
-.venv/bin/python -m sldgridy                     # starten
-QT_QPA_PLATFORM=offscreen .venv/bin/pytest       # Tests ohne Display
-.venv/bin/ruff check . && .venv/bin/ruff format --check .
-./packaging/build-deb.sh                         # erzeugt dist/sldgridy_<version>_all.deb
-lintian dist/sldgridy_*.deb
-```
-
-Die Spezifikation und alle Festlegungen stehen in `CLAUDE.md`.
-
-## Feedback und Unterstützung
+### Feedback und Unterstützung
 
 - Fehler und Wünsche: [Issues](https://github.com/Glenn-Dandy/SLDGridy/issues) (im Programm unter Hilfe > Fehler melden, mit Versionsangaben vorausgefüllt)
 - Gefällt dir SLDGridy? Gib dem Projekt einen ⭐ auf GitHub.
 - [♥ Projekt unterstützen](https://paypal.me/GlennDandy)
 
-## Lizenz
+### Hinweis
+
+SLDGridy ist ein unabhängiges Projekt und steht in keiner Verbindung zu DIN, IEC, VDE, Autodesk, EPLAN oder dem LibreCAD-Projekt. DIN ist eine eingetragene Marke des DIN Deutsches Institut für Normung e.V.; AutoCAD und DXF sind Marken der Autodesk, Inc. Die Symbole wurden für dieses Projekt nach den genannten Normen gezeichnet; die Normen selbst sind nicht enthalten.
+
+### Lizenz
 
 GPL-3.0-or-later, siehe [LICENSE](LICENSE). © Glenn-Dandy

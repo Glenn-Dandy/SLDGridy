@@ -3,7 +3,7 @@
 from datetime import date
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QCoreApplication, Qt
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -16,8 +16,13 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from sldgridy.i18n import library_text
 from sldgridy.model.paper import PAPER_FORMATS, Orientation
 from sldgridy.model.title_block import DOCUMENT_FIELDS, FIELD_LABELS, SHEET_FIELDS
+
+
+def _label(tag: str) -> str:
+    return QCoreApplication.translate("title_block", FIELD_LABELS[tag])
 
 
 def _buttons(dialog: QDialog) -> QDialogButtonBox:
@@ -82,7 +87,7 @@ class FieldsDialog(QDialog):
         doc_form = QFormLayout(doc_box)
         for tag in DOCUMENT_FIELDS:
             edit = QLineEdit(properties.get(tag, ""))
-            doc_form.addRow(f"{FIELD_LABELS[tag]}:", edit)
+            doc_form.addRow(f"{_label(tag)}:", edit)
             self._doc_edits[tag] = edit
         sheet_box = QGroupBox(self.tr("Für dieses Blatt"))
         sheet_form = QFormLayout(sheet_box)
@@ -91,7 +96,7 @@ class FieldsDialog(QDialog):
             if tag == "DATUM" and not value:
                 value = date.today().strftime("%d.%m.%Y")
             edit = QLineEdit(value)
-            sheet_form.addRow(f"{FIELD_LABELS[tag]}:", edit)
+            sheet_form.addRow(f"{_label(tag)}:", edit)
             self._sheet_edits[tag] = edit
         layout = QVBoxLayout(self)
         layout.addWidget(doc_box)
@@ -112,7 +117,7 @@ class TemplateChooserDialog(QDialog):
         self.setWindowTitle(self.tr("Neues Blatt aus Vorlage"))
         self.list = QListWidget()
         for title, path, _shipped in templates:
-            item = QListWidgetItem(title)
+            item = QListWidgetItem(library_text(title))
             item.setData(Qt.ItemDataRole.UserRole, str(path))
             self.list.addItem(item)
         if self.list.count():

@@ -19,7 +19,9 @@ def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
 class _SelectionTool(Tool):
     """Works on the current selection; asks for one first if nothing is selected."""
 
-    name = ""
+    @property
+    def name(self) -> str:
+        return ""
 
     def __init__(self, ctx) -> None:
         super().__init__(ctx)
@@ -62,7 +64,9 @@ class _SelectionTool(Tool):
 
 
 class MoveTool(_SelectionTool):
-    name = tr("Verschieben")
+    @property
+    def name(self) -> str:
+        return tr("Verschieben")
 
     def _point_prompt(self) -> str:
         if self._base is None:
@@ -93,7 +97,9 @@ class MoveTool(_SelectionTool):
 class CopyTool(_SelectionTool):
     """Places copies until the user finishes."""
 
-    name = tr("Kopieren")
+    @property
+    def name(self) -> str:
+        return tr("Kopieren")
 
     def _point_prompt(self) -> str:
         if self._base is None:
@@ -117,7 +123,9 @@ class CopyTool(_SelectionTool):
 class RotateTool(_SelectionTool):
     """Rotate in 90 degree steps towards the cursor direction."""
 
-    name = tr("Drehen")
+    @property
+    def name(self) -> str:
+        return tr("Drehen")
 
     def _point_prompt(self) -> str:
         if self._base is None:
@@ -153,7 +161,9 @@ class RotateTool(_SelectionTool):
 class MirrorTool(_SelectionTool):
     """Mirror in place at a horizontal or vertical axis."""
 
-    name = tr("Spiegeln")
+    @property
+    def name(self) -> str:
+        return tr("Spiegeln")
 
     def _point_prompt(self) -> str:
         if self._base is None:

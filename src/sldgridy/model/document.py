@@ -76,10 +76,10 @@ class Document:
     )
 
     @classmethod
-    def new(cls, first_sheet_name: str) -> "Document":
+    def new(cls, first_sheet_name: str, title_labels: dict[str, str] | None = None) -> "Document":
         """Create an empty drawing with one A0 landscape sheet and the standard title block."""
         doc = cls(sheets=[new_sheet(first_sheet_name)])
-        doc.blocks[TITLE_BLOCK_NAME] = title_block_definition()
+        doc.blocks[TITLE_BLOCK_NAME] = title_block_definition(title_labels)
         return doc
 
     # -- sheets -------------------------------------------------------------
@@ -130,14 +130,20 @@ class Document:
             n += 1
         return f"{base} ({n})"
 
-    def field_values(self, sheet_id: str) -> dict[str, str]:
-        """Title block values of a sheet including computed ones."""
+    def field_values(
+        self,
+        sheet_id: str,
+        of: str = "von",
+        landscape: str = "quer",
+        portrait: str = "hoch",
+    ) -> dict[str, str]:
+        """Title block values of a sheet including computed ones (words for BLATT/FORMAT)."""
         index = self.sheet_index(sheet_id)
         sheet = self.sheets[index]
         values = {tag: self.properties.get(tag, "") for tag in DOCUMENT_FIELDS}
         values.update({tag: sheet.fields.get(tag, "") for tag in SHEET_FIELDS})
-        values["BLATT"] = f"{index + 1} von {len(self.sheets)}"
-        orientation = "quer" if sheet.orientation is Orientation.LANDSCAPE else "hoch"
+        values["BLATT"] = f"{index + 1} {of} {len(self.sheets)}"
+        orientation = landscape if sheet.orientation is Orientation.LANDSCAPE else portrait
         values["FORMAT"] = f"{sheet.paper} {orientation}"
         return values
 

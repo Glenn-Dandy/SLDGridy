@@ -1,15 +1,14 @@
 """Shared choices for colours, line widths and line types in the UI."""
 
-from PyQt6.QtCore import QCoreApplication, QLocale
+from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QColor, QIcon, QPixmap
 
+from sldgridy.i18n import ui_locale
 from sldgridy.model.layers import LINETYPES, LINEWEIGHTS
 
 BY_LAYER = "__bylayer__"
 MIXED = "__mixed__"
 OTHER_COLOR = "__other__"
-
-_LOCALE = QLocale(QLocale.Language.German, QLocale.Country.Germany)
 
 
 def tr(text: str) -> str:
@@ -40,7 +39,7 @@ def linetype_names() -> dict[str, str]:
 
 
 def lineweight_label(value: float) -> str:
-    return f"{_LOCALE.toString(value, 'f', 2)} mm"
+    return f"{ui_locale().toString(value, 'f', 2)} mm"
 
 
 def lineweight_items() -> list[tuple[str, float]]:
@@ -51,3 +50,9 @@ def color_icon(color: str, size: int = 14) -> QIcon:
     pixmap = QPixmap(size, size)
     pixmap.fill(QColor(color))
     return QIcon(pixmap)
+
+
+def mm_label(value: float) -> str:
+    """Short length like "2,5 mm" (German) or "2.5 mm" (English)."""
+    text = f"{value:g}"
+    return f"{text.replace('.', ui_locale().decimalPoint())} mm"

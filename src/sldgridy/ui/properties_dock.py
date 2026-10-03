@@ -39,6 +39,7 @@ from sldgridy.ui.styles import (
     color_icon,
     linetype_names,
     lineweight_items,
+    mm_label,
     standard_colors,
 )
 
@@ -95,7 +96,7 @@ class PropertiesDock(QDockWidget):
         self.btn_apply_text = QPushButton(self.tr("Text übernehmen"))
         self.cmb_height = QComboBox()
         for h in TEXT_HEIGHTS:
-            self.cmb_height.addItem(f"{h:g} mm".replace(".", ","), h)
+            self.cmb_height.addItem(mm_label(h), h)
 
         self.cmb_layer.activated.connect(lambda _i: self._apply_combo(self.cmb_layer, "layer"))
         self.cmb_color.activated.connect(self._on_color)

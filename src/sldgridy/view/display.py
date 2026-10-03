@@ -5,13 +5,14 @@ Shared by the scene items on screen and by printing and export.
 
 from dataclasses import dataclass
 
-from PyQt6.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtCore import QCoreApplication, QPointF, QRectF, Qt
 from PyQt6.QtGui import QBrush, QColor, QPainter, QPen
 
 from sldgridy.model.blocks import BlockError, expand
 from sldgridy.model.document import Document, SheetLayout
 from sldgridy.model.entities import BlockReference, Entity, Viewport, Wire
 from sldgridy.model.sheet import frame_entities, title_block_reference
+from sldgridy.model.title_block import FIELD_LABELS
 from sldgridy.model.wires import junction_diameter, junctions, label_text
 from sldgridy.view.render import Style, entity_bounds, make_pen, paint_entity
 
@@ -111,11 +112,24 @@ def paint_viewport(
         painter.drawRect(rect)
 
 
+def title_labels() -> dict[str, str]:
+    """Cell captions of the standard title block in the active language."""
+    return {
+        tag: QCoreApplication.translate("title_block", label) for tag, label in FIELD_LABELS.items()
+    }
+
+
 def title_block_parts(doc: Document, sheet: SheetLayout) -> list[Entity]:
     if not sheet.title_block or sheet.title_block not in doc.blocks:
         return []
     w, h = sheet.size
-    ref = title_block_reference(sheet.title_block, w, h, doc.field_values(sheet.id))
+    values = doc.field_values(
+        sheet.id,
+        of=QCoreApplication.translate("display", "von"),
+        landscape=QCoreApplication.translate("display", "quer"),
+        portrait=QCoreApplication.translate("display", "hoch"),
+    )
+    ref = title_block_reference(sheet.title_block, w, h, values)
     try:
         return expand(ref, doc.blocks)
     except BlockError:

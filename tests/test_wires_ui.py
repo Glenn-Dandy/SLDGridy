@@ -96,7 +96,7 @@ def test_busbar_tool_in_window(window):
 def test_shipped_library_in_dock(window):
     dock = window.library_dock
     titles = [lib.title for lib in dock.libraries.values() if lib.shipped]
-    assert "DIN EN 60617" in titles
+    assert "Symbole nach DIN EN 60617" in titles
     assert dock.list.count() >= 40
 
 

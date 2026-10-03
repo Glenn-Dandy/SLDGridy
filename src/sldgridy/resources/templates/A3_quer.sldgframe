@@ -1,7 +1,7 @@
 {
  "format_version": 2,
  "type": "frame",
- "name": "A3 quer (DIN EN ISO 5457)",
+ "name": "A3 quer, Rahmen nach DIN EN ISO 5457",
  "paper": "A3",
  "orientation": "landscape",
  "title_block": "Schriftfeld",

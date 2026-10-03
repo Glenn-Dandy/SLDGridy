@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication
 
-from sldgridy import __version__
+from sldgridy import __version__, i18n
 from sldgridy.ui.main_window import APP_NAME, MainWindow
 
 
@@ -16,6 +16,7 @@ def create_application(argv: list[str]) -> QApplication:
     app.setApplicationDisplayName(APP_NAME)
     app.setApplicationVersion(__version__)
     app.setDesktopFileName("sldgridy")
+    i18n.install(app, i18n.configured_language())
     return app
 
 

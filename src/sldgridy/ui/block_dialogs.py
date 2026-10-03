@@ -17,8 +17,10 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
+from sldgridy.i18n import library_text
 from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.entities import TEXT_HEIGHTS, AttributeDefinition
+from sldgridy.ui.styles import mm_label
 from sldgridy.view.thumbnails import block_icon
 
 
@@ -87,9 +89,9 @@ class BlockChooserDialog(QDialog):
         if multi:
             self.list.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
         for name in sorted(blocks, key=str.casefold):
-            item = QListWidgetItem(block_icon(name, blocks), name)
+            item = QListWidgetItem(block_icon(name, blocks), library_text(name))
             item.setData(Qt.ItemDataRole.UserRole, name)
-            item.setToolTip(blocks[name].description or name)
+            item.setToolTip(library_text(blocks[name].description) or library_text(name))
             self.list.addItem(item)
         if self.list.count():
             self.list.setCurrentRow(0)
@@ -122,12 +124,12 @@ class AttributeValuesDialog(QDialog):
         parent=None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Attribute: {name}").format(name=block_name))
+        self.setWindowTitle(self.tr("Attribute: {name}").format(name=library_text(block_name)))
         self._edits: dict[str, QLineEdit] = {}
         form = QFormLayout(self)
         for d in definitions:
             edit = QLineEdit(values.get(d.tag, d.default))
-            label = d.prompt or d.tag
+            label = library_text(d.prompt) or d.tag
             form.addRow(f"{label}:", edit)
             self._edits[d.tag] = edit
         form.addRow(_buttons(self))
@@ -145,7 +147,7 @@ class AttributeDefinitionDialog(QDialog):
         self.default = QLineEdit(current.default if current else "")
         self.height = QComboBox()
         for h in TEXT_HEIGHTS:
-            self.height.addItem(f"{h:g} mm".replace(".", ","), h)
+            self.height.addItem(mm_label(h), h)
         wanted = current.height if current else 2.5
         self.height.setCurrentIndex(max(self.height.findData(wanted), 0))
         self.halign = QComboBox()

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from PyQt6.QtCore import QMarginsF, QPointF, QRectF, QSizeF
+from PyQt6.QtCore import QCoreApplication, QMarginsF, QPointF, QRectF, QSizeF
 from PyQt6.QtGui import (
     QColor,
     QFont,
@@ -128,7 +128,8 @@ def _paint_tile_marks(painter: QPainter, page: Page) -> None:
     k = TILE_LABEL_HEIGHT / 72.0  # cap height of DejaVu Sans at 100 px is about 72 px
     painter.scale(k, k)
     painter.setFont(font)
-    painter.drawText(QPointF(0, 0), f"Z{row}/S{col}")
+    label = QCoreApplication.translate("printing", "Z{row}/S{col}")
+    painter.drawText(QPointF(0, 0), label.format(row=row, col=col))
     painter.restore()
 
 

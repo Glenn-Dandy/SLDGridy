@@ -3,9 +3,10 @@
 from dataclasses import replace
 from pathlib import Path
 
-from PyQt6.QtCore import QLocale, QPointF, QSettings, Qt
+from PyQt6.QtCore import QPointF, QSettings, Qt
 from PyQt6.QtGui import (
     QAction,
+    QActionGroup,
     QCloseEvent,
     QColor,
     QKeySequence,
@@ -32,10 +33,11 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from sldgridy import project
+from sldgridy import i18n, project
 from sldgridy.commands.entities import RemoveEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.fileio.files import DRAWING_SUFFIX, load_document, save_document
 from sldgridy.fileio.json_format import FileFormatError
+from sldgridy.i18n import ui_locale
 from sldgridy.model.blocks import BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
@@ -77,6 +79,7 @@ from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import BACKGROUND_COLOR, Canvas
+from sldgridy.view.display import title_labels
 from sldgridy.view.items import EntityItem
 from sldgridy.view.junctions import JunctionItem
 from sldgridy.view.render import Style
@@ -88,8 +91,8 @@ APP_NAME = "SLDGridy"
 class MainWindow(QMainWindow):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self._locale = QLocale(QLocale.Language.German, QLocale.Country.Germany)
-        self.document = Document.new(self.tr("Blatt 1"))
+        self._locale = ui_locale()
+        self.document = Document.new(self.tr("Blatt 1"), title_labels())
         self.file_path: Path | None = None
         self.current_layer = DEFAULT_LAYER
 
@@ -344,25 +347,29 @@ class MainWindow(QMainWindow):
             self.act_explode,
         ]
 
-        self.act_grid = self._action(self.tr("&Raster anzeigen"), lambda: None, "F7", "RASTER")
+        self.act_grid = self._action(
+            self.tr("&Raster anzeigen"), lambda: None, "F7", self.tr("RASTER")
+        )
         self.act_grid.setCheckable(True)
         self.act_grid.setChecked(self.canvas.grid_visible())
         self.act_grid.toggled.connect(self.canvas.set_grid_visible)
 
-        self.act_ortho = self._action(self.tr("&Ortho"), lambda: None, "F8", "ORTHO")
+        self.act_ortho = self._action(self.tr("&Ortho"), lambda: None, "F8", self.tr("ORTHO"))
         self.act_ortho.setCheckable(True)
         self.act_ortho.toggled.connect(self.canvas.set_ortho_enabled)
 
-        self.act_snap = self._action(self.tr("Raster&fang"), lambda: None, "F9", "FANG")
+        self.act_snap = self._action(self.tr("Raster&fang"), lambda: None, "F9", self.tr("FANG"))
         self.act_snap.setCheckable(True)
         self.act_snap.setChecked(self.canvas.snap_enabled)
         self.act_snap.toggled.connect(self.canvas.set_snap_enabled)
 
-        self.act_osnap = self._action(self.tr("&Objektfang"), lambda: None, "F3", "OFANG")
+        self.act_osnap = self._action(self.tr("&Objektfang"), lambda: None, "F3", self.tr("OFANG"))
         self.act_osnap.setCheckable(True)
         self.act_osnap.setChecked(self.canvas.osnap_enabled)
         self.act_osnap.toggled.connect(self.canvas.set_osnap_enabled)
-        self.act_otrack = self._action(self.tr("Objektfang&spur"), lambda: None, "F11", "SPUR")
+        self.act_otrack = self._action(
+            self.tr("Objektfang&spur"), lambda: None, "F11", self.tr("SPUR")
+        )
         self.act_otrack.setCheckable(True)
         self.act_otrack.setChecked(self.canvas.otrack_enabled)
         self.act_otrack.toggled.connect(self.canvas.set_otrack_enabled)
@@ -440,6 +447,16 @@ class MainWindow(QMainWindow):
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
         m.addSeparator()
         self.docks_menu = m.addMenu(self.tr("&Fenster"))
+        # Deliberately bilingual: findable whatever language is active.
+        language_menu = m.addMenu("Sprache / Language")
+        group = QActionGroup(self)
+        for code, label in i18n.LANGUAGES.items():
+            action = language_menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(code == i18n.current())
+            action.setData(code)
+            group.addAction(action)
+        group.triggered.connect(self._choose_language)
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
@@ -672,7 +689,7 @@ class MainWindow(QMainWindow):
 
     def new_document(self) -> None:
         if self._maybe_save():
-            self._set_document(Document.new(self.tr("Blatt 1")), None)
+            self._set_document(Document.new(self.tr("Blatt 1"), title_labels()), None)
 
     def _file_filter(self) -> str:
         return self.tr("SLDGridy-Zeichnung (*{suffix})").format(suffix=DRAWING_SUFFIX)
@@ -945,6 +962,17 @@ class MainWindow(QMainWindow):
     def _on_command_cancel(self) -> None:
         self.tools.cancel()
         self.canvas.setFocus()
+
+    def _choose_language(self, action) -> None:
+        code = action.data()
+        QSettings().setValue(i18n.SETTINGS_KEY, code)
+        if code != i18n.current():
+            QMessageBox.information(
+                self,
+                "Sprache / Language",
+                "Die Sprache wird beim nächsten Start von SLDGridy umgestellt.\n\n"
+                "The language changes the next time SLDGridy starts.",
+            )
 
     def _set_osnap_modes(self, modes) -> None:
         self.canvas.osnap_modes = frozenset(modes)

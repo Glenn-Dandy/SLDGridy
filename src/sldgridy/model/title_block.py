@@ -49,7 +49,9 @@ _CELLS = (
 )
 
 
-def title_block_definition() -> BlockDefinition:
+def title_block_definition(labels: dict[str, str] | None = None) -> BlockDefinition:
+    """The ISO 7200 title block; ``labels`` replaces the German cell captions."""
+    labels = {**FIELD_LABELS, **(labels or {})}
     entities = [
         Rectangle(id="frame", p1=Point(-180, -36), p2=Point(0, 0), lineweight=OUTER),
         Line(id="v1", p1=Point(-120, -36), p2=Point(-120, 0), lineweight=INNER),
@@ -64,7 +66,7 @@ def title_block_definition() -> BlockDefinition:
             Text(
                 id=f"label_{tag.lower()}",
                 position=Point(left + 1.0, top + 1.0 + LABEL_HEIGHT),
-                text=FIELD_LABELS[tag],
+                text=labels[tag],
                 height=LABEL_HEIGHT,
             )
         )
@@ -72,7 +74,7 @@ def title_block_definition() -> BlockDefinition:
             AttributeDefinition(
                 id=f"att_{tag.lower()}",
                 tag=tag,
-                prompt=FIELD_LABELS[tag],
+                prompt=labels[tag],
                 position=Point(left + 1.5, (top + bottom) / 2 + 1.5),
                 height=height,
                 valign="middle",

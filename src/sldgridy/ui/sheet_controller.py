@@ -36,12 +36,13 @@ from sldgridy.commands.sheets import (
 from sldgridy.fileio.json_format import FileFormatError, block_signature
 from sldgridy.fileio.paths import system_template_dir, user_template_dir
 from sldgridy.fileio.templates import TEMPLATE_SUFFIX, load_frame, save_frame
+from sldgridy.i18n import ui_locale
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import SheetLayout, new_sheet
 from sldgridy.model.entities import Entity, Rectangle, Viewport, new_id
 from sldgridy.model.geometry import Point
 from sldgridy.model.paper import Orientation
-from sldgridy.tools.base import PREVIEW_ID, Tool
+from sldgridy.tools.base import PREVIEW_ID, Tool, tr
 from sldgridy.ui.sheet_dialogs import FieldsDialog, FormatDialog, TemplateChooserDialog
 from sldgridy.ui.space import SHEET, Space
 from sldgridy.view.items import EntityItem
@@ -59,8 +60,8 @@ SCALE_PRESETS = ((2.0, "2:1"), (1.0, "1:1"), (0.5, "1:2"), (0.2, "1:5"), (0.1, "
 
 def format_scale(scale: float) -> str:
     if scale >= 1:
-        return f"{scale:g}:1".replace(".", ",")
-    return f"1:{1 / scale:g}".replace(".", ",")
+        return f"{scale:g}:1".replace(".", ui_locale().decimalPoint())
+    return f"1:{1 / scale:g}".replace(".", ui_locale().decimalPoint())
 
 
 def parse_scale(text: str) -> float | None:
@@ -100,7 +101,7 @@ class ViewportTool(Tool):
             return
         vp = self._viewport(p, new_id())
         if vp is not None:
-            self.ctx.push(AddEntitiesCommand(self.ctx.container, [vp], "Ansichtsfenster"))
+            self.ctx.push(AddEntitiesCommand(self.ctx.container, [vp], tr("Ansichtsfenster")))
             self.done = True
 
     def preview(self) -> list[Entity]:

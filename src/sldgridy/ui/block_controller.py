@@ -7,7 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QObject, QPointF, Qt
+from PyQt6.QtCore import QCoreApplication, QObject, QPointF, Qt
 from PyQt6.QtGui import QAction, QColor, QPainter, QPen, QUndoCommand, QUndoStack
 from PyQt6.QtWidgets import (
     QFileDialog,
@@ -39,6 +39,7 @@ from sldgridy.fileio.json_format import (
     block_to_dict,
 )
 from sldgridy.fileio.paths import user_library_dir
+from sldgridy.i18n import library_text
 from sldgridy.model.blocks import (
     BlockDefinition,
     dependencies,
@@ -177,7 +178,7 @@ class BlockController(QObject):
         if len(entities) != 1 or not isinstance(entities[0], BlockReference):
             return
         ref = entities[0]
-        layout.addWidget(QLabel(self.tr("Block: {name}").format(name=ref.name)))
+        layout.addWidget(QLabel(self.tr("Block: {name}").format(name=library_text(ref.name))))
         definition = self.doc.blocks.get(ref.name)
         attdefs = definition.attribute_definitions() if definition else []
         if not attdefs:
@@ -791,7 +792,8 @@ class BlockController(QObject):
             self.tr("{n} Symbole nach {file} importiert").format(n=len(chosen), file=target.name)
         ]
         if result.units != "mm":
-            parts.append(self.tr("Einheit {u} in mm umgerechnet").format(u=result.units))
+            unit = QCoreApplication.translate("dxf", result.units)
+            parts.append(self.tr("Einheit {u} in mm umgerechnet").format(u=unit))
         if result.skipped:
             skipped = ", ".join(f"{k} ({v})" for k, v in sorted(result.skipped.items()))
             parts.append(self.tr("übersprungen: {s}").format(s=skipped))

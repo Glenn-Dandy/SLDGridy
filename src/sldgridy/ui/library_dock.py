@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 from sldgridy.fileio.files import LIBRARY_SUFFIX, load_library
 from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.fileio.paths import system_library_dir, user_library_dir
+from sldgridy.i18n import library_text
 from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.document import Document
 from sldgridy.view.canvas import BLOCK_MIME
@@ -148,7 +149,7 @@ class LibraryDock(QDockWidget):
         self.source.addItem(self.tr("Alle Bibliotheken"), ALL_LIBRARIES)
         self.source.addItem(self.tr("Blöcke der Zeichnung"), DOCUMENT_SOURCE)
         for key, lib in self.libraries.items():
-            self.source.addItem(lib.title, key)
+            self.source.addItem(library_text(lib.title), key)
         index = self.source.findData(current) if current is not None else 0
         self.source.setCurrentIndex(max(index, 0))
         self.source.blockSignals(False)
@@ -176,7 +177,7 @@ class LibraryDock(QDockWidget):
         self.category.addItem(self.tr("Alle Kategorien"), ALL_CATEGORIES)
         names = sorted({d.category for _, d in entries if d.category}, key=str.casefold)
         for name in names:
-            self.category.addItem(name, name)
+            self.category.addItem(library_text(name), name)
         if any(not d.category for _, d in entries):
             self.category.addItem(self.tr("Ohne Kategorie"), "")
         index = self.category.findData(current) if current is not None else 0
@@ -191,14 +192,14 @@ class LibraryDock(QDockWidget):
             key = (path, definition.name)
             if key not in self._icons:
                 self._icons[key] = block_icon(definition.name, self.library(path))
-            item = QListWidgetItem(self._icons[key], definition.name)
+            item = QListWidgetItem(self._icons[key], library_text(definition.name))
             item.setData(ROLE_PATH, path)
             item.setData(ROLE_NAME, definition.name)
-            tip = definition.name
+            tip = library_text(definition.name)
             if definition.category:
-                tip += f"\n{definition.category}"
+                tip += f"\n{library_text(definition.category)}"
             if definition.description:
-                tip += f"\n{definition.description}"
+                tip += f"\n{library_text(definition.description)}"
             item.setToolTip(tip)
             item.setData(Qt.ItemDataRole.UserRole + 2, tip.casefold())
             item.setData(ROLE_CATEGORY, definition.category)
