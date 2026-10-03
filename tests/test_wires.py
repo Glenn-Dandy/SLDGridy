@@ -261,6 +261,24 @@ def test_measuring_relays_and_pv_category():
     assert {c.name for c in relay.connection_points()} == {"1", "A"}
     assert {c.name for c in by["NA-Schutzrelais"].connection_points()} == {"1", "A"}
     pv = {d.name for d in defs if d.category == "Photovoltaik"}
-    assert {"PV-Modul", "PV-Generator", "Wechselrichter", "NA-Schutzrelais"} <= pv
+    assert {"PV-Generator", "Wechselrichter", "NA-Schutzrelais"} <= pv
+    assert "PV-Modul" not in by  # not a standard symbol: in the further symbols library
+
+
+def test_further_symbols_library():
+    title, defs = load_library(system_library_dir() / "weitere_symbole.sldglib")
+    assert title == "Weitere Symbole (nicht nach DIN EN 60617)"
+    by = {d.name: d for d in defs}
+    assert by["SHU-Schalter"].category == by["SHA-Schalter"].category == "Zählervorsicherung"
+    assert by["PV-Modul"].category == "Photovoltaik"
     module = by["PV-Modul"]
     assert [(c.position, c.direction) for c in module.connection_points()] == [(Point(0, 0), 270)]
+    triangle = next(e for e in module.entities if e.id == "tri")
+    assert triangle.points[:2] == (Point(-5, -17.5), Point(5, -17.5))  # flush with the corners
+    for d in defs:
+        assert {a.tag for a in d.attribute_definitions()} >= {"BMK", "TYP", "WERT"}, d.name
+        for c in d.connection_points():
+            for v in (c.position.x, c.position.y):
+                assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)
+    shu = {c.name: c.position for c in by["SHU-Schalter"].connection_points()}
+    assert shu == {"1": Point(0, 0), "2": Point(0, 15)}

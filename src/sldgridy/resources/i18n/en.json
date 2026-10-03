@@ -434,7 +434,6 @@
  "FANG": "SNAP",
  "OFANG": "OSNAP",
  "SPUR": "OTRACK",
-
  "von": "of",
  "Z{row}/S{col}": "R{row}/C{col}",
  "Zoll": "inch",
@@ -448,7 +447,6 @@
  "Änderungsindex": "Revision",
  "Blatt": "Sheet",
  "Format": "Format",
-
  "Symbole nach DIN EN 60617": "Symbols to DIN EN 60617",
  "Allgemeiner Verbraucher": "General load",
  "Anschluss an das Verteilnetz": "Connection to the distribution grid",
@@ -543,5 +541,11 @@
  "A3 hoch, Rahmen nach DIN EN ISO 5457": "A3 portrait, frame to DIN EN ISO 5457",
  "A3 quer, Rahmen nach DIN EN ISO 5457": "A3 landscape, frame to DIN EN ISO 5457",
  "A4 hoch, Rahmen nach DIN EN ISO 5457": "A4 portrait, frame to DIN EN ISO 5457",
- "A4 quer, Rahmen nach DIN EN ISO 5457": "A4 landscape, frame to DIN EN ISO 5457"
+ "A4 quer, Rahmen nach DIN EN ISO 5457": "A4 landscape, frame to DIN EN ISO 5457",
+ "Weitere Symbole (nicht nach DIN EN 60617)": "Further symbols (not to DIN EN 60617)",
+ "Zählervorsicherung": "Meter pre-fuse",
+ "SHU-Schalter": "SHU switch",
+ "SHA-Schalter": "SHA switch",
+ "Selektiver Hauptleitungsschutzschalter, spannungsunabhängig (E DIN VDE 0645), Zählervorsicherung": "Selective main circuit breaker, voltage-independent (E DIN VDE 0645), meter pre-fuse",
+ "Selektiver Hauptleitungsschutzschalter, spannungsabhängig (E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, voltage-dependent (E DIN VDE 0643), meter pre-fuse"
 }

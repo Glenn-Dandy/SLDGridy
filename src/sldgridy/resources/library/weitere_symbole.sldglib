@@ -1,0 +1,668 @@
+{
+ "format_version": 2,
+ "type": "library",
+ "name": "Weitere Symbole (nicht nach DIN EN 60617)",
+ "blocks": [
+  {
+   "name": "SHU-Schalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Zählervorsicherung",
+   "description": "Selektiver Hauptleitungsschutzschalter, spannungsunabhängig (E DIN VDE 0645), Zählervorsicherung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.59,
+      5.04
+     ]
+    },
+    {
+     "type": "line",
+     "id": "link",
+     "layer": "0",
+     "p1": [
+      -1.44,
+      7.24
+     ],
+     "p2": [
+      -3.73,
+      8.6
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "magnetic",
+     "layer": "0",
+     "points": [
+      [
+       -4.04,
+       8.11
+      ],
+      [
+       -4.39,
+       8.82
+      ],
+      [
+       -3.6,
+       8.82
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "polyline",
+     "id": "thermal",
+     "layer": "0",
+     "points": [
+      [
+       -1.97,
+       6.23
+      ],
+      [
+       -3.11,
+       6.71
+      ],
+      [
+       -3.42,
+       5.83
+      ],
+      [
+       -3.9,
+       5.79
+      ],
+      [
+       -4.52,
+       6.18
+      ],
+      [
+       -4.08,
+       7.24
+      ],
+      [
+       -4.96,
+       7.76
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "sel1",
+     "layer": "0",
+     "p1": [
+      0,
+      2.5
+     ],
+     "p2": [
+      5,
+      2.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel2",
+     "layer": "0",
+     "p1": [
+      5,
+      2.5
+     ],
+     "p2": [
+      5,
+      5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "selr",
+     "layer": "0",
+     "p1": [
+      3.75,
+      5
+     ],
+     "p2": [
+      6.25,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel3",
+     "layer": "0",
+     "p1": [
+      5,
+      10
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel4",
+     "layer": "0",
+     "p1": [
+      5,
+      12.5
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "kind",
+     "layer": "0",
+     "position": [
+      -5.5,
+      13.75
+     ],
+     "text": "SHU",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F0",
+     "position": [
+      8.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "SHU E",
+     "position": [
+      8.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      8.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "SHA-Schalter",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Zählervorsicherung",
+   "description": "Selektiver Hauptleitungsschutzschalter, spannungsabhängig (E DIN VDE 0643), Zählervorsicherung",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      0,
+      15
+     ]
+    },
+    {
+     "type": "line",
+     "id": "l3",
+     "layer": "0",
+     "p1": [
+      0,
+      10
+     ],
+     "p2": [
+      -2.59,
+      5.04
+     ]
+    },
+    {
+     "type": "line",
+     "id": "link",
+     "layer": "0",
+     "p1": [
+      -1.44,
+      7.24
+     ],
+     "p2": [
+      -3.73,
+      8.6
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "magnetic",
+     "layer": "0",
+     "points": [
+      [
+       -4.04,
+       8.11
+      ],
+      [
+       -4.39,
+       8.82
+      ],
+      [
+       -3.6,
+       8.82
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "polyline",
+     "id": "thermal",
+     "layer": "0",
+     "points": [
+      [
+       -1.97,
+       6.23
+      ],
+      [
+       -3.11,
+       6.71
+      ],
+      [
+       -3.42,
+       5.83
+      ],
+      [
+       -3.9,
+       5.79
+      ],
+      [
+       -4.52,
+       6.18
+      ],
+      [
+       -4.08,
+       7.24
+      ],
+      [
+       -4.96,
+       7.76
+      ]
+     ],
+     "closed": false
+    },
+    {
+     "type": "connection",
+     "id": "cp4",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp5",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0,
+      15.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "line",
+     "id": "sel1",
+     "layer": "0",
+     "p1": [
+      0,
+      2.5
+     ],
+     "p2": [
+      5,
+      2.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel2",
+     "layer": "0",
+     "p1": [
+      5,
+      2.5
+     ],
+     "p2": [
+      5,
+      5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "selr",
+     "layer": "0",
+     "p1": [
+      3.75,
+      5
+     ],
+     "p2": [
+      6.25,
+      10
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel3",
+     "layer": "0",
+     "p1": [
+      5,
+      10
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "sel4",
+     "layer": "0",
+     "p1": [
+      5,
+      12.5
+     ],
+     "p2": [
+      0,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "kind",
+     "layer": "0",
+     "position": [
+      -5.5,
+      13.75
+     ],
+     "text": "SHA",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F0",
+     "position": [
+      8.75,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "SHA E",
+     "position": [
+      8.75,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      8.75,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "PV-Modul",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Photovoltaik",
+   "description": "PV-Modul in der üblichen Darstellung (Rechteck mit Dreieck, keine Normdarstellung)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      -2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -5,
+      -17.5
+     ],
+     "p2": [
+      5,
+      -2.5
+     ]
+    },
+    {
+     "type": "polyline",
+     "id": "tri",
+     "layer": "0",
+     "points": [
+      [
+       -5,
+       -17.5
+      ],
+      [
+       5,
+       -17.5
+      ],
+      [
+       0,
+       -10
+      ]
+     ],
+     "closed": true
+    },
+    {
+     "type": "connection",
+     "id": "cp1",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G1",
+     "position": [
+      7.5,
+      -13.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      -10
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      -6.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  }
+ ]
+}

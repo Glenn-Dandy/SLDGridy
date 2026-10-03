@@ -60,11 +60,12 @@ def test_no_unused_translations_for_ui_strings():
 
 def library_texts() -> set[str]:
     texts: set[str] = set()
-    title, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
-    texts.add(title)
-    for d in defs:
-        texts |= {d.name, d.category, d.description}
-        texts |= {a.prompt for a in d.attribute_definitions()}
+    for path in system_library_dir().glob("*.sldglib"):
+        title, defs = load_library(path)
+        texts.add(title)
+        for d in defs:
+            texts |= {d.name, d.category, d.description}
+            texts |= {a.prompt for a in d.attribute_definitions()}
     for path in system_template_dir().glob("*.sldgframe"):
         texts.add(load_frame(path)[0])
     texts.discard("")
