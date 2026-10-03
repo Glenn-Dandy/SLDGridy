@@ -75,6 +75,7 @@ class LibraryDock(QDockWidget):
     # (source path, block name); an empty path means the drawing itself.
     insert_requested = pyqtSignal(str, str)
     edit_requested = pyqtSignal(str, str)
+    editor_requested = pyqtSignal(str, str)
     delete_requested = pyqtSignal(str, str)
     # Name of a block of the drawing.
     save_requested = pyqtSignal(str)
@@ -243,6 +244,9 @@ class LibraryDock(QDockWidget):
         menu.addAction(self.tr("Einfügen"), lambda: self.insert_requested.emit(path, name))
         if self.editable(path):
             menu.addSeparator()
+            menu.addAction(
+                self.tr("Im Blockeditor bearbeiten"), lambda: self.editor_requested.emit(path, name)
+            )
             menu.addAction(
                 self.tr("Eigenschaften bearbeiten …"), lambda: self.edit_requested.emit(path, name)
             )

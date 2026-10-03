@@ -559,5 +559,7 @@
  "Blockeigenschaften": "Block properties",
  "Blockeigenschaften {name} ändern": "Change properties of block {name}",
  "Eigenschaften bearbeiten …": "Edit properties …",
- "Mitgelieferte Bibliothek: nicht änderbar": "Shipped library: read only"
+ "Mitgelieferte Bibliothek: nicht änderbar": "Shipped library: read only",
+ "Im Blockeditor bearbeiten": "Edit in block editor",
+ "{name} (Bibliothek {library})": "{name} (library {library})"
 }

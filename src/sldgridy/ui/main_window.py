@@ -1,6 +1,8 @@
 """Main application window."""
 
+from collections.abc import Mapping
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 
 from PyQt6.QtCore import QPointF, QSettings, Qt
@@ -38,7 +40,7 @@ from sldgridy.commands.entities import RemoveEntitiesCommand, ReplaceEntitiesCom
 from sldgridy.fileio.files import DRAWING_SUFFIX, load_document, save_document
 from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.i18n import ui_locale
-from sldgridy.model.blocks import BlockError, expand, world_connections
+from sldgridy.model.blocks import BlockDefinition, BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
 from sldgridy.model.entities import BlockReference, Busbar, ConnectionPoint, Entity, Text, Wire
@@ -170,11 +172,18 @@ class MainWindow(QMainWindow):
         return self.space.sync
 
     def _make_space(
-        self, kind: str, container: EntityContainer, stack: QUndoStack, item_factory=None
+        self,
+        kind: str,
+        container: EntityContainer,
+        stack: QUndoStack,
+        item_factory=None,
+        blocks: Mapping[str, BlockDefinition] | None = None,
     ) -> Space:
+        """``blocks`` resolves references in this space; None means the drawing's blocks."""
         scene = QGraphicsScene(self)
+        expand = partial(self.expand_with, blocks)
         sync = SceneSync(
-            scene, container, self._resolve_style, self._layer_state, self._expand, item_factory
+            scene, container, self._resolve_style, self._layer_state, expand, item_factory
         )
         scene.selectionChanged.connect(self._on_selection_changed)
         junction_item = JunctionItem(
@@ -182,6 +191,8 @@ class MainWindow(QMainWindow):
         )
         scene.addItem(junction_item)
         space = Space(kind, container, scene, sync, stack)
+        if blocks is not None:
+            space.extra["blocks"] = blocks
         space.extra["junctions"] = junction_item
         return space
 
@@ -244,7 +255,11 @@ class MainWindow(QMainWindow):
         self.layers_dock.rebuild()
 
     @property
-    def block_definitions(self):
+    def block_definitions(self) -> Mapping[str, BlockDefinition]:
+        """Blocks references of the active space resolve to."""
+        space = getattr(self, "space", None)
+        if space is not None and "blocks" in space.extra:
+            return space.extra["blocks"]
         return self.document.blocks
 
     @property
@@ -488,6 +503,7 @@ class MainWindow(QMainWindow):
         self.properties_dock.extra_editors.append(self._wire_label_editor)
         self.library_dock.insert_requested.connect(self.blocks.insert_from_source)
         self.library_dock.edit_requested.connect(self.blocks.edit_block_info)
+        self.library_dock.editor_requested.connect(self.blocks.open_library_editor)
         self.library_dock.delete_requested.connect(self.blocks.delete_block)
         self.library_dock.save_requested.connect(self.blocks.save_block_to_user_library)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.layers_dock)
@@ -571,12 +587,17 @@ class MainWindow(QMainWindow):
         return layer.visible, layer.locked
 
     def _expand(self, entity: Entity) -> list[Entity]:
+        return self.expand_with(self.block_definitions, entity)
+
+    def expand_with(
+        self, blocks: Mapping[str, BlockDefinition] | None, entity: Entity
+    ) -> list[Entity]:
         if isinstance(entity, Wire):
             label = label_text(entity)
             return [entity, label] if label is not None else [entity]
         if isinstance(entity, BlockReference):
             try:
-                return expand(entity, self.document.blocks)
+                return expand(entity, blocks if blocks is not None else self.document.blocks)
             except BlockError:
                 return []
         return [entity]
@@ -592,7 +613,7 @@ class MainWindow(QMainWindow):
         if isinstance(entity, BlockReference):
             return [
                 SnapHit(c.position, SnapMode.CONNECTION)
-                for c in world_connections(entity, self.document.blocks)
+                for c in world_connections(entity, self.block_definitions)
             ]
         return []
 

@@ -2,6 +2,7 @@
 
 import re
 import shutil
+from collections import ChainMap
 from collections.abc import Callable, Mapping
 from dataclasses import replace
 from pathlib import Path
@@ -560,15 +561,50 @@ class BlockController(QObject):
             self.open_editor(name)
 
     def open_editor(self, name: str) -> None:
-        working = self.doc.blocks[name].copy()
+        self._open_editor(self.doc.blocks[name].copy(), name)
+
+    def open_library_editor(self, path: str, name: str) -> None:
+        """Edit a symbol of a user library; saving writes the library file."""
+        if self.editor_space is not None:
+            self.w.message(self.tr("Der Blockeditor ist bereits geöffnet"))
+            return
+        if not path:
+            if name in self.doc.blocks:
+                self.open_editor(name)
+            return
+        if not self.w.library_dock.editable(path):
+            return
+        loaded = self._load_user_library(Path(path))
+        if loaded is None:
+            return
+        title, blocks = loaded
+        by_name = {b.name: b for b in blocks}
+        if name not in by_name:
+            self.w.library_dock.reload()
+            return
+        # Nested symbols come from the library first, then from the drawing.
+        lookup = ChainMap(by_name, self.doc.blocks)
+        label = self.tr("{name} (Bibliothek {library})").format(
+            name=name, library=library_text(title)
+        )
+        space = self._open_editor(by_name[name].copy(), label, lookup)
+        space.extra["library"] = (Path(path), title)
+
+    def _open_editor(
+        self,
+        working: BlockDefinition,
+        label: str,
+        blocks: Mapping[str, BlockDefinition] | None = None,
+    ) -> Space:
         stack = QUndoStack(self.w)
-        space = self.w._make_space(BLOCK, working.entities, stack)
+        space = self.w._make_space(BLOCK, working.entities, stack, blocks=blocks)
         space.extra["definition"] = working
         space.extra["overlay"] = self._draw_base_point
         self.editor_space = space
-        self._show_bar(name)
+        self._show_bar(label)
         self.w.activate_space(space)
         self.w.canvas.zoom_extents()
+        return space
 
     def _show_bar(self, name: str) -> None:
         if self._editor_bar is None:
@@ -660,9 +696,10 @@ class BlockController(QObject):
             )
             if answer != buttons.Discard:
                 return False
+        lookup = space.extra.get("blocks", self.doc.blocks)
         if save:
             new = working.copy()
-            if would_create_cycle(new.name, new.entities, self.doc.blocks):
+            if would_create_cycle(new.name, new.entities, lookup):
                 self.w.message(self.tr("Der Block würde sich selbst enthalten"))
                 return False
         self.w.tools.cancel()
@@ -671,7 +708,9 @@ class BlockController(QObject):
             self._editor_bar.hide()
         self.w.activate_space(self.w.model_view)
         self.w._drop_space(space)
-        if save:
+        if save and "library" in space.extra:
+            self._save_library_symbol(new, *space.extra["library"], lookup)
+        elif save:
             old = self.doc.blocks.get(new.name)
             if old is not None and block_signature(old) != block_signature(new):
                 self.w.push(
@@ -681,6 +720,29 @@ class BlockController(QObject):
                 )
         self.w._update_title()
         return True
+
+    def _save_library_symbol(
+        self,
+        definition: BlockDefinition,
+        path: Path,
+        title: str,
+        lookup: Mapping[str, BlockDefinition],
+    ) -> None:
+        """Write an edited symbol back to its library, with nested blocks it now needs."""
+        loaded = self._load_user_library(path)
+        if loaded is None:
+            return
+        title, blocks = loaded
+        by_name = {b.name: b for b in blocks}
+        by_name[definition.name] = definition
+        for name in dependencies(definition.name, ChainMap(by_name, lookup)):
+            if name not in by_name and name in lookup:
+                by_name[name] = lookup[name]
+        save_library(list(by_name.values()), path, title)
+        self.w.library_dock.reload()
+        self.w.message(
+            self.tr("Block {name} in {path} gespeichert").format(name=definition.name, path=path)
+        )
 
     # -- libraries ----------------------------------------------------------
 
@@ -739,8 +801,12 @@ class BlockController(QObject):
             found |= {b.category for b in lib.blocks.values()}
         return sorted(found - {""}, key=str.casefold)
 
-    def _block_open_in_editor(self, name: str) -> bool:
-        if self.editor_space is not None and self.editor_name() == name:
+    def _block_open_in_editor(self, path: str, name: str) -> bool:
+        space = self.editor_space
+        if space is None or self.editor_name() != name:
+            return False
+        library = space.extra.get("library")
+        if (str(library[0]) if library else "") == path:
             self.w.message(self.tr("Block {name} ist im Blockeditor geöffnet").format(name=name))
             return True
         return False
@@ -755,7 +821,7 @@ class BlockController(QObject):
     def edit_block_info(self, path: str, name: str) -> None:
         """Change name, category and description of a drawing or user library block."""
         if not path:
-            if name not in self.doc.blocks or self._block_open_in_editor(name):
+            if name not in self.doc.blocks or self._block_open_in_editor(path, name):
                 return
             definition = self.doc.blocks[name]
             dialog = BlockPropertiesDialog(
@@ -781,6 +847,8 @@ class BlockController(QObject):
                 )
             )
             return
+        if self._block_open_in_editor(path, name):
+            return
         loaded = self._load_user_library(Path(path))
         if loaded is None:
             return
@@ -805,7 +873,7 @@ class BlockController(QObject):
     def delete_block(self, path: str, name: str) -> None:
         """Remove an unused block from the drawing (undoable) or from a user library."""
         if not path:
-            if name not in self.doc.blocks or self._block_open_in_editor(name):
+            if name not in self.doc.blocks or self._block_open_in_editor(path, name):
                 return
             if self.doc.block_in_use(name) or any(s.title_block == name for s in self.doc.sheets):
                 self.w.message(
@@ -821,6 +889,8 @@ class BlockController(QObject):
                 )
             )
             self.w.message(self.tr("Block {name} gelöscht").format(name=name))
+            return
+        if self._block_open_in_editor(path, name):
             return
         loaded = self._load_user_library(Path(path))
         if loaded is None:

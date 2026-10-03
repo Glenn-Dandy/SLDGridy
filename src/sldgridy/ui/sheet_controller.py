@@ -3,6 +3,7 @@
 import copy
 import re
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -307,7 +308,9 @@ class SheetController(QObject):
 
         def factory(e: Entity) -> EntityItem | None:
             if isinstance(e, Viewport):
-                return ViewportItem(e, self.w._resolve_style, self.w._expand, lambda: self.doc)
+                return ViewportItem(
+                    e, self.w._resolve_style, partial(self.w.expand_with, None), lambda: self.doc
+                )
             return None
 
         space = self.w._make_space(SHEET, sheet.entities, self.w.undo_stack, factory)

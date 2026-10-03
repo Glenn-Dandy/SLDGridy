@@ -368,3 +368,43 @@ def test_shipped_libraries_are_read_only(window):
     shipped = [k for k, lib in dock.libraries.items() if lib.shipped]
     assert shipped and not any(dock.editable(k) for k in shipped)
     assert dock.editable("")
+
+
+def test_edit_user_library_symbol_in_block_editor(window):
+    path = write_library("editor")
+    window.library_dock.reload()
+    window.blocks.open_library_editor(str(path), "Feld")
+    space = window.blocks.editor_space
+    assert space is not None and window.space is space
+    # Nested symbols resolve from the library although the drawing has none.
+    assert "Sicherung" not in window.document.blocks
+    assert window._expand(space.container.get("f1"))
+    window.push(AddLine(space.container))
+    assert window.blocks.close_editor(save=True)
+    by_name = {b.name: b for b in load_library(path)[1]}
+    assert "neu" in by_name["Feld"].entities
+    assert "Sicherung" in by_name
+    assert "Feld" not in window.document.blocks
+    assert window.undo_stack.isClean()
+
+
+def test_library_editor_discard_keeps_file(window):
+    path = write_library("verwerfen")
+    window.library_dock.reload()
+    before = path.read_bytes()
+    window.blocks.open_library_editor(str(path), "Sicherung")
+    window.push(AddLine(window.blocks.editor_space.container))
+    assert window.blocks.close_editor(save=False)
+    assert path.read_bytes() == before
+
+
+class AddLine(block_controller.QUndoCommand):
+    def __init__(self, container):
+        super().__init__("Linie")
+        self._container = container
+
+    def redo(self):
+        self._container.add(Line(id="neu", p1=Point(0, 0), p2=Point(5, 5)))
+
+    def undo(self):
+        self._container.remove("neu")
