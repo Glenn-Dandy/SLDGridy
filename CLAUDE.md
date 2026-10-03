@@ -165,7 +165,7 @@ Kernfunktion. Ein Block ist eine benannte Definition, die beliebig oft als Refer
 
 - **Definition:** eindeutiger Name, Basispunkt, Geometrie in lokalen Koordinaten, Anschlusspunkte (Name, Position, Richtung), Attributdefinitionen (Kennung, Abfragetext, Vorgabewert, Position, Texthöhe, sichtbar ja/nein).
 - **Referenz:** Blockname, Einfügepunkt, Drehung 0/90/180/270°, Spiegelung, Attributwerte. Keine Skalierung.
-- **Erstellen:** „Block aus Auswahl“ mit Dialog für Name und gepicktem Basispunkt; die Auswahl wird auf Wunsch durch eine Referenz ersetzt.
+- **Erstellen:** „Block erstellen“ (Strg+B; früher „Block aus Auswahl“) mit Dialog für Name und gepicktem Basispunkt; ohne Auswahl fragt der Befehl zuerst nach Objekten (Enter bestätigt); die Auswahl wird auf Wunsch durch eine Referenz ersetzt.
 - **Blockeditor:** Definition isoliert bearbeiten, dort Anschlusspunkte und Attribute setzen. Beim Schließen aktualisieren sich alle Referenzen.
 - **Verschachtelung** ist erlaubt, Zirkelbezüge werden abgelehnt.
 - **Auflösen** ersetzt eine Referenz durch ihre Einzelobjekte.

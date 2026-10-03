@@ -271,3 +271,23 @@ def test_text_entities_in_blocks_render(window):
     item = window._sync.item("r")
     assert not item.boundingRect().isEmpty()
     assert any(isinstance(p, Text) for p in item._parts)
+
+
+def test_create_block_asks_for_objects_first(window, monkeypatch, qapp):
+    ms = window.document.model_space
+    ms.add(Line(id="a", p1=Point(10, 10), p2=Point(10, 30)))
+
+    def fake_exec(self):
+        self.name.setText("Nachgefragt")
+        return 1
+
+    monkeypatch.setattr(CreateBlockDialog, "exec", fake_exec)
+    window.blocks.act_create.trigger()  # nothing selected yet
+    assert window.tools.selecting()
+    assert "Block erstellen" in window.tools.prompt()
+    click(window, 10, 20)
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    QTest.qWait(50)  # the dialog opens after the key event
+    click(window, 10, 10)  # base point
+    assert "Nachgefragt" in window.document.blocks
+    assert window.blocks.act_create.text().replace("&", "") == "Block erstellen …"

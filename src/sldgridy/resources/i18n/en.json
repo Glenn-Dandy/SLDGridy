@@ -61,7 +61,6 @@
  "SLDGridy ist aktuell.": "SLDGridy is up to date.",
  "Version {v}": "Version {v}",
  "<b>Version {v} ist verfügbar.</b>": "<b>Version {v} is available.</b>",
- "Block aus &Auswahl …": "Block from &selection …",
  "Block &einfügen …": "&Insert block …",
  "Block &bearbeiten …": "&Edit block …",
  "A&ttribut definieren …": "Define a&ttribute …",
@@ -90,7 +89,6 @@
  "Attributdefinition": "Attribute definition",
  "Anschlusspunkt": "Connection point",
  "Im Blockeditor können keine neuen Blöcke erstellt werden": "New blocks cannot be created in the block editor",
- "Zuerst die Objekte für den Block auswählen": "Select the objects for the block first",
  "Block anlegen": "Create block",
  "Die Zeichnung enthält keine Blöcke. Blöcke aus der Bibliothek ziehen.": "The drawing contains no blocks. Drag blocks from the library.",
  "Zuerst Blockreferenzen auswählen": "Select block references first",
@@ -142,7 +140,6 @@
  "Dokumentversion behalten": "Keep drawing version",
  "Ersetzen": "Replace",
  "Umbenennen": "Rename",
- "Block aus Auswahl": "Block from selection",
  "Auswahl durch Blockreferenz ersetzen": "Replace selection with a block reference",
  "Name:": "Name:",
  "Kategorie:": "Category:",
@@ -547,5 +544,7 @@
  "Selektiver Hauptschalter netzunabhängig": "Selective main switch, grid-independent",
  "Selektiver Hauptschalter netzabhängig": "Selective main switch, grid-dependent",
  "Selektiver Hauptleitungsschutzschalter, netzunabhängig (SHU, E DIN VDE 0645), Zählervorsicherung": "Selective main circuit breaker, grid-independent (SHU, E DIN VDE 0645), meter pre-fuse",
- "Selektiver Hauptleitungsschutzschalter, netzabhängig mit N-Anschluss (SHA, E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, grid-dependent with N connection (SHA, E DIN VDE 0643), meter pre-fuse"
+ "Selektiver Hauptleitungsschutzschalter, netzabhängig mit N-Anschluss (SHA, E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, grid-dependent with N connection (SHA, E DIN VDE 0643), meter pre-fuse",
+ "Block &erstellen …": "&Create block …",
+ "Block erstellen": "Create block"
 }

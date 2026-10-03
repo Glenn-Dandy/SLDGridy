@@ -56,6 +56,7 @@ from sldgridy.model.entities import (
 )
 from sldgridy.model.geometry import Point
 from sldgridy.tools.blocks import InsertBlockTool, PointTool
+from sldgridy.tools.edit import SelectObjectsTool
 from sldgridy.ui.block_dialogs import (
     KEEP,
     RENAME,
@@ -132,7 +133,7 @@ class BlockController(QObject):
 
     def create_actions(self) -> None:
         a = self.w._action
-        self.act_create = a(self.tr("Block aus &Auswahl …"), self.create_from_selection, "Ctrl+B")
+        self.act_create = a(self.tr("Block &erstellen …"), self.create_from_selection, "Ctrl+B")
         self.act_insert = a(self.tr("Block &einfügen …"), self.insert_dialog, "Ctrl+I")
         self.act_edit = a(self.tr("Block &bearbeiten …"), self.edit_block)
         self.act_attribute = a(self.tr("A&ttribut definieren …"), self.define_attribute)
@@ -216,8 +217,16 @@ class BlockController(QObject):
             return
         ids = self.w.selected_ids()
         if not ids:
-            self.w.message(self.tr("Zuerst die Objekte für den Block auswählen"))
+            # Like the modify commands: ask for the objects first.
+            self.w.start_tool(
+                lambda ctx: SelectObjectsTool(
+                    ctx, self.tr("Block erstellen"), self._create_block_for
+                )
+            )
             return
+        self._create_block_for(ids)
+
+    def _create_block_for(self, ids: list[str]) -> None:
         dialog = CreateBlockDialog(set(self.doc.blocks), self.w)
         if dialog.exec() != CreateBlockDialog.DialogCode.Accepted:
             return

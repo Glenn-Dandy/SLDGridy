@@ -36,7 +36,7 @@ def _buttons(dialog: QDialog) -> QDialogButtonBox:
 class CreateBlockDialog(QDialog):
     def __init__(self, existing: set[str], parent=None) -> None:
         super().__init__(parent)
-        self.setWindowTitle(self.tr("Block aus Auswahl"))
+        self.setWindowTitle(self.tr("Block erstellen"))
         self._existing = existing
         self.name = QLineEdit()
         self.category = QLineEdit()

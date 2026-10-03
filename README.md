@@ -66,7 +66,7 @@ Modify commands without a selection first ask for objects: select them and press
 
 ### Blocks, libraries and DXF import
 
-- **Block > Block from selection** (Ctrl+B), **Block > Edit block** (block editor with yellow bar), **Modify > Explode**.
+- **Block > Create block** (Ctrl+B): select objects (or select them when asked and press Enter), name the block, click the base point. **Block > Edit block** (block editor with yellow bar), **Modify > Explode**.
 - **Define attribute** and **Place connection point** create placeholders and terminals, best in the block editor.
 - When a block is moved, rotated or mirrored, wire ends on its connection points follow.
 - **Block > Save to user library** stores the block in `~/.local/share/sldgridy/library/eigene.sldglib`; libraries can be imported and exported.
@@ -184,7 +184,7 @@ Im Dock **Ebenen**: Name, Farbe, Linienbreite (ISO 128: 0,18 bis 0,7 mm), Linien
 
 ### Blöcke, Bibliotheken und DXF-Import
 
-- **Block > Block aus Auswahl** (Strg+B): Namen vergeben, dann Basispunkt klicken.
+- **Block > Block erstellen** (Strg+B): Objekte auswählen (oder auf Nachfrage auswählen und Enter drücken), Namen vergeben, Basispunkt klicken.
 - **Block > Attribut definieren** und **Anschlusspunkt setzen** legen Platzhalter und Anschlüsse an, am besten im Blockeditor.
 - **Block > Block bearbeiten** öffnet den Blockeditor mit gelber Leiste. „Speichern und schließen“ aktualisiert alle Referenzen.
 - **Ändern > Auflösen** ersetzt eine Referenz durch ihre Einzelobjekte.

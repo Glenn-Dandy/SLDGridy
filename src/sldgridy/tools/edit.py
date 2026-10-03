@@ -2,6 +2,8 @@
 
 from collections.abc import Sequence
 
+from PyQt6.QtCore import QTimer
+
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, quarters_towards
@@ -247,3 +249,30 @@ class GripEditTool(Tool):
             return []
         new = move_grip(self._entity, self._index, self.cursor)
         return with_followers(self.ctx, [self._entity], [new]) if new is not None else []
+
+
+class SelectObjectsTool(_SelectionTool):
+    """Only asks for objects; Enter hands the selected ids to ``on_selected``."""
+
+    def __init__(self, ctx, title: str, on_selected) -> None:
+        super().__init__(ctx)
+        self._title = title
+        self._on_selected = on_selected
+
+    @property
+    def name(self) -> str:
+        return self._title
+
+    def start(self) -> None:
+        self.selecting = True
+
+    def finish(self) -> None:
+        ids = self.ctx.selected_ids() if self.selecting else []
+        self.done = True
+        if ids:
+            # Run after the current mouse/key event: the callback may open dialogs
+            # and start the next tool.
+            QTimer.singleShot(0, lambda: self._on_selected(ids))
+
+    def pick(self, p: Point) -> None:
+        pass
