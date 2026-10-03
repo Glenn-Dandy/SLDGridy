@@ -131,7 +131,7 @@ ATTRIBUTE_GAP_ABOVE = 1.5  # mm between a lying symbol and its attributes above 
 ATTRIBUTE_LINE_FACTOR = 1.4  # line pitch as a multiple of the text height
 
 
-def _bounds(entities: Iterable[Entity]) -> tuple[float, float, float, float] | None:
+def bounds(entities: Iterable[Entity]) -> tuple[float, float, float, float] | None:
     """Rough bounding box (min x, min y, max x, max y) of drawn geometry."""
     xs: list[float] = []
     ys: list[float] = []
@@ -175,8 +175,8 @@ def _attribute_texts(
             )
             for a in attdefs
         ]
-    world_bounds = _bounds(geometry)
-    local_bounds = _bounds(
+    world_bounds = bounds(geometry)
+    local_bounds = bounds(
         e for e in definition.entities if not isinstance(e, AttributeDefinition | ConnectionPoint)
     )
     if world_bounds is None:

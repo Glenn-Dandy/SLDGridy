@@ -12,6 +12,7 @@ from sldgridy.ui.block_dialogs import (
     AttributeValuesDialog,
     BlockChooserDialog,
     BlockPropertiesDialog,
+    ConnectionPointDialog,
     CreateBlockDialog,
 )
 from sldgridy.ui.main_window import MainWindow
@@ -30,6 +31,7 @@ def window(qapp, monkeypatch):
     w.canvas.fit_rect(QRectF(0, 0, 200, 150))
     w.act_osnap.setChecked(False)
     yield w
+    w.blocks.close_editor(save=False)
     w.undo_stack.setClean()
     for space in w.spaces():
         space.stack.setClean()
@@ -58,6 +60,7 @@ def test_create_block_from_selection(window, monkeypatch):
 
     def fake_exec(self):
         self.name.setText("Mein Block")
+        self.in_editor.setChecked(False)
         return 1
 
     monkeypatch.setattr(CreateBlockDialog, "exec", fake_exec)
@@ -289,7 +292,8 @@ def test_create_block_asks_for_objects_first(window, monkeypatch, qapp):
     click(window, 10, 20)
     QTest.keyClick(window.canvas, Qt.Key.Key_Return)
     QTest.qWait(50)  # the dialog opens after the key event
-    click(window, 10, 10)  # base point
+    assert window.blocks.editor_space is not None  # block editor is the default
+    window.blocks.act_editor_save.trigger()
     assert "Nachgefragt" in window.document.blocks
     assert window.blocks.act_create.text().replace("&", "") == "Block erstellen …"
 
@@ -408,3 +412,53 @@ class AddLine(block_controller.QUndoCommand):
 
     def undo(self):
         self._container.remove("neu")
+
+
+def test_create_block_in_editor_base_follows_first_connection(window, monkeypatch):
+    ms = window.document.model_space
+    ms.add(Line(id="a", p1=Point(10, 10), p2=Point(10, 30)))
+    ms.add(Circle(id="b", center=Point(10, 20), radius=3))
+    window.act_select_all.trigger()
+
+    def fake_exec(self):
+        self.name.setText("Gerät")
+        return 1
+
+    monkeypatch.setattr(CreateBlockDialog, "exec", fake_exec)
+    monkeypatch.setattr(ConnectionPointDialog, "exec", lambda self: 1)
+    window.blocks.act_create.trigger()
+    space = window.blocks.editor_space
+    assert space is not None and "Gerät" not in window.document.blocks
+    definition = space.extra["definition"]
+    assert definition.base_point == Point(10, 20)  # centre of the selection
+    window.blocks.define_connection()
+    click(window, 10, 10)
+    assert definition.base_point == Point(10, 10)
+    window.blocks.define_connection()
+    click(window, 10, 30)
+    assert definition.base_point == Point(10, 10)  # only the first one moves it
+    window.blocks.act_editor_save.trigger()
+    assert window.space is window.model_view
+    block = window.document.blocks["Gerät"]
+    assert block.base_point == Point(0, 0)
+    positions = sorted((c.position.x, c.position.y) for c in block.connection_points())
+    assert positions == [(0, 0), (0, 20)]
+    (ref,) = refs(window)
+    assert ref.insert == Point(10, 10)
+    window.act_undo.trigger()
+    assert "Gerät" not in window.document.blocks and len(ms) == 2
+
+
+def test_discarding_new_block_creates_nothing(window, monkeypatch):
+    window.document.model_space.add(Line(id="a", p1=Point(0, 0), p2=Point(0, 10)))
+    window.act_select_all.trigger()
+
+    def fake_exec(self):
+        self.name.setText("Weg")
+        return 1
+
+    monkeypatch.setattr(CreateBlockDialog, "exec", fake_exec)
+    window.blocks.act_create.trigger()
+    assert window.blocks.close_editor(save=False)
+    assert "Weg" not in window.document.blocks
+    assert len(window.document.model_space) == 1

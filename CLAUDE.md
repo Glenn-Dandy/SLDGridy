@@ -165,7 +165,7 @@ Kernfunktion. Ein Block ist eine benannte Definition, die beliebig oft als Refer
 
 - **Definition:** eindeutiger Name, Basispunkt, Geometrie in lokalen Koordinaten, Anschlusspunkte (Name, Position, Richtung), Attributdefinitionen (Kennung, Abfragetext, Vorgabewert, Position, Texthöhe, sichtbar ja/nein).
 - **Referenz:** Blockname, Einfügepunkt, Drehung 0/90/180/270°, Spiegelung, Attributwerte. Keine Skalierung.
-- **Erstellen:** „Block erstellen“ (Strg+B; früher „Block aus Auswahl“) mit Dialog für Name und gepicktem Basispunkt; ohne Auswahl fragt der Befehl zuerst nach Objekten (Enter bestätigt); die Auswahl wird auf Wunsch durch eine Referenz ersetzt.
+- **Erstellen:** „Block erstellen“ (Strg+B; früher „Block aus Auswahl“) mit Dialog für Name, Kategorie, Beschreibung. Standard (QSettings `blocks/create_in_editor`): der Blockeditor öffnet sofort mit der Auswahl in Weltkoordinaten (`space.extra["new_block"]`), Basispunkt vorläufig auf Anschluss „1“ der Auswahl oder Mitte der Auswahl auf das Fangraster gerundet und springt auf den ersten gesetzten Anschlusspunkt, solange er nicht selbst gesetzt wurde (`auto_base`); erst „Speichern und schließen“ legt Definition und Referenz an (ein Undo-Schritt im Ursprungsbereich), „Verwerfen“ legt nichts an. Ohne Editor-Haken wie bisher Basispunkt picken; ohne Auswahl fragt der Befehl zuerst nach Objekten (Enter bestätigt); die Auswahl wird auf Wunsch durch eine Referenz ersetzt.
 - **Blockeditor:** Definition isoliert bearbeiten, dort Anschlusspunkte und Attribute setzen. Beim Schließen aktualisieren sich alle Referenzen.
 - **Verschachtelung** ist erlaubt, Zirkelbezüge werden abgelehnt.
 - **Auflösen** ersetzt eine Referenz durch ihre Einzelobjekte.

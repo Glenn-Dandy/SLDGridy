@@ -1,5 +1,6 @@
 """Block related commands of the main window: create, insert, explode, edit, libraries."""
 
+import math
 import re
 import shutil
 from collections import ChainMap
@@ -8,7 +9,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QCoreApplication, QObject, QPointF, Qt
+from PyQt6.QtCore import QCoreApplication, QObject, QPointF, QSettings, Qt
 from PyQt6.QtGui import QAction, QColor, QPainter, QPen, QUndoCommand, QUndoStack
 from PyQt6.QtWidgets import (
     QFileDialog,
@@ -49,6 +50,7 @@ from sldgridy.fileio.paths import user_library_dir
 from sldgridy.i18n import library_text
 from sldgridy.model.blocks import (
     BlockDefinition,
+    bounds,
     dependencies,
     explode,
     would_create_cycle,
@@ -236,12 +238,17 @@ class BlockController(QObject):
 
     def _create_block_for(self, ids: list[str]) -> None:
         dialog = CreateBlockDialog(set(self.doc.blocks), self.w)
+        dialog.in_editor.setChecked(QSettings().value("blocks/create_in_editor", True, type=bool))
         if dialog.exec() != CreateBlockDialog.DialogCode.Accepted:
             return
         name = dialog.name.text().strip()
         category = dialog.category.text().strip()
         description = dialog.description.text().strip()
         replace_selection = dialog.replace_selection.isChecked()
+        QSettings().setValue("blocks/create_in_editor", dialog.in_editor.isChecked())
+        if dialog.in_editor.isChecked():
+            self._open_new_block_editor(name, category, description, replace_selection, ids)
+            return
         self.w.start_tool(
             lambda ctx: PointTool(
                 ctx,
@@ -263,24 +270,70 @@ class BlockController(QObject):
     ) -> None:
         container = self.w.container
         entities = [container.get(i) for i in ids if i in container]
-        local = [e.translated(-base.x, -base.y) for e in entities]
-        definition = BlockDefinition(
-            name, Point(0.0, 0.0), EntityContainer(local), category, description
+        definition = BlockDefinition(name, base, EntityContainer(entities), category, description)
+        self._commit_new_block(definition, self.w.space, ids if replace_selection else [])
+
+    def _commit_new_block(self, definition: BlockDefinition, space: Space, ids: list[str]) -> None:
+        """Add ``definition`` (world coordinates around its base point) to the drawing and
+        replace the objects ``ids`` of ``space`` with a reference at the base point."""
+        base = definition.base_point
+        name = definition.name
+        if name in self.doc.blocks:
+            name = unique_name(name, self.doc.blocks)
+        local = BlockDefinition(
+            name,
+            Point(0.0, 0.0),
+            EntityContainer([e.translated(-base.x, -base.y) for e in definition.entities]),
+            definition.category,
+            definition.description,
         )
-        self.w.begin_macro(self.tr("Block {name} erstellen").format(name=name))
-        self.w.push(AddBlockCommand(self.doc, definition, self.tr("Block anlegen")))
-        if replace_selection:
+        container = space.container
+        ids = [i for i in ids if i in container]
+        stack = space.stack
+        stack.beginMacro(self.tr("Block {name} erstellen").format(name=name))
+        stack.push(AddBlockCommand(self.doc, local, self.tr("Block anlegen")))
+        if ids:
             ref = BlockReference(
                 id=new_id(),
                 layer=self.w.current_layer,
                 name=name,
                 insert=base,
-                attributes=default_attributes(definition),
+                attributes=default_attributes(local),
             )
-            self.w.push(RemoveEntitiesCommand(container, ids, ""))
-            self.w.push(AddEntitiesCommand(container, [ref], ""))
-        self.w.end_macro()
+            stack.push(RemoveEntitiesCommand(container, ids, ""))
+            stack.push(AddEntitiesCommand(container, [ref], ""))
+        stack.endMacro()
         self.w.message(self.tr("Block {name} erstellt").format(name=name))
+
+    def _open_new_block_editor(
+        self, name: str, category: str, description: str, replace_selection: bool, ids: list[str]
+    ) -> None:
+        """Edit a block that does not exist yet; it is created on save."""
+        origin = self.w.space
+        entities = [origin.container.get(i) for i in ids if i in origin.container]
+        base = self._initial_base(entities)
+        working = BlockDefinition(name, base, EntityContainer(entities), category, description)
+        space = self._open_editor(working, self.tr("{name} (neu)").format(name=name))
+        space.extra["new_block"] = (origin, ids if replace_selection else [])
+        space.extra["auto_base"] = base
+        self.w.message(
+            self.tr(
+                "Anschlusspunkte und Attribute festlegen, dann „Speichern und schließen“. "
+                "Der Basispunkt springt auf den ersten Anschlusspunkt, bis du ihn selbst setzt."
+            )
+        )
+
+    def _initial_base(self, entities: list[Entity]) -> Point:
+        for e in entities:
+            if isinstance(e, ConnectionPoint) and e.name == "1":
+                return e.position
+        box = bounds([part for e in entities for part in self.w.expand_with(None, e)])
+        if box is None:
+            return Point(0.0, 0.0)
+        step = self.w.canvas.snap_spacing or 1.0
+        x = math.floor((box[0] + box[2]) / 2 / step + 0.5) * step
+        y = math.floor((box[1] + box[3]) / 2 / step + 0.5) * step
+        return Point(x, y)
 
     # -- insert -------------------------------------------------------------
 
@@ -518,11 +571,24 @@ class BlockController(QObject):
             )
 
         def place(p: Point) -> None:
-            self.w.push(
-                AddEntitiesCommand(
-                    self.w.container, [make(p, new_id())], self.tr("Anschlusspunkt setzen")
-                )
+            command = AddEntitiesCommand(
+                self.w.container, [make(p, new_id())], self.tr("Anschlusspunkt setzen")
             )
+            space = self.editor_space
+            definition = space.extra["definition"] if space is not None else None
+            follow = (
+                definition is not None
+                and "auto_base" in space.extra
+                and definition.base_point == space.extra["auto_base"]
+                and not any(isinstance(e, ConnectionPoint) for e in self.w.container)
+            )
+            if not follow:
+                self.w.push(command)
+                return
+            self.w.begin_macro(command.text())
+            self.w.push(command)
+            self.w.push(SetBasePointCommand(definition, p, self.tr("Basispunkt setzen")))
+            self.w.end_macro()
 
         self.w.start_tool(
             lambda ctx: PointTool(
@@ -668,8 +734,9 @@ class BlockController(QObject):
         if space is None:
             return True
         working: BlockDefinition = space.extra["definition"]
+        dirty = not space.stack.isClean() or "new_block" in space.extra
         if save is None:
-            if space.stack.isClean():
+            if not dirty:
                 save = False
             elif ask:
                 buttons = QMessageBox.StandardButton
@@ -685,7 +752,7 @@ class BlockController(QObject):
                 save = answer == buttons.Save
             else:
                 save = False
-        elif save is False and ask and not space.stack.isClean():
+        elif save is False and ask and dirty:
             buttons = QMessageBox.StandardButton
             answer = QMessageBox.question(
                 self.w,
@@ -706,9 +773,14 @@ class BlockController(QObject):
         self.editor_space = None
         if self._editor_bar is not None:
             self._editor_bar.hide()
-        self.w.activate_space(self.w.model_view)
+        origin, replace_ids = space.extra.get("new_block", (None, []))
+        if origin not in self.w.spaces():
+            origin, replace_ids = self.w.model_view, []
+        self.w.activate_space(origin)
         self.w._drop_space(space)
-        if save and "library" in space.extra:
+        if save and "new_block" in space.extra:
+            self._commit_new_block(new, origin, replace_ids)
+        elif save and "library" in space.extra:
             self._save_library_symbol(new, *space.extra["library"], lookup)
         elif save:
             old = self.doc.blocks.get(new.name)

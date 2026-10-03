@@ -43,6 +43,13 @@ class CreateBlockDialog(QDialog):
         self.description = QLineEdit()
         self.replace_selection = QCheckBox(self.tr("Auswahl durch Blockreferenz ersetzen"))
         self.replace_selection.setChecked(True)
+        self.in_editor = QCheckBox(
+            self.tr("Danach im Blockeditor Anschlusspunkte, Attribute und Basispunkt festlegen")
+        )
+        self.in_editor.setChecked(True)
+        self.base_hint = QLabel(self.tr("Danach den Basispunkt in der Zeichnung angeben."))
+        self.in_editor.toggled.connect(lambda on: self.base_hint.setHidden(on))
+        self.base_hint.setHidden(True)
         self.error = QLabel()
         self.error.setStyleSheet("color: #c00000")
         form = QFormLayout(self)
@@ -50,7 +57,8 @@ class CreateBlockDialog(QDialog):
         form.addRow(self.tr("Kategorie:"), self.category)
         form.addRow(self.tr("Beschreibung:"), self.description)
         form.addRow(self.replace_selection)
-        form.addRow(QLabel(self.tr("Danach den Basispunkt in der Zeichnung angeben.")))
+        form.addRow(self.in_editor)
+        form.addRow(self.base_hint)
         form.addRow(self.error)
         form.addRow(_buttons(self))
 

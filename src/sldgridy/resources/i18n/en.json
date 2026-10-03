@@ -561,5 +561,8 @@
  "Eigenschaften bearbeiten …": "Edit properties …",
  "Mitgelieferte Bibliothek: nicht änderbar": "Shipped library: read only",
  "Im Blockeditor bearbeiten": "Edit in block editor",
- "{name} (Bibliothek {library})": "{name} (library {library})"
+ "{name} (Bibliothek {library})": "{name} (library {library})",
+ "Anschlusspunkte und Attribute festlegen, dann „Speichern und schließen“. Der Basispunkt springt auf den ersten Anschlusspunkt, bis du ihn selbst setzt.": "Define connection points and attributes, then “Save and close”. The base point jumps to the first connection point until you set it yourself.",
+ "Danach im Blockeditor Anschlusspunkte, Attribute und Basispunkt festlegen": "Then define connection points, attributes and base point in the block editor",
+ "{name} (neu)": "{name} (new)"
 }
