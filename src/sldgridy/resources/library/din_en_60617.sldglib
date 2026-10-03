@@ -1673,8 +1673,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      8.75,
-      -8.75
+      10.0,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1690,8 +1690,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      8.75,
-      -5.25
+      10.0,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1707,8 +1707,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
-      -1.75
+      10.0,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1839,8 +1839,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      8.75,
-      -8.75
+      10.0,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1856,8 +1856,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      8.75,
-      -5.25
+      10.0,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1873,8 +1873,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
-      -1.75
+      10.0,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -2038,8 +2038,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      8.75,
-      -8.75
+      10.0,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -2055,8 +2055,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      8.75,
-      -5.25
+      10.0,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -2072,8 +2072,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
-      -1.75
+      10.0,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3410,8 +3410,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F11",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3427,8 +3427,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3444,8 +3444,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3543,8 +3543,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P5",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3560,8 +3560,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3577,8 +3577,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3958,8 +3958,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-G1",
      "position": [
-      6.25,
-      -18.75
+      7.5,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3975,8 +3975,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -15.25
+      7.5,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3992,8 +3992,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -11.75
+      7.5,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4268,8 +4268,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-X1",
      "position": [
-      8.75,
-      -8.75
+      10.0,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4285,8 +4285,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      8.75,
-      -5.25
+      10.0,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4302,8 +4302,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
-      -1.75
+      10.0,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4600,8 +4600,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-T1",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4617,8 +4617,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4634,8 +4634,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5049,8 +5049,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F2",
      "position": [
-      11.25,
-      -8.75
+      12.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5066,8 +5066,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      11.25,
-      -5.25
+      12.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5083,8 +5083,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      11.25,
-      -1.75
+      12.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5442,8 +5442,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5459,8 +5459,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5476,8 +5476,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5614,8 +5614,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5631,8 +5631,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5648,8 +5648,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5747,8 +5747,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5764,8 +5764,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5781,8 +5781,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6163,8 +6163,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F3",
      "position": [
-      6.25,
-      -8.75
+      7.5,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6180,8 +6180,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      6.25,
-      -5.25
+      7.5,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6197,8 +6197,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      6.25,
-      -1.75
+      7.5,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6310,8 +6310,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F2",
      "position": [
-      8.75,
-      -8.75
+      10.0,
+      1.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6327,8 +6327,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      8.75,
-      -5.25
+      10.0,
+      4.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6344,8 +6344,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      8.75,
-      -1.75
+      10.0,
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
