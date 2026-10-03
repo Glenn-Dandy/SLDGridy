@@ -98,3 +98,17 @@ def test_shipped_library_in_dock(window):
     titles = [lib.title for lib in dock.libraries.values() if lib.shipped]
     assert "DIN EN 60617" in titles
     assert dock.list.count() >= 40
+
+
+def test_library_dock_category_filter(window):
+    dock = window.library_dock
+    index = dock.category.findData("Photovoltaik")
+    assert index > 0
+    dock.category.setCurrentIndex(index)
+    shown = [
+        dock.list.item(i).text()
+        for i in range(dock.list.count())
+        if not dock.list.item(i).isHidden()
+    ]
+    assert "PV-Modul" in shown and "Leitungsschutzschalter" not in shown
+    assert all("mitgeliefert" not in dock.source.itemText(i) for i in range(dock.source.count()))

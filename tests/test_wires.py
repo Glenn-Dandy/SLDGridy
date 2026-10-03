@@ -217,7 +217,7 @@ def test_shipped_library_complete():
     assert required <= names
     for d in defs:
         tags = {a.tag for a in d.attribute_definitions()}
-        assert tags == {"BMK", "TYP", "WERT"}, d.name
+        assert tags >= {"BMK", "TYP", "WERT"}, d.name
         assert d.connection_points(), d.name
         for c in d.connection_points():
             for v in (c.position.x, c.position.y):
@@ -246,3 +246,16 @@ def test_circuit_breaker_has_thermal_and_magnetic_release():
     ids = {e.id for e in ls.entities}
     assert {"thermal", "magnetic", "link"} <= ids
     assert not ids & {"l6", "l7", "r8", "l9"}  # no breaker X, box or dashed link any more
+
+
+def test_measuring_relays_and_pv_category():
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    by = {d.name: d for d in defs}
+    relay = by["Messrelais"]
+    assert {a.tag for a in relay.attribute_definitions()} == {"BMK", "TYP", "WERT", "FUNKTION"}
+    assert {c.name for c in relay.connection_points()} == {"1", "A"}
+    assert {c.name for c in by["NA-Schutzrelais"].connection_points()} == {"1", "A"}
+    pv = {d.name for d in defs if d.category == "Photovoltaik"}
+    assert {"PV-Modul", "PV-Generator", "Wechselrichter", "NA-Schutzrelais"} <= pv
+    module = by["PV-Modul"]
+    assert {c.name: c.direction for c in module.connection_points()} == {"+": 90, "−": 270}

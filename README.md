@@ -25,7 +25,7 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 ### Erste Zeichnung
 
 1. Im Reiter **Modell** zeichnen. Der Nullpunkt ist mit einem Achsenkreuz markiert, 1 Einheit = 1 mm.
-2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „DIN EN 60617“ enthält 40 Symbole für PV, Trafostation und Niederspannung. Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
+2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „DIN EN 60617“ enthält 43 Symbole für PV, Trafostation und Niederspannung. Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
 3. Mit **Zeichnen > Leitung** (Strg+W) Anschlusspunkte verbinden. Die Leitung rastet auf Anschlusspunkte (magentafarbene Marker) und knickt automatisch rechtwinklig. **Sammelschiene** zeichnet eine 0,7-mm-Schiene, an die überall angeschlossen werden kann. Verbindungspunkte entstehen automatisch.
 4. Leitungen beschriften: Doppelklick auf die Leitung oder Eigenschaften-Dock, z. B. „NYY-J 5x16“.
 5. Im Reiter **Blatt 1** liegt der Zeichnungsrahmen A0 quer mit Schriftfeld. **Blatt > Schriftfeld ausfüllen** setzt Projekt, Firma, Titel usw.

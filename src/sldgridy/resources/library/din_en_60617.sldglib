@@ -3759,7 +3759,7 @@
     0,
     0
    ],
-   "category": "Erzeugung und Speicher",
+   "category": "Photovoltaik",
    "description": "Photovoltaik-Generator",
    "entities": [
     {
@@ -3965,7 +3965,7 @@
     0,
     0
    ],
-   "category": "Erzeugung und Speicher",
+   "category": "Photovoltaik",
    "description": "Photovoltaik-String (Reihenschaltung von Modulen)",
    "entities": [
     {
@@ -4142,7 +4142,7 @@
     0,
     0
    ],
-   "category": "Erzeugung und Speicher",
+   "category": "Photovoltaik",
    "description": "Generatoranschlusskasten (GAK)",
    "entities": [
     {
@@ -4253,7 +4253,7 @@
     0,
     0
    ],
-   "category": "Erzeugung und Speicher",
+   "category": "Photovoltaik",
    "description": "DC-Freischalter (Lasttrennschalter für Gleichstrom)",
    "entities": [
     {
@@ -4413,7 +4413,7 @@
     0,
     0
    ],
-   "category": "Erzeugung und Speicher",
+   "category": "Photovoltaik",
    "description": "Wechselrichter",
    "entities": [
     {
@@ -5932,6 +5932,478 @@
      "position": [
       15,
       6.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "Messrelais",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Netz und Messung",
+   "description": "Messrelais nach DIN EN 60617; die Messgröße (z. B. U<, f>, I>) als Attribut FUNKTION",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      12.5
+     ]
+    },
+    {
+     "type": "attdef",
+     "id": "att_funktion",
+     "layer": "0",
+     "tag": "FUNKTION",
+     "prompt": "Messgröße (z. B. U<, f>, I>)",
+     "default": "U<",
+     "position": [
+      0,
+      7.5
+     ],
+     "height": 3.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp1",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cpA",
+     "layer": "0",
+     "name": "A",
+     "position": [
+      5,
+      7.5
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F3",
+     "position": [
+      7.5,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "NA-Schutzrelais",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Photovoltaik",
+   "description": "NA-Schutzrelais als Messrelais nach DIN EN 60617 (U<, U>, f<, f>), z. B. UFR1001",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -7.5,
+      2.5
+     ],
+     "p2": [
+      7.5,
+      12.5
+     ]
+    },
+    {
+     "type": "text",
+     "id": "t1",
+     "layer": "0",
+     "position": [
+      0,
+      5.75
+     ],
+     "text": "U<  U>",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "t2",
+     "layer": "0",
+     "position": [
+      0,
+      9.25
+     ],
+     "text": "f<  f>",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp1",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cpA",
+     "layer": "0",
+     "name": "A",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-F2",
+     "position": [
+      10,
+      4.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      10,
+      7.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      10,
+      11.0
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
+  },
+  {
+   "name": "PV-Modul",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Photovoltaik",
+   "description": "PV-Modul in der üblichen Darstellung mit Zellraster (keine Normdarstellung)",
+   "entities": [
+    {
+     "type": "line",
+     "id": "l1",
+     "layer": "0",
+     "p1": [
+      0,
+      0
+     ],
+     "p2": [
+      0,
+      2.5
+     ]
+    },
+    {
+     "type": "rectangle",
+     "id": "r1",
+     "layer": "0",
+     "p1": [
+      -5,
+      2.5
+     ],
+     "p2": [
+      5,
+      17.5
+     ]
+    },
+    {
+     "type": "line",
+     "id": "c1",
+     "layer": "0",
+     "p1": [
+      0,
+      2.5
+     ],
+     "p2": [
+      0,
+      17.5
+     ],
+     "lineweight": 0.18
+    },
+    {
+     "type": "line",
+     "id": "c2",
+     "layer": "0",
+     "p1": [
+      -5,
+      6.25
+     ],
+     "p2": [
+      5,
+      6.25
+     ],
+     "lineweight": 0.18
+    },
+    {
+     "type": "line",
+     "id": "c3",
+     "layer": "0",
+     "p1": [
+      -5,
+      10
+     ],
+     "p2": [
+      5,
+      10
+     ],
+     "lineweight": 0.18
+    },
+    {
+     "type": "line",
+     "id": "c4",
+     "layer": "0",
+     "p1": [
+      -5,
+      13.75
+     ],
+     "p2": [
+      5,
+      13.75
+     ],
+     "lineweight": 0.18
+    },
+    {
+     "type": "line",
+     "id": "l2",
+     "layer": "0",
+     "p1": [
+      0,
+      17.5
+     ],
+     "p2": [
+      0,
+      20
+     ]
+    },
+    {
+     "type": "text",
+     "id": "tp",
+     "layer": "0",
+     "position": [
+      -2.5,
+      0.75
+     ],
+     "text": "+",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "text",
+     "id": "tm",
+     "layer": "0",
+     "position": [
+      -2.5,
+      19.25
+     ],
+     "text": "−",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cpp",
+     "layer": "0",
+     "name": "+",
+     "position": [
+      0,
+      0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cpm",
+     "layer": "0",
+     "name": "−",
+     "position": [
+      0,
+      20
+     ],
+     "direction": 270
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G1",
+     "position": [
+      7.5,
+      6.5
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      10
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      13.5
      ],
      "height": 2.5,
      "rotation": 0,

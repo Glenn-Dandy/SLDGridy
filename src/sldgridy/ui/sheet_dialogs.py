@@ -111,9 +111,8 @@ class TemplateChooserDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(self.tr("Neues Blatt aus Vorlage"))
         self.list = QListWidget()
-        for title, path, shipped in templates:
-            label = title + (self.tr(" (mitgeliefert)") if shipped else "")
-            item = QListWidgetItem(label)
+        for title, path, _shipped in templates:
+            item = QListWidgetItem(title)
             item.setData(Qt.ItemDataRole.UserRole, str(path))
             self.list.addItem(item)
         if self.list.count():

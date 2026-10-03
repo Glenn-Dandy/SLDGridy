@@ -27,8 +27,10 @@ from sldgridy.view.thumbnails import block_icon
 
 DOCUMENT_SOURCE = ""
 ALL_LIBRARIES = "*"
+ALL_CATEGORIES = "*"
 ROLE_PATH = Qt.ItemDataRole.UserRole
 ROLE_NAME = Qt.ItemDataRole.UserRole + 1
+ROLE_CATEGORY = Qt.ItemDataRole.UserRole + 3
 
 
 class LibraryHost(Protocol):
@@ -79,6 +81,8 @@ class LibraryDock(QDockWidget):
         self._icons: dict[tuple[str, str], object] = {}
 
         self.source = QComboBox()
+        self.category = QComboBox()
+        self.category.setToolTip(self.tr("Kategorie"))
         self.search = QLineEdit()
         self.search.setPlaceholderText(self.tr("Suchen …"))
         self.search.setClearButtonEnabled(True)
@@ -96,6 +100,7 @@ class LibraryDock(QDockWidget):
         self.list.setDragDropMode(QListWidget.DragDropMode.DragOnly)
 
         self.source.currentIndexChanged.connect(lambda _i: self._fill())
+        self.category.currentIndexChanged.connect(lambda _i: self._apply_filter(self.search.text()))
         self.search.textChanged.connect(self._apply_filter)
         self.btn_reload.clicked.connect(self.reload)
         self.list.itemDoubleClicked.connect(self._on_double_click)
@@ -107,6 +112,7 @@ class LibraryDock(QDockWidget):
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.addLayout(top)
+        layout.addWidget(self.category)
         layout.addWidget(self.search)
         layout.addWidget(self.list)
         self.setWidget(widget)
@@ -142,8 +148,7 @@ class LibraryDock(QDockWidget):
         self.source.addItem(self.tr("Alle Bibliotheken"), ALL_LIBRARIES)
         self.source.addItem(self.tr("Blöcke der Zeichnung"), DOCUMENT_SOURCE)
         for key, lib in self.libraries.items():
-            label = lib.title + (self.tr(" (mitgeliefert)") if lib.shipped else "")
-            self.source.addItem(label, key)
+            self.source.addItem(lib.title, key)
         index = self.source.findData(current) if current is not None else 0
         self.source.setCurrentIndex(max(index, 0))
         self.source.blockSignals(False)
@@ -164,9 +169,24 @@ class LibraryDock(QDockWidget):
         libs = self.libraries.values() if source == ALL_LIBRARIES else [self.libraries[source]]
         return [(str(lib.path), b) for lib in libs for b in lib.blocks.values()]
 
+    def _fill_categories(self, entries: list[tuple[str, BlockDefinition]]) -> None:
+        current = self.category.currentData()
+        self.category.blockSignals(True)
+        self.category.clear()
+        self.category.addItem(self.tr("Alle Kategorien"), ALL_CATEGORIES)
+        names = sorted({d.category for _, d in entries if d.category}, key=str.casefold)
+        for name in names:
+            self.category.addItem(name, name)
+        if any(not d.category for _, d in entries):
+            self.category.addItem(self.tr("Ohne Kategorie"), "")
+        index = self.category.findData(current) if current is not None else 0
+        self.category.setCurrentIndex(max(index, 0))
+        self.category.blockSignals(False)
+
     def _fill(self) -> None:
         self.list.clear()
         entries = sorted(self._entries(), key=lambda e: (e[1].category, e[1].name.casefold()))
+        self._fill_categories(entries)
         for path, definition in entries:
             key = (path, definition.name)
             if key not in self._icons:
@@ -181,15 +201,20 @@ class LibraryDock(QDockWidget):
                 tip += f"\n{definition.description}"
             item.setToolTip(tip)
             item.setData(Qt.ItemDataRole.UserRole + 2, tip.casefold())
+            item.setData(ROLE_CATEGORY, definition.category)
             self.list.addItem(item)
         self._apply_filter(self.search.text())
 
     def _apply_filter(self, text: str) -> None:
         needle = text.casefold().strip()
+        category = self.category.currentData()
         for i in range(self.list.count()):
             item = self.list.item(i)
             haystack = item.data(Qt.ItemDataRole.UserRole + 2) or ""
-            item.setHidden(bool(needle) and needle not in haystack)
+            hidden = bool(needle) and needle not in haystack
+            if category not in (None, ALL_CATEGORIES):
+                hidden = hidden or (item.data(ROLE_CATEGORY) or "") != category
+            item.setHidden(hidden)
 
     def _on_double_click(self, item: QListWidgetItem) -> None:
         self.insert_requested.emit(item.data(ROLE_PATH), item.data(ROLE_NAME))
