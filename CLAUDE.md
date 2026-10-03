@@ -182,6 +182,7 @@ Umsetzung (M4):
 - Bibliotheken: `/usr/share/sldgridy/library/*.sldglib` (im Quellbaum `src/sldgridy/resources/library/`) und `~/.local/share/sldgridy/library/*.sldglib`. „In Benutzerbibliothek speichern“ schreibt nach `eigene.sldglib`. Import kopiert eine Datei in die Benutzerbibliothek, Export schreibt ausgewählte Blöcke samt verschachtelter Abhängigkeiten.
 - Definitionen gelten als gleich, wenn sie ohne Objekt-IDs übereinstimmen (`block_signature`).
 - Die Zwischenablage trägt die nötigen Blockdefinitionen mit.
+- DXF-Import (`fileio/dxf.py`, eigener Leser ohne Zusatzpaket, nur ASCII-DXF): benannte Blöcke werden Definitionen (anonyme `*…`, externe und Layout-Blöcke nicht), ohne Blöcke wird der Modellbereich ein Symbol. LINE, LWPOLYLINE/POLYLINE (Bulges als Bögen), CIRCLE, ARC, ELLIPSE (Kreis/Bogen bei Verhältnis 1, sonst Polylinie mit 72 Segmenten), TEXT, MTEXT (Formatcodes entfernt), ATTDEF, INSERT (aufgelöst, Attribute verschachtelter Blöcke entfallen), POINT als Anschlusspunkt (Name 1, 2 …, Richtung vom Symbolmittelpunkt weg). Alles landet auf Ebene 0, Farben werden nicht übernommen. `$INSUNITS` nach mm, Y gespiegelt. Ergebnis wird als `<DXF-Name>.sldglib` in der Benutzerbibliothek gespeichert (Kategorie = Dateiname, gleichnamige Symbole werden beim erneuten Import ersetzt). Geprüft gegen die 1272 DXF-Dateien der LibreCAD-Bibliothek.
 
 ### Mitgelieferte Symbolbibliothek
 

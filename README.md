@@ -77,6 +77,16 @@ Im Dock **Ebenen**: Name, Farbe, Linienbreite (ISO 128: 0,18 bis 0,7 mm), Linien
 
 Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden auf seinen Anschlusspunkten mit.
 
+### Symbole aus DXF importieren
+
+**Block > Symbole aus DXF importieren** liest ASCII-DXF-Dateien (z. B. Herstellersymbole oder Exporte aus AutoCAD, EPLAN, LibreCAD):
+
+- Jeder benannte Block der DXF wird ein Symbol mit seinem Basispunkt. Enthält die Datei keine Blöcke, wird die ganze Zeichnung ein Symbol (Name der Datei).
+- Übernommen werden Linien, Polylinien (auch mit Bögen), Kreise, Bögen, Ellipsen, Texte und Attribute (ATTDEF). Verschachtelte Blöcke werden aufgelöst. Schraffuren und Splines werden übersprungen und gemeldet.
+- **POINT**-Objekte im Block werden zu Anschlusspunkten (1, 2, 3 …, Richtung vom Symbolmittelpunkt nach außen). Fehlen sie, im Blockeditor mit **Anschlusspunkt setzen** ergänzen.
+- Die Einheit der DXF (`$INSUNITS`) wird in mm umgerechnet.
+- In einer Vorschau wählst du die Symbole aus. Sie landen als eigene Bibliothek (Name der DXF-Datei) in `~/.local/share/sldgridy/library/` und erscheinen im Bibliotheks-Dock mit der Kategorie gleich dem Dateinamen.
+
 ### Zeichnungsrahmen
 
 - Reiter unten: Modell und Blätter. Rechtsklick auf einen Reiter bietet Neu, Umbenennen, Duplizieren, Löschen, Format und Vorlagen. Reiter lassen sich verschieben.

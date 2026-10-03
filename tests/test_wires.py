@@ -224,7 +224,7 @@ def test_shipped_library_complete():
                 assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)
 
 
-def test_load_break_circles_sit_below_the_bar():
+def test_load_break_circles_centred_on_the_contact():
     _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
     from sldgridy.model.entities import Circle, Line
 
@@ -237,7 +237,7 @@ def test_load_break_circles_sit_below_the_bar():
         circles = [e for e in d.entities if isinstance(e, Circle) and e.radius == 0.75]
         for c in circles:
             assert bars, d.name
-            assert c.center.y - c.radius >= 5, d.name  # below the disconnector bar
+            assert c.center.y == 5, d.name  # centred on the contact, on the bar
 
 
 def test_circuit_breaker_has_thermal_and_magnetic_release():

@@ -72,6 +72,7 @@ class BlockChooserDialog(QDialog):
         title: str,
         parent=None,
         multi: bool = False,
+        select_all: bool = False,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle(title)
@@ -92,6 +93,8 @@ class BlockChooserDialog(QDialog):
             self.list.addItem(item)
         if self.list.count():
             self.list.setCurrentRow(0)
+        if select_all:
+            self.list.selectAll()
         self.search.textChanged.connect(self._filter)
         self.list.itemDoubleClicked.connect(lambda _i: self.accept())
         layout = QVBoxLayout(self)

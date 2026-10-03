@@ -1,5 +1,6 @@
 """Block related commands of the main window: create, insert, explode, edit, libraries."""
 
+import re
 import shutil
 from collections.abc import Callable, Mapping
 from dataclasses import replace
@@ -29,6 +30,7 @@ from sldgridy.commands.entities import (
     RemoveEntitiesCommand,
     ReplaceEntitiesCommand,
 )
+from sldgridy.fileio.dxf import DxfError, read_dxf
 from sldgridy.fileio.files import LIBRARY_SUFFIX, load_library, save_library
 from sldgridy.fileio.json_format import (
     FileFormatError,
@@ -138,6 +140,7 @@ class BlockController(QObject):
             self.tr("In Benutzerbibliothek &speichern …"), self.save_to_user_library
         )
         self.act_import = a(self.tr("Bibliothek &importieren …"), self.import_library)
+        self.act_import_dxf = a(self.tr("Symbole aus &DXF importieren …"), self.import_dxf)
         self.act_export = a(self.tr("Bibliothek e&xportieren …"), self.export_library)
         self.act_base = a(self.tr("Basispunkt setzen"), self.set_base_point)
         self.act_editor_save = a(
@@ -153,7 +156,7 @@ class BlockController(QObject):
         m.addSeparator()
         m.addActions([self.act_attribute, self.act_connection])
         m.addSeparator()
-        m.addActions([self.act_to_library, self.act_import, self.act_export])
+        m.addActions([self.act_to_library, self.act_import, self.act_import_dxf, self.act_export])
 
     def toolbar_actions(self) -> list[QAction]:
         return [self.act_insert, self.act_create, self.act_edit]
@@ -707,6 +710,95 @@ class BlockController(QObject):
         save_library(list(by_name.values()), path, title)
         self.w.library_dock.reload()
         self.w.message(self.tr("Block {name} in {path} gespeichert").format(name=name, path=path))
+
+    def import_dxf(self) -> None:
+        name, _ = QFileDialog.getOpenFileName(
+            self.w,
+            self.tr("Symbole aus DXF importieren"),
+            self.w.last_dir(),
+            self.tr("DXF-Zeichnung (*.dxf *.DXF)"),
+        )
+        if name:
+            self.import_dxf_file(Path(name))
+
+    def import_dxf_file(self, source: Path, ask: bool = True) -> Path | None:
+        """Read symbols from a DXF file into a user library named after the file."""
+        try:
+            result = read_dxf(source)
+        except (OSError, DxfError) as exc:
+            QMessageBox.critical(
+                self.w,
+                self.tr("DXF-Import"),
+                self.tr("{name} kann nicht gelesen werden:\n{error}").format(
+                    name=source.name, error=exc
+                ),
+            )
+            return None
+        self.w.remember_dir(source)
+        found = {d.name: d for d in result.blocks}
+        names = list(found)
+        if ask:
+            dialog = BlockChooserDialog(
+                found,
+                self.tr("Symbole aus {name} übernehmen").format(name=source.name),
+                self.w,
+                multi=True,
+                select_all=True,
+            )
+            if dialog.exec() != BlockChooserDialog.DialogCode.Accepted:
+                return None
+            names = dialog.selected_names()
+            if not names:
+                return None
+        category = source.stem
+        chosen = []
+        for n in names:
+            d = found[n]
+            d.category = d.category or category
+            d.description = d.description or self.tr("Importiert aus {file}").format(
+                file=source.name
+            )
+            chosen.append(d)
+        safe = re.sub(r"[^\w\-]+", "_", source.stem).strip("_") or "dxf_import"
+        target = user_library_dir() / f"{safe}{LIBRARY_SUFFIX}"
+        existing: list[BlockDefinition] = []
+        if target.exists():
+            if ask:
+                answer = QMessageBox.question(
+                    self.w,
+                    self.tr("DXF-Import"),
+                    self.tr(
+                        "Die Bibliothek {name} gibt es schon. Symbole hinzufügen "
+                        "(gleichnamige werden ersetzt)?"
+                    ).format(name=target.name),
+                )
+                if answer != QMessageBox.StandardButton.Yes:
+                    return None
+            try:
+                _, existing = load_library(target)
+            except (OSError, FileFormatError):
+                existing = []
+        merged = {d.name: d for d in existing}
+        merged.update({d.name: d for d in chosen})
+        target.parent.mkdir(parents=True, exist_ok=True)
+        save_library(list(merged.values()), target, category)
+        self.w.library_dock.reload()
+        index = self.w.library_dock.source.findData(str(target))
+        if index >= 0:
+            self.w.library_dock.source.setCurrentIndex(index)
+        without = [d.name for d in chosen if not d.connection_points()]
+        parts = [
+            self.tr("{n} Symbole nach {file} importiert").format(n=len(chosen), file=target.name)
+        ]
+        if result.units != "mm":
+            parts.append(self.tr("Einheit {u} in mm umgerechnet").format(u=result.units))
+        if result.skipped:
+            skipped = ", ".join(f"{k} ({v})" for k, v in sorted(result.skipped.items()))
+            parts.append(self.tr("übersprungen: {s}").format(s=skipped))
+        if without:
+            parts.append(self.tr("ohne Anschlusspunkte: {n}").format(n=len(without)))
+        self.w.message("; ".join(parts))
+        return target
 
     def import_library(self) -> None:
         name, _ = QFileDialog.getOpenFileName(
