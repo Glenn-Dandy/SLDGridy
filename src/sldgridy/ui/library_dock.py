@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Protocol
 
-from PyQt6.QtCore import QMimeData, QSize, Qt, pyqtSignal
+from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QDockWidget,
@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMenu,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -73,6 +74,10 @@ def library_files() -> list[tuple[Path, bool]]:
 class LibraryDock(QDockWidget):
     # (source path, block name); an empty path means the drawing itself.
     insert_requested = pyqtSignal(str, str)
+    edit_requested = pyqtSignal(str, str)
+    delete_requested = pyqtSignal(str, str)
+    # Name of a block of the drawing.
+    save_requested = pyqtSignal(str)
 
     def __init__(self, host: LibraryHost, parent=None) -> None:
         super().__init__(self.tr("Bibliothek"), parent)
@@ -105,6 +110,8 @@ class LibraryDock(QDockWidget):
         self.search.textChanged.connect(self._apply_filter)
         self.btn_reload.clicked.connect(self.reload)
         self.list.itemDoubleClicked.connect(self._on_double_click)
+        self.list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.list.customContextMenuRequested.connect(self._on_context_menu)
 
         top = QHBoxLayout()
         top.addWidget(self.source, 1)
@@ -219,3 +226,37 @@ class LibraryDock(QDockWidget):
 
     def _on_double_click(self, item: QListWidgetItem) -> None:
         self.insert_requested.emit(item.data(ROLE_PATH), item.data(ROLE_NAME))
+
+    def editable(self, path: str) -> bool:
+        """Blocks of the drawing and of user libraries can be changed, shipped ones not."""
+        if path == DOCUMENT_SOURCE:
+            return True
+        lib = self.libraries.get(path)
+        return lib is not None and not lib.shipped
+
+    def _on_context_menu(self, pos: QPoint) -> None:
+        item = self.list.itemAt(pos)
+        if item is None:
+            return
+        path, name = item.data(ROLE_PATH), item.data(ROLE_NAME)
+        menu = QMenu(self)
+        menu.addAction(self.tr("Einfügen"), lambda: self.insert_requested.emit(path, name))
+        if self.editable(path):
+            menu.addSeparator()
+            menu.addAction(
+                self.tr("Eigenschaften bearbeiten …"), lambda: self.edit_requested.emit(path, name)
+            )
+            if path == DOCUMENT_SOURCE:
+                menu.addAction(
+                    self.tr("In Benutzerbibliothek speichern"),
+                    lambda: self.save_requested.emit(name),
+                )
+                text = self.tr("Aus Zeichnung löschen")
+            else:
+                text = self.tr("Aus Bibliothek löschen")
+            menu.addAction(text, lambda: self.delete_requested.emit(path, name))
+        else:
+            menu.addSeparator()
+            hint = menu.addAction(self.tr("Mitgelieferte Bibliothek: nicht änderbar"))
+            hint.setEnabled(False)
+        menu.exec(self.list.viewport().mapToGlobal(pos))

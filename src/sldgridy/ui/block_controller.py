@@ -24,7 +24,13 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from sldgridy.commands.blocks import AddBlockCommand, ReplaceBlockCommand, SetBasePointCommand
+from sldgridy.commands.blocks import (
+    AddBlockCommand,
+    ChangeBlockInfoCommand,
+    RemoveBlockCommand,
+    ReplaceBlockCommand,
+    SetBasePointCommand,
+)
 from sldgridy.commands.entities import (
     AddEntitiesCommand,
     RemoveEntitiesCommand,
@@ -64,6 +70,7 @@ from sldgridy.ui.block_dialogs import (
     AttributeDefinitionDialog,
     AttributeValuesDialog,
     BlockChooserDialog,
+    BlockPropertiesDialog,
     ConnectionPointDialog,
     CreateBlockDialog,
     ask_block_conflict,
@@ -687,8 +694,10 @@ class BlockController(QObject):
 
     def save_to_user_library(self) -> None:
         name = self._choose_block(self.tr("In Benutzerbibliothek speichern"))
-        if name is None:
-            return
+        if name is not None:
+            self.save_block_to_user_library(name)
+
+    def save_block_to_user_library(self, name: str) -> None:
         path = user_library_dir() / USER_LIBRARY_FILE
         title, existing = self.tr("Eigene Symbole"), []
         if path.exists():
@@ -720,6 +729,130 @@ class BlockController(QObject):
         save_library(list(by_name.values()), path, title)
         self.w.library_dock.reload()
         self.w.message(self.tr("Block {name} in {path} gespeichert").format(name=name, path=path))
+
+    # -- managing blocks from the library dock ------------------------------
+
+    def _categories(self) -> list[str]:
+        """Categories in use anywhere, offered when editing a block."""
+        found = {b.category for b in self.doc.blocks.values()}
+        for lib in self.w.library_dock.libraries.values():
+            found |= {b.category for b in lib.blocks.values()}
+        return sorted(found - {""}, key=str.casefold)
+
+    def _block_open_in_editor(self, name: str) -> bool:
+        if self.editor_space is not None and self.editor_name() == name:
+            self.w.message(self.tr("Block {name} ist im Blockeditor geöffnet").format(name=name))
+            return True
+        return False
+
+    def _load_user_library(self, path: Path) -> tuple[str, list[BlockDefinition]] | None:
+        try:
+            return load_library(path)
+        except (OSError, FileFormatError) as exc:
+            self.w.message(str(exc))
+            return None
+
+    def edit_block_info(self, path: str, name: str) -> None:
+        """Change name, category and description of a drawing or user library block."""
+        if not path:
+            if name not in self.doc.blocks or self._block_open_in_editor(name):
+                return
+            definition = self.doc.blocks[name]
+            dialog = BlockPropertiesDialog(
+                definition, set(self.doc.blocks), self._categories(), self.w
+            )
+            if dialog.exec() != BlockPropertiesDialog.DialogCode.Accepted:
+                return
+            new_name, category, description = dialog.values()
+            if (new_name, category, description) == (
+                name,
+                definition.category,
+                definition.description,
+            ):
+                return
+            self._doc_push(
+                ChangeBlockInfoCommand(
+                    self.doc,
+                    name,
+                    new_name,
+                    category,
+                    description,
+                    self.tr("Blockeigenschaften {name} ändern").format(name=name),
+                )
+            )
+            return
+        loaded = self._load_user_library(Path(path))
+        if loaded is None:
+            return
+        title, blocks = loaded
+        by_name = {b.name: b for b in blocks}
+        if name not in by_name:
+            self.w.library_dock.reload()
+            return
+        dialog = BlockPropertiesDialog(by_name[name], set(by_name), self._categories(), self.w)
+        if dialog.exec() != BlockPropertiesDialog.DialogCode.Accepted:
+            return
+        new_name, category, description = dialog.values()
+        changed = by_name[name].copy(new_name)
+        changed.category = category
+        changed.description = description
+        mapping = {name: new_name} if new_name != name else {}
+        result = [changed if b.name == name else rename_references(b, mapping) for b in blocks]
+        save_library(result, Path(path), title)
+        self.w.library_dock.reload()
+        self.w.message(self.tr("Block {name} geändert").format(name=new_name))
+
+    def delete_block(self, path: str, name: str) -> None:
+        """Remove an unused block from the drawing (undoable) or from a user library."""
+        if not path:
+            if name not in self.doc.blocks or self._block_open_in_editor(name):
+                return
+            if self.doc.block_in_use(name) or any(s.title_block == name for s in self.doc.sheets):
+                self.w.message(
+                    self.tr(
+                        "Block {name} wird in der Zeichnung verwendet und kann nicht "
+                        "gelöscht werden"
+                    ).format(name=name)
+                )
+                return
+            self._doc_push(
+                RemoveBlockCommand(
+                    self.doc, name, self.tr("Block {name} löschen").format(name=name)
+                )
+            )
+            self.w.message(self.tr("Block {name} gelöscht").format(name=name))
+            return
+        loaded = self._load_user_library(Path(path))
+        if loaded is None:
+            return
+        title, blocks = loaded
+        users = [
+            b.name
+            for b in blocks
+            if any(isinstance(e, BlockReference) and e.name == name for e in b.entities)
+        ]
+        if users:
+            QMessageBox.information(
+                self.w,
+                self.tr("Aus Bibliothek löschen"),
+                self.tr(
+                    "Block {name} wird von diesen Symbolen der Bibliothek verwendet:\n"
+                    "{users}\n\nBitte diese zuerst löschen."
+                ).format(name=name, users=", ".join(users)),
+            )
+            return
+        answer = QMessageBox.question(
+            self.w,
+            self.tr("Aus Bibliothek löschen"),
+            self.tr("Block {name} endgültig aus {library} löschen?").format(
+                name=name, library=library_text(title)
+            ),
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        save_library([b for b in blocks if b.name != name], Path(path), title)
+        self.w.library_dock.reload()
+        self.w.message(self.tr("Block {name} gelöscht").format(name=name))
 
     def import_dxf(self) -> None:
         name, _ = QFileDialog.getOpenFileName(

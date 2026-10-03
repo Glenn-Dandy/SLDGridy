@@ -70,6 +70,7 @@ Modify commands without a selection first ask for objects: select them and press
 - **Define attribute** and **Place connection point** create placeholders and terminals, best in the block editor.
 - When a block is moved, rotated or mirrored, wire ends on its connection points follow.
 - **Block > Save to user library** stores the block in `~/.local/share/sldgridy/library/eigene.sldglib`; libraries can be imported and exported.
+- Right-click a symbol in the library dock to edit its name, category and description or to delete it. This works for blocks of the drawing (undoable; renaming updates all references, deleting only unused blocks) and for user libraries. Shipped libraries are read only.
 - **Block > Import symbols from DXF** reads ASCII DXF files: each named block becomes a symbol; lines, polylines (with arcs), circles, arcs, ellipses, texts and attributes (ATTDEF) are taken over, nested blocks are resolved, **POINT** objects become connection points, units are converted to mm. The symbols are stored as a library named after the DXF file.
 
 ### Sheets, printing and export
@@ -189,6 +190,7 @@ Im Dock **Ebenen**: Name, Farbe, Linienbreite (ISO 128: 0,18 bis 0,7 mm), Linien
 - **Block > Block bearbeiten** öffnet den Blockeditor mit gelber Leiste. „Speichern und schließen“ aktualisiert alle Referenzen.
 - **Ändern > Auflösen** ersetzt eine Referenz durch ihre Einzelobjekte.
 - **Block > In Benutzerbibliothek speichern** legt den Block in `~/.local/share/sldgridy/library/eigene.sldglib` ab. Bibliotheken lassen sich importieren und exportieren.
+- Rechtsklick auf ein Symbol im Bibliotheks-Dock: Name, Kategorie und Beschreibung bearbeiten oder löschen. Das geht für Blöcke der Zeichnung (rückgängig machbar; Umbenennen ändert alle Referenzen mit, gelöscht werden nur unbenutzte Blöcke) und für Benutzerbibliotheken. Mitgelieferte Bibliotheken sind schreibgeschützt.
 - Wird ein Block verschoben, gedreht oder gespiegelt, wandern die Leitungsenden auf seinen Anschlusspunkten mit.
 - **Block > Symbole aus DXF importieren** liest ASCII-DXF-Dateien (z. B. Herstellersymbole oder Exporte aus AutoCAD, EPLAN, LibreCAD): Jeder benannte Block wird ein Symbol; Linien, Polylinien (auch mit Bögen), Kreise, Bögen, Ellipsen, Texte und Attribute (ATTDEF) werden übernommen, verschachtelte Blöcke aufgelöst, **POINT**-Objekte werden zu Anschlusspunkten, die Einheit wird in mm umgerechnet. Die Symbole landen als eigene Bibliothek mit dem Namen der DXF-Datei.
 

@@ -65,6 +65,54 @@ class CreateBlockDialog(QDialog):
         super().accept()
 
 
+class BlockPropertiesDialog(QDialog):
+    """Name, category and description of an existing block."""
+
+    def __init__(
+        self,
+        definition: BlockDefinition,
+        existing: set[str],
+        categories: list[str],
+        parent=None,
+    ) -> None:
+        super().__init__(parent)
+        self.setWindowTitle(self.tr("Blockeigenschaften"))
+        self._old = definition.name
+        self._existing = existing
+        self.name = QLineEdit(definition.name)
+        self.category = QComboBox()
+        self.category.setEditable(True)
+        self.category.addItems(sorted(set(categories) - {""}, key=str.casefold))
+        self.category.setCurrentText(definition.category)
+        self.description = QLineEdit(definition.description)
+        self.error = QLabel()
+        self.error.setStyleSheet("color: #c00000")
+        form = QFormLayout(self)
+        form.addRow(self.tr("Name:"), self.name)
+        form.addRow(self.tr("Kategorie:"), self.category)
+        form.addRow(self.tr("Beschreibung:"), self.description)
+        form.addRow(self.error)
+        form.addRow(_buttons(self))
+        self.resize(max(self.sizeHint().width(), 380), self.sizeHint().height())
+
+    def values(self) -> tuple[str, str, str]:
+        return (
+            self.name.text().strip(),
+            self.category.currentText().strip(),
+            self.description.text().strip(),
+        )
+
+    def accept(self) -> None:
+        name = self.values()[0]
+        if not name:
+            self.error.setText(self.tr("Bitte einen Namen angeben."))
+            return
+        if name != self._old and name in self._existing:
+            self.error.setText(self.tr("Ein Block mit diesem Namen existiert bereits."))
+            return
+        super().accept()
+
+
 class BlockChooserDialog(QDialog):
     """Pick one (or several) blocks of the document."""
 

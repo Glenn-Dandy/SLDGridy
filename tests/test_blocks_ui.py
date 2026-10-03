@@ -11,6 +11,7 @@ from sldgridy.ui import block_controller, block_dialogs
 from sldgridy.ui.block_dialogs import (
     AttributeValuesDialog,
     BlockChooserDialog,
+    BlockPropertiesDialog,
     CreateBlockDialog,
 )
 from sldgridy.ui.main_window import MainWindow
@@ -291,3 +292,79 @@ def test_create_block_asks_for_objects_first(window, monkeypatch, qapp):
     click(window, 10, 10)  # base point
     assert "Nachgefragt" in window.document.blocks
     assert window.blocks.act_create.text().replace("&", "") == "Block erstellen …"
+
+
+def fill_properties(monkeypatch, name, category="", description=""):
+    def fake_exec(self):
+        self.name.setText(name)
+        self.category.setCurrentText(category)
+        self.description.setText(description)
+        self.accept()
+        return self.result()
+
+    monkeypatch.setattr(BlockPropertiesDialog, "exec", fake_exec)
+
+
+def test_rename_drawing_block_updates_references(window, monkeypatch):
+    with_blocks(window)
+    window.document.model_space.add(BlockReference(id="r", name="Sicherung", insert=Point(0, 0)))
+    fill_properties(monkeypatch, "NH-Sicherung", "Schutz", "neu")
+    window.blocks.edit_block_info("", "Sicherung")
+    doc = window.document
+    assert "Sicherung" not in doc.blocks
+    assert doc.blocks["NH-Sicherung"].category == "Schutz"
+    assert doc.model_space.get("r").name == "NH-Sicherung"
+    nested = {e.name for e in doc.blocks["Feld"].entities if isinstance(e, BlockReference)}
+    assert nested == {"NH-Sicherung"}
+    window.act_undo.trigger()
+    assert "Sicherung" in doc.blocks and "NH-Sicherung" not in doc.blocks
+    assert doc.model_space.get("r").name == "Sicherung"
+    assert doc.blocks["Sicherung"].category == "Schalten"
+
+
+def test_rename_to_existing_name_is_refused(window, monkeypatch):
+    with_blocks(window)
+    fill_properties(monkeypatch, "Feld")
+    window.blocks.edit_block_info("", "Sicherung")
+    assert {"Feld", "Sicherung"} <= set(window.document.blocks)
+
+
+def test_delete_drawing_block_only_when_unused(window):
+    with_blocks(window)
+    window.blocks.delete_block("", "Sicherung")
+    assert "Sicherung" in window.document.blocks
+    window.blocks.delete_block("", "Feld")
+    assert "Feld" not in window.document.blocks
+    window.act_undo.trigger()
+    assert "Feld" in window.document.blocks
+
+
+def test_edit_and_delete_in_user_library(window, monkeypatch):
+    path = write_library("verwalten")
+    window.library_dock.reload()
+    fill_properties(monkeypatch, "Schmelzsicherung", "Schutz")
+    window.blocks.edit_block_info(str(path), "Sicherung")
+    _, loaded = load_library(path)
+    by_name = {b.name: b for b in loaded}
+    assert by_name["Schmelzsicherung"].category == "Schutz"
+    nested = {e.name for e in by_name["Feld"].entities if isinstance(e, BlockReference)}
+    assert nested == {"Schmelzsicherung"}
+    assert "Schmelzsicherung" in window.library_dock.library(str(path))
+
+    monkeypatch.setattr(block_controller.QMessageBox, "information", lambda *a: None)
+    monkeypatch.setattr(
+        block_controller.QMessageBox,
+        "question",
+        lambda *a: block_controller.QMessageBox.StandardButton.Yes,
+    )
+    window.blocks.delete_block(str(path), "Schmelzsicherung")  # used by Feld
+    assert len(load_library(path)[1]) == 2
+    window.blocks.delete_block(str(path), "Feld")
+    assert [b.name for b in load_library(path)[1]] == ["Schmelzsicherung"]
+
+
+def test_shipped_libraries_are_read_only(window):
+    dock = window.library_dock
+    shipped = [k for k, lib in dock.libraries.items() if lib.shipped]
+    assert shipped and not any(dock.editable(k) for k in shipped)
+    assert dock.editable("")

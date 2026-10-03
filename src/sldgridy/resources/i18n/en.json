@@ -546,5 +546,18 @@
  "Selektiver Hauptleitungsschutzschalter, netzunabhängig (SHU, E DIN VDE 0645), Zählervorsicherung": "Selective main circuit breaker, grid-independent (SHU, E DIN VDE 0645), meter pre-fuse",
  "Selektiver Hauptleitungsschutzschalter, netzabhängig mit N-Anschluss (SHA, E DIN VDE 0643), Zählervorsicherung": "Selective main circuit breaker, grid-dependent with N connection (SHA, E DIN VDE 0643), meter pre-fuse",
  "Block &erstellen …": "&Create block …",
- "Block erstellen": "Create block"
+ "Block erstellen": "Create block",
+ "Aus Bibliothek löschen": "Delete from library",
+ "Aus Zeichnung löschen": "Delete from drawing",
+ "Block {name} endgültig aus {library} löschen?": "Permanently delete block {name} from {library}?",
+ "Block {name} gelöscht": "Block {name} deleted",
+ "Block {name} geändert": "Block {name} changed",
+ "Block {name} ist im Blockeditor geöffnet": "Block {name} is open in the block editor",
+ "Block {name} löschen": "Delete block {name}",
+ "Block {name} wird in der Zeichnung verwendet und kann nicht gelöscht werden": "Block {name} is used in the drawing and cannot be deleted",
+ "Block {name} wird von diesen Symbolen der Bibliothek verwendet:\n{users}\n\nBitte diese zuerst löschen.": "Block {name} is used by these symbols of the library:\n{users}\n\nPlease delete them first.",
+ "Blockeigenschaften": "Block properties",
+ "Blockeigenschaften {name} ändern": "Change properties of block {name}",
+ "Eigenschaften bearbeiten …": "Edit properties …",
+ "Mitgelieferte Bibliothek: nicht änderbar": "Shipped library: read only"
 }
