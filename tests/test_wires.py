@@ -258,8 +258,8 @@ def test_measuring_relays_and_pv_category():
     by = {d.name: d for d in defs}
     relay = by["Messrelais"]
     assert {a.tag for a in relay.attribute_definitions()} == {"BMK", "TYP", "WERT", "FUNKTION"}
-    assert {c.name for c in relay.connection_points()} == {"1", "A"}
-    assert {c.name for c in by["NA-Schutzrelais"].connection_points()} == {"1", "A"}
+    assert {c.name for c in relay.connection_points()} == {"1", "2", "3", "A"}
+    assert {c.name for c in by["NA-Schutzrelais"].connection_points()} == {"1", "2", "3", "A"}
     pv = {d.name for d in defs if d.category == "Photovoltaik"}
     assert {"PV-Generator", "Wechselrichter", "NA-Schutzrelais"} <= pv
     assert "PV-Modul" not in by  # not a standard symbol: in the further symbols library
@@ -328,3 +328,44 @@ def test_current_transformer_has_measuring_connection():
     conns = {c.name: (c.position, c.direction) for c in ct.connection_points()}
     assert conns["S"] == (Point(5, 7.5), 0)
     assert {"1", "2"} <= set(conns)
+
+
+BOX_DEVICES = [
+    "Wechselrichter",
+    "Generatoranschlusskasten",
+    "NA-Schutz",
+    "NA-Schutzrelais",
+    "PV-Generator",
+    "Verbraucher",
+    "Wärmepumpe",
+    "Ladeeinrichtung",
+    "Messrelais",
+    "Schutzrelais",
+    "Kurzschlussanzeiger",
+    "Zähler Bezug",
+    "Zähler Lieferung",
+    "Zähler Zweirichtung",
+]
+
+
+@pytest.mark.parametrize("name", BOX_DEVICES)
+def test_box_devices_have_four_connections_on_the_edges(name):
+    from sldgridy.model.entities import Line, Rectangle
+
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    d = {x.name: x for x in defs}[name]
+    box = max(
+        (e for e in d.entities if isinstance(e, Rectangle)),
+        key=lambda r: abs(r.p2.x - r.p1.x) * abs(r.p2.y - r.p1.y),
+    )
+    x0, x1 = sorted((box.p1.x, box.p2.x))
+    y0, y1 = sorted((box.p1.y, box.p2.y))
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    conns = {(c.position.x, c.position.y): c.direction for c in d.connection_points()}
+    assert conns == {(cx, y0): 90, (cx, y1): 270, (x0, cy): 180, (x1, cy): 0}
+    assert "1" in {c.name for c in d.connection_points()}
+    assert d.base_point == Point(0, 0)
+    # No wire stubs: no line ends at a connection point outside the box.
+    for line in (e for e in d.entities if isinstance(e, Line)):
+        for p in (line.p1, line.p2):
+            assert not (p.y < y0 - 1e-6 or p.y > y1 + 1e-6) or p.x != cx, name

@@ -1562,42 +1562,16 @@
    "description": "Elektrizitätszähler für Bezug",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
       -7.5,
-      2.5
+      0.0
      ],
      "p2": [
       7.5,
-      10
-     ]
-    },
-    {
-     "type": "line",
-     "id": "l3",
-     "layer": "0",
-     "p1": [
-      0,
-      10
-     ],
-     "p2": [
-      0,
-      12.5
+      10.0
      ]
     },
     {
@@ -1606,7 +1580,7 @@
      "layer": "0",
      "position": [
       -1.75,
-      6.25
+      5.0
      ],
      "text": "kWh",
      "height": 2.5,
@@ -1620,11 +1594,11 @@
      "layer": "0",
      "p1": [
       4.25,
-      3.5
+      2.25
      ],
      "p2": [
       4.25,
-      9
+      7.75
      ]
     },
     {
@@ -1634,40 +1608,62 @@
      "points": [
       [
        3.5,
-       7.75
+       6.5
       ],
       [
        4.25,
-       9
+       7.75
       ],
       [
-       5,
-       7.75
+       5.0,
+       6.5
       ]
      ],
      "closed": false
     },
     {
      "type": "connection",
-     "id": "cp7",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp8",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "2",
      "position": [
-      0,
-      12.5
+      0.0,
+      10.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -7.5,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      7.5,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -1677,8 +1673,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      10,
-      2.75
+      8.75,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1694,8 +1690,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      10,
-      6.25
+      8.75,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1711,8 +1707,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      10,
-      9.75
+      8.75,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1732,42 +1728,16 @@
    "description": "Elektrizitätszähler für Lieferung",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
       -7.5,
-      2.5
+      0.0
      ],
      "p2": [
       7.5,
-      10
-     ]
-    },
-    {
-     "type": "line",
-     "id": "l3",
-     "layer": "0",
-     "p1": [
-      0,
-      10
-     ],
-     "p2": [
-      0,
-      12.5
+      10.0
      ]
     },
     {
@@ -1776,7 +1746,7 @@
      "layer": "0",
      "position": [
       -1.75,
-      6.25
+      5.0
      ],
      "text": "kWh",
      "height": 2.5,
@@ -1790,11 +1760,11 @@
      "layer": "0",
      "p1": [
       4.25,
-      3.5
+      2.25
      ],
      "p2": [
       4.25,
-      9
+      7.75
      ]
     },
     {
@@ -1804,40 +1774,62 @@
      "points": [
       [
        3.5,
-       4.75
-      ],
-      [
-       4.25,
        3.5
       ],
       [
+       4.25,
+       2.25
+      ],
+      [
        5.0,
-       4.75
+       3.5
       ]
      ],
      "closed": false
     },
     {
      "type": "connection",
-     "id": "cp7",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp8",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "2",
      "position": [
-      0,
-      12.5
+      0.0,
+      10.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -7.5,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      7.5,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -1847,8 +1839,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      10,
-      2.75
+      8.75,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1864,8 +1856,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      10,
-      6.25
+      8.75,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1881,8 +1873,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      10,
-      9.75
+      8.75,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1902,42 +1894,16 @@
    "description": "Zweirichtungszähler",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
       -7.5,
-      2.5
+      0.0
      ],
      "p2": [
       7.5,
-      10
-     ]
-    },
-    {
-     "type": "line",
-     "id": "l3",
-     "layer": "0",
-     "p1": [
-      0,
-      10
-     ],
-     "p2": [
-      0,
-      12.5
+      10.0
      ]
     },
     {
@@ -1946,7 +1912,7 @@
      "layer": "0",
      "position": [
       -1.75,
-      6.25
+      5.0
      ],
      "text": "kWh",
      "height": 2.5,
@@ -1960,11 +1926,11 @@
      "layer": "0",
      "p1": [
       4.25,
-      3.5
+      2.25
      ],
      "p2": [
       4.25,
-      9
+      7.75
      ]
     },
     {
@@ -1974,15 +1940,15 @@
      "points": [
       [
        3.5,
-       7.75
+       6.5
       ],
       [
        4.25,
-       9
+       7.75
       ],
       [
-       5,
-       7.75
+       5.0,
+       6.5
       ]
      ],
      "closed": false
@@ -1993,11 +1959,11 @@
      "layer": "0",
      "p1": [
       5.75,
-      3.5
+      2.25
      ],
      "p2": [
       5.75,
-      9
+      7.75
      ]
     },
     {
@@ -2007,40 +1973,62 @@
      "points": [
       [
        5.0,
-       4.75
-      ],
-      [
-       5.75,
        3.5
       ],
       [
+       5.75,
+       2.25
+      ],
+      [
        6.5,
-       4.75
+       3.5
       ]
      ],
      "closed": false
     },
     {
      "type": "connection",
-     "id": "cp9",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp10",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "2",
      "position": [
-      0,
-      12.5
+      0.0,
+      10.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -7.5,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      7.5,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -2050,8 +2038,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-P1",
      "position": [
-      10,
-      2.75
+      8.75,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -2067,8 +2055,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      10,
-      6.25
+      8.75,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -2084,8 +2072,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      10,
-      9.75
+      8.75,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3344,29 +3332,16 @@
    "description": "Schutzrelais (Überstromzeitschutz)",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      7.5
+      5.0,
+      5.0
      ]
     },
     {
@@ -3374,8 +3349,8 @@
      "id": "t3",
      "layer": "0",
      "position": [
-      0,
-      5
+      0.0,
+      2.5
      ],
      "text": "I>",
      "height": 3.5,
@@ -3385,23 +3360,45 @@
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp5",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      5.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      2.5
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
      "layer": "0",
      "name": "A",
      "position": [
-      5,
-      5
+      5.0,
+      2.5
      ],
      "direction": 0
     },
@@ -3413,8 +3410,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F11",
      "position": [
-      7.5,
-      1.5
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3430,8 +3427,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      5.0
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3447,8 +3444,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      8.5
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3468,29 +3465,16 @@
    "description": "Kurzschluss- und Erdschlussanzeiger",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -3.75,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      3.75,
-      7.5
+      5.0,
+      5.0
      ]
     },
     {
@@ -3498,8 +3482,8 @@
      "id": "t3",
      "layer": "0",
      "position": [
-      0,
-      5
+      0.0,
+      2.5
      ],
      "text": "KA",
      "height": 2.5,
@@ -3509,14 +3493,47 @@
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      5.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      2.5
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      2.5
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -3527,7 +3544,7 @@
      "default": "-P5",
      "position": [
       6.25,
-      1.5
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3544,7 +3561,7 @@
      "default": "",
      "position": [
       6.25,
-      5.0
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3561,7 +3578,7 @@
      "default": "",
      "position": [
       6.25,
-      8.5
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3770,29 +3787,16 @@
    "description": "Photovoltaik-Generator",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      -2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      -12.5
+      -5.0,
+      -10.0
      ],
      "p2": [
-      5,
-      -2.5
+      5.0,
+      0.0
      ]
     },
     {
@@ -3800,12 +3804,12 @@
      "id": "l3",
      "layer": "0",
      "p1": [
-      -5,
-      -2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      -12.5
+      5.0,
+      -10.0
      ]
     },
     {
@@ -3813,12 +3817,12 @@
      "id": "l4",
      "layer": "0",
      "p1": [
-      -9,
-      -17
+      -9.0,
+      -14.5
      ],
      "p2": [
-      -6,
-      -14
+      -6.0,
+      -11.5
      ]
     },
     {
@@ -3828,15 +3832,15 @@
      "points": [
       [
        -7.25,
-       -14.25
+       -11.75
       ],
       [
-       -6,
-       -14
+       -6.0,
+       -11.5
       ],
       [
        -6.25,
-       -15.25
+       -12.75
       ]
      ],
      "closed": false
@@ -3847,11 +3851,11 @@
      "layer": "0",
      "p1": [
       -6.5,
-      -18.5
+      -16.0
      ],
      "p2": [
       -3.5,
-      -15.5
+      -13.0
      ]
     },
     {
@@ -3861,15 +3865,15 @@
      "points": [
       [
        -4.75,
-       -15.75
+       -13.25
       ],
       [
        -3.5,
-       -15.5
+       -13.0
       ],
       [
        -3.75,
-       -16.75
+       -14.25
       ]
      ],
      "closed": false
@@ -3880,7 +3884,7 @@
      "layer": "0",
      "position": [
       -2.75,
-      -9.75
+      -7.25
      ],
      "text": "+",
      "height": 2.5,
@@ -3894,7 +3898,7 @@
      "layer": "0",
      "position": [
       2.75,
-      -5
+      -2.5
      ],
      "text": "−",
      "height": 2.5,
@@ -3904,14 +3908,47 @@
     },
     {
      "type": "connection",
-     "id": "cp10",
+     "id": "cp_top",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      -10.0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      -5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      -5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -3921,8 +3958,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-G1",
      "position": [
-      7.5,
-      -11.0
+      6.25,
+      -18.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3938,8 +3975,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      -7.5
+      6.25,
+      -15.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -3955,8 +3992,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      -4.0
+      6.25,
+      -11.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4162,7 +4199,7 @@
      ],
      "p2": [
       7.5,
-      12.5
+      15.0
      ]
     },
     {
@@ -4170,8 +4207,8 @@
      "id": "t2",
      "layer": "0",
      "position": [
-      0,
-      6.25
+      0.0,
+      7.5
      ],
      "text": "GAK",
      "height": 3.5,
@@ -4181,25 +4218,47 @@
     },
     {
      "type": "connection",
-     "id": "cp3",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
+      0.0,
       0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "2",
      "position": [
-      0,
-      12.5
+      0.0,
+      15.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -7.5,
+      7.5
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      7.5,
+      7.5
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -4209,8 +4268,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-X1",
      "position": [
-      10,
-      2.75
+      8.75,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4226,8 +4285,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      10,
-      6.25
+      8.75,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4243,8 +4302,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      10,
-      9.75
+      8.75,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4424,29 +4483,16 @@
    "description": "Wechselrichter",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      12.5
+      5.0,
+      10.0
      ]
     },
     {
@@ -4454,12 +4500,12 @@
      "id": "l3",
      "layer": "0",
      "p1": [
-      -5,
-      12.5
+      -5.0,
+      10.0
      ],
      "p2": [
-      5,
-      2.5
+      5.0,
+      0.0
      ]
     },
     {
@@ -4468,11 +4514,11 @@
      "layer": "0",
      "p1": [
       -3.75,
-      4.5
+      2.0
      ],
      "p2": [
       -1.25,
-      4.5
+      2.0
      ]
     },
     {
@@ -4481,11 +4527,11 @@
      "layer": "0",
      "p1": [
       -3.75,
-      5.5
+      3.0
      ],
      "p2": [
       -1.25,
-      5.5
+      3.0
      ]
     },
     {
@@ -4494,7 +4540,7 @@
      "layer": "0",
      "position": [
       2.5,
-      10
+      7.5
      ],
      "text": "~",
      "height": 3.5,
@@ -4503,39 +4549,48 @@
      "valign": "middle"
     },
     {
-     "type": "line",
-     "id": "l7",
-     "layer": "0",
-     "p1": [
-      0,
-      12.5
-     ],
-     "p2": [
-      0,
-      15
-     ]
-    },
-    {
      "type": "connection",
-     "id": "cp8",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp9",
+     "id": "cp_bottom",
      "layer": "0",
      "name": "2",
      "position": [
-      0,
-      15.0
+      0.0,
+      10.0
      ],
      "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -4545,8 +4600,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-T1",
      "position": [
-      7.5,
-      4.0
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4562,8 +4617,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      7.5
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4579,8 +4634,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      11.0
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -4916,29 +4971,16 @@
    "description": "Netz- und Anlagenschutz nach VDE-AR-N 4105/4110",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -10,
-      2.5
+      -10.0,
+      0.0
      ],
      "p2": [
-      10,
-      7.5
+      10.0,
+      5.0
      ]
     },
     {
@@ -4946,8 +4988,8 @@
      "id": "t3",
      "layer": "0",
      "position": [
-      0,
-      5
+      0.0,
+      2.5
      ],
      "text": "NA-Schutz",
      "height": 2.5,
@@ -4957,23 +4999,45 @@
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cp5",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      5.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -10.0,
+      2.5
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
      "layer": "0",
      "name": "A",
      "position": [
-      10,
-      5
+      10.0,
+      2.5
      ],
      "direction": 0
     },
@@ -4985,8 +5049,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F2",
      "position": [
-      12.5,
-      1.5
+      11.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5002,8 +5066,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      12.5,
-      5.0
+      11.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5019,8 +5083,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      12.5,
-      8.5
+      11.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5314,41 +5378,61 @@
    "description": "Allgemeiner Verbraucher",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      10
+      5.0,
+      10.0
      ]
     },
     {
      "type": "connection",
-     "id": "cp3",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -5358,8 +5442,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      7.5,
-      2.75
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5375,8 +5459,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      6.25
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5392,8 +5476,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      9.75
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5413,29 +5497,16 @@
    "description": "Ladeeinrichtung für Elektrofahrzeuge",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      12.5
+      5.0,
+      10.0
      ]
     },
     {
@@ -5443,8 +5514,8 @@
      "id": "t3",
      "layer": "0",
      "position": [
-      0,
-      6.5
+      0.0,
+      4.0
      ],
      "text": "EV",
      "height": 3.5,
@@ -5458,11 +5529,11 @@
      "layer": "0",
      "p1": [
       -2.5,
-      10
+      7.5
      ],
      "p2": [
       2.5,
-      10
+      7.5
      ]
     },
     {
@@ -5471,11 +5542,11 @@
      "layer": "0",
      "p1": [
       -1.25,
-      10
+      7.5
      ],
      "p2": [
       -1.25,
-      11.25
+      8.75
      ]
     },
     {
@@ -5484,23 +5555,56 @@
      "layer": "0",
      "p1": [
       1.25,
-      10
+      7.5
      ],
      "p2": [
       1.25,
-      11.25
+      8.75
      ]
     },
     {
      "type": "connection",
-     "id": "cp7",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -5510,8 +5614,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      7.5,
-      4.0
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5527,8 +5631,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      7.5
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5544,8 +5648,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      11.0
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5565,29 +5669,16 @@
    "description": "Wärmepumpe",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r2",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      12.5
+      5.0,
+      10.0
      ]
     },
     {
@@ -5595,8 +5686,8 @@
      "id": "t3",
      "layer": "0",
      "position": [
-      0,
-      7.5
+      0.0,
+      5.0
      ],
      "text": "WP",
      "height": 3.5,
@@ -5606,14 +5697,47 @@
     },
     {
      "type": "connection",
-     "id": "cp4",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -5623,8 +5747,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-E1",
      "position": [
-      7.5,
-      4.0
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5640,8 +5764,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      7.5
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5657,8 +5781,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      11.0
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -5958,30 +6082,61 @@
    "description": "Messrelais nach DIN EN 60617; die Messgröße (z. B. U<, f>, I>) als Attribut FUNKTION",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r1",
      "layer": "0",
      "p1": [
-      -5,
-      2.5
+      -5.0,
+      0.0
      ],
      "p2": [
-      5,
-      12.5
+      5.0,
+      10.0
      ]
+    },
+    {
+     "type": "connection",
+     "id": "cp_top",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0.0,
+      0.0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "A",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
     },
     {
      "type": "attdef",
@@ -5991,36 +6146,14 @@
      "prompt": "Messgröße (z. B. U<, f>, I>)",
      "default": "U<",
      "position": [
-      0,
-      7.5
+      0.0,
+      5.0
      ],
      "height": 3.5,
      "rotation": 0,
      "visible": true,
      "halign": "center",
      "valign": "middle"
-    },
-    {
-     "type": "connection",
-     "id": "cp1",
-     "layer": "0",
-     "name": "1",
-     "position": [
-      0,
-      0
-     ],
-     "direction": 90
-    },
-    {
-     "type": "connection",
-     "id": "cpA",
-     "layer": "0",
-     "name": "A",
-     "position": [
-      5,
-      7.5
-     ],
-     "direction": 0
     },
     {
      "type": "attdef",
@@ -6030,8 +6163,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F3",
      "position": [
-      7.5,
-      4.0
+      6.25,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6047,8 +6180,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      7.5,
-      7.5
+      6.25,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6064,8 +6197,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      7.5,
-      11.0
+      6.25,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6085,29 +6218,16 @@
    "description": "NA-Schutzrelais als Messrelais nach DIN EN 60617 (U<, U>, f<, f>), z. B. UFR1001",
    "entities": [
     {
-     "type": "line",
-     "id": "l1",
-     "layer": "0",
-     "p1": [
-      0,
-      0
-     ],
-     "p2": [
-      0,
-      2.5
-     ]
-    },
-    {
      "type": "rectangle",
      "id": "r1",
      "layer": "0",
      "p1": [
       -7.5,
-      2.5
+      0.0
      ],
      "p2": [
       7.5,
-      12.5
+      10.0
      ]
     },
     {
@@ -6115,8 +6235,8 @@
      "id": "t1",
      "layer": "0",
      "position": [
-      0,
-      5.75
+      0.0,
+      3.25
      ],
      "text": "U<  U>",
      "height": 2.5,
@@ -6129,8 +6249,8 @@
      "id": "t2",
      "layer": "0",
      "position": [
-      0,
-      9.25
+      0.0,
+      6.75
      ],
      "text": "f<  f>",
      "height": 2.5,
@@ -6140,23 +6260,45 @@
     },
     {
      "type": "connection",
-     "id": "cp1",
+     "id": "cp_top",
      "layer": "0",
      "name": "1",
      "position": [
-      0,
-      0
+      0.0,
+      0.0
      ],
      "direction": 90
     },
     {
      "type": "connection",
-     "id": "cpA",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -7.5,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
      "layer": "0",
      "name": "A",
      "position": [
       7.5,
-      7.5
+      5.0
      ],
      "direction": 0
     },
@@ -6168,8 +6310,8 @@
      "prompt": "Betriebsmittelkennzeichen",
      "default": "-F2",
      "position": [
-      10,
-      4.0
+      8.75,
+      -8.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6185,8 +6327,8 @@
      "prompt": "Typ",
      "default": "",
      "position": [
-      10,
-      7.5
+      8.75,
+      -5.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -6202,8 +6344,8 @@
      "prompt": "Wert",
      "default": "",
      "position": [
-      10,
-      11.0
+      8.75,
+      -1.75
      ],
      "height": 2.5,
      "rotation": 0,
