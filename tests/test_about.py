@@ -8,7 +8,7 @@ from sldgridy.update import UpdateResult, evaluate, parse_version
 
 
 def test_parse_and_compare_versions():
-    assert parse_version("v1.2.10") == (1, 2, 10)
+    assert parse_version("v1.2.10") == (1, 2, 10, 1)
     release = {
         "tag_name": "v99.0.0",
         "html_url": "https://example/r",
@@ -55,3 +55,12 @@ def test_update_result_display(dialog):
     assert dialog.opened[-1] == "https://x/d.deb"
     dialog.show_update_result(UpdateResult(ok=False))
     assert "fehlgeschlagen" in dialog.lbl_update.text()
+
+
+def test_dev_versions_sort_before_their_release():
+    assert parse_version("1.1.3.dev1") < parse_version("1.1.3") < parse_version("1.1.4.dev1")
+    assert parse_version("v1.1.3-dev2") > parse_version("1.1.3.dev1")
+    assert parse_version("1.1") == (1, 1, 0, 1)
+    release = {"tag_name": "v1.1.3", "assets": []}
+    assert evaluate("1.1.3.dev1", release).available
+    assert not evaluate("1.1.3", release).available

@@ -20,8 +20,16 @@ class UpdateResult:
 
 
 def parse_version(text: str) -> tuple[int, ...]:
-    numbers = re.findall(r"\d+", text)
-    return tuple(int(n) for n in numbers[:3]) if numbers else ()
+    """Comparable version: (major, minor, patch, 1) for releases, (..., 0, n) for dev n.
+
+    A development build "1.2.3.dev4" (or "v1.2.3-dev4") sorts before release 1.2.3.
+    """
+    m = re.search(r"(\d+)\.(\d+)(?:\.(\d+))?(?:[.\-~]?dev(\d+))?", text)
+    if not m:
+        return ()
+    major, minor, patch, dev = m.groups()
+    base = (int(major), int(minor), int(patch or 0))
+    return (*base, 0, int(dev)) if dev is not None else (*base, 1)
 
 
 def evaluate(current: str, release: dict) -> UpdateResult:

@@ -6,6 +6,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKG=sldgridy
 VERSION="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$ROOT/src/$PKG/__init__.py")"
 [ -n "$VERSION" ] || { echo "cannot read __version__" >&2; exit 1; }
+# Python "1.2.3.dev4" becomes Debian "1.2.3~dev4", which sorts before "1.2.3".
+VERSION="${VERSION/.dev/~dev}"
 
 BUILD="$ROOT/build/deb"
 STAGE="$BUILD/${PKG}_${VERSION}_all"

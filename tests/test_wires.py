@@ -302,3 +302,20 @@ def test_circuit_breaker_thermal_release_parallel_to_link():
         seg = math.atan2(b.y - a.y, b.x - a.x)
         diff = math.degrees(seg - ldir) % 180
         assert min(diff, 180 - diff) < 0.5 or abs(diff - 90) < 0.5  # parallel or square
+
+
+def test_circuit_breaker_arrowhead_centred_on_link():
+    import math
+
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    ls = {d.name: d for d in defs}["Leitungsschutzschalter"]
+    link = next(e for e in ls.entities if e.id == "link")
+    tip, b1, b2 = next(e for e in ls.entities if e.id == "magnetic").points
+    mid = Point((b1.x + b2.x) / 2, (b1.y + b2.y) / 2)
+    assert mid.x == pytest.approx(link.p2.x, abs=1e-3) and mid.y == pytest.approx(
+        link.p2.y, abs=1e-3
+    )
+    # The tip continues the link direction.
+    d_link = math.atan2(link.p2.y - link.p1.y, link.p2.x - link.p1.x)
+    d_tip = math.atan2(tip.y - mid.y, tip.x - mid.x)
+    assert abs(d_link - d_tip) < 1e-3
