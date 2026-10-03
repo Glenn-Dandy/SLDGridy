@@ -1,5 +1,6 @@
 """Object snap: find characteristic points of entities near the cursor."""
 
+import math
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import StrEnum
@@ -17,6 +18,7 @@ from sldgridy.model.entities import (
 )
 from sldgridy.model.geometry import Point, distance
 from sldgridy.model.primitives import (
+    Segment,
     arc_endpoints,
     arc_midpoint,
     intersect,
@@ -32,6 +34,8 @@ class SnapMode(StrEnum):
     MIDPOINT = "midpoint"
     INTERSECTION = "intersection"
     CENTER = "center"
+    PERPENDICULAR = "perpendicular"
+    BUSBAR = "busbar"
 
 
 ALL_MODES = frozenset(SnapMode)
@@ -39,10 +43,12 @@ ALL_MODES = frozenset(SnapMode)
 # Tie-break for hits at the same distance.
 _RANK = {
     SnapMode.CONNECTION: 0,
-    SnapMode.ENDPOINT: 1,
-    SnapMode.INTERSECTION: 2,
-    SnapMode.MIDPOINT: 3,
-    SnapMode.CENTER: 4,
+    SnapMode.PERPENDICULAR: 1,
+    SnapMode.ENDPOINT: 2,
+    SnapMode.INTERSECTION: 3,
+    SnapMode.MIDPOINT: 4,
+    SnapMode.CENTER: 5,
+    SnapMode.BUSBAR: 6,
 }
 
 
@@ -100,6 +106,38 @@ def nearest_on_segment(p: Point, a: Point, b: Point) -> Point:
     return Point(a.x + t * dx, a.y + t * dy)
 
 
+def _snap_value(v: float, grid: float | None) -> float:
+    return math.floor(v / grid + 0.5) * grid if grid else v
+
+
+def on_busbar(cursor: Point, bar: Busbar, grid: float | None) -> Point:
+    """Point of the bar nearest to the cursor, on the grid along axis-parallel bars."""
+    a, b = bar.p1, bar.p2
+    if a.y == b.y:
+        lo, hi = sorted((a.x, b.x))
+        return Point(min(max(_snap_value(cursor.x, grid), lo), hi), a.y)
+    if a.x == b.x:
+        lo, hi = sorted((a.y, b.y))
+        return Point(a.x, min(max(_snap_value(cursor.y, grid), lo), hi))
+    return nearest_on_segment(cursor, a, b)
+
+
+def perpendicular_foot(base: Point, a: Point, b: Point) -> Point | None:
+    """Foot of the perpendicular from ``base`` onto segment a-b, if it lies on the segment."""
+    dx, dy = b.x - a.x, b.y - a.y
+    length2 = dx * dx + dy * dy
+    if length2 == 0:
+        return None
+    t = ((base.x - a.x) * dx + (base.y - a.y) * dy) / length2
+    if t < -1e-9 or t > 1 + 1e-9:
+        return None
+    if a.y == b.y:
+        return Point(base.x, a.y)
+    if a.x == b.x:
+        return Point(a.x, base.y)
+    return Point(a.x + t * dx, a.y + t * dy)
+
+
 def find_snap(
     cursor: Point,
     entities: Iterable[Entity],
@@ -107,10 +145,14 @@ def find_snap(
     modes: frozenset[SnapMode] = ALL_MODES,
     extra: ExtraCandidates | None = None,
     decompose: Callable[[Entity], list[Entity]] | None = None,
+    base: Point | None = None,
+    grid: float | None = None,
 ) -> SnapHit | None:
     """Best snap point within ``aperture`` mm of ``cursor``.
 
-    Connection points always win; otherwise the nearest hit is used.
+    Priority: connection points of symbols, then the perpendicular foot from
+    ``base`` (the command's last point), then the nearest characteristic
+    point, and only then a free point on a bus bar (on the grid along it).
     ``decompose`` may expand compound entities into simple ones.
     """
     simple: list[Entity] = []
@@ -121,9 +163,14 @@ def find_snap(
         simple += decompose(e) if decompose is not None else [e]
     for e in simple:
         hits += candidates(e, modes)
-        if isinstance(e, Busbar) and SnapMode.CONNECTION in modes:
-            # Bus bars accept connections anywhere along their length.
-            hits.append(SnapHit(nearest_on_segment(cursor, e.p1, e.p2), SnapMode.CONNECTION))
+        if isinstance(e, Busbar) and SnapMode.BUSBAR in modes:
+            hits.append(SnapHit(on_busbar(cursor, e, grid), SnapMode.BUSBAR))
+        if base is not None and SnapMode.PERPENDICULAR in modes:
+            for prim in primitives(e):
+                if isinstance(prim, Segment):
+                    foot = perpendicular_foot(base, prim.a, prim.b)
+                    if foot is not None and distance(foot, base) > 1e-9:
+                        hits.append(SnapHit(foot, SnapMode.PERPENDICULAR))
     if SnapMode.INTERSECTION in modes:
         prims = [p for e in simple for p in primitives(e)]
         for i, p in enumerate(prims):
@@ -133,6 +180,13 @@ def find_snap(
     near = [h for h in hits if distance(h.point, cursor) <= aperture]
     if not near:
         return None
-    connections = [h for h in near if h.mode is SnapMode.CONNECTION]
-    pool = connections or near
-    return min(pool, key=lambda h: (round(distance(h.point, cursor), 9), _RANK[h.mode]))
+    for group in (
+        {SnapMode.CONNECTION},
+        {SnapMode.PERPENDICULAR},
+        {SnapMode.ENDPOINT, SnapMode.INTERSECTION, SnapMode.MIDPOINT, SnapMode.CENTER},
+        {SnapMode.BUSBAR},
+    ):
+        pool = [h for h in near if h.mode in group]
+        if pool:
+            return min(pool, key=lambda h: (round(distance(h.point, cursor), 9), _RANK[h.mode]))
+    return None

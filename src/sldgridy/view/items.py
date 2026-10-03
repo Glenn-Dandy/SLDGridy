@@ -6,13 +6,14 @@ from PyQt6.QtCore import QRectF
 from PyQt6.QtGui import QColor, QPainter, QPainterPath, QPainterPathStroker
 from PyQt6.QtWidgets import QGraphicsItem, QStyleOptionGraphicsItem
 
-from sldgridy.model.entities import ConnectionPoint, Entity, Text
+from sldgridy.model.entities import ConnectionPoint, Entity, JunctionMark, Text
 from sldgridy.view.render import (
     Style,
     connection_marker_path,
     displayed,
     entity_bounds,
     entity_path,
+    junction_mark_path,
     paint_entity,
     text_scene_path,
 )
@@ -72,6 +73,8 @@ class EntityItem(QGraphicsItem):
                 shape.addPath(text_scene_path(shown))
             elif isinstance(shown, ConnectionPoint):
                 shape.addPath(connection_marker_path(shown))
+            elif isinstance(shown, JunctionMark):
+                shape.addPath(junction_mark_path(shown))
             else:
                 stroker = QPainterPathStroker()
                 stroker.setWidth(max(style.lineweight, 0.01))

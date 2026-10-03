@@ -106,7 +106,9 @@ def test_wire_and_busbar_roundtrip_and_grips():
 def test_busbar_accepts_snap_anywhere():
     bb = Busbar(id="b", p1=Point(0, 0), p2=Point(50, 0))
     hit = find_snap(Point(17.3, 0.4), [bb], aperture=1)
-    assert hit.mode is SnapMode.CONNECTION and hit.point == Point(17.3, 0)
+    assert hit.mode is SnapMode.BUSBAR and hit.point == Point(17.3, 0)
+    # With grid snap the point stays on the grid along the bar.
+    assert find_snap(Point(17.3, 0.4), [bb], aperture=1, grid=2.5).point == Point(17.5, 0)
 
 
 class Ctx:

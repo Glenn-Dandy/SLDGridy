@@ -15,6 +15,7 @@ from sldgridy.model.entities import (
     Circle,
     ConnectionPoint,
     Entity,
+    JunctionMark,
     Line,
     Polyline,
     Rectangle,
@@ -86,6 +87,7 @@ _TYPE_NAMES: dict[type, str] = {
     Wire: "wire",
     Busbar: "busbar",
     Viewport: "viewport",
+    JunctionMark: "junction",
 }
 
 
@@ -127,6 +129,8 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
             d["visible"], d["halign"], d["valign"] = e.visible, e.halign, e.valign
         case ConnectionPoint():
             d["name"], d["position"], d["direction"] = e.name, _pt(e.position), e.direction
+        case JunctionMark():
+            d["position"], d["connected"] = _pt(e.position), e.connected
         case Viewport():
             d["p1"], d["p2"], d["center"] = _pt(e.p1), _pt(e.p2), _pt(e.center)
             d["scale"], d["locked"], d["print_border"] = e.scale, e.locked, e.print_border
@@ -151,6 +155,10 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
             return Line(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
         case "rectangle":
             return Rectangle(p1=_to_pt(d["p1"]), p2=_to_pt(d["p2"]), **common)
+        case "junction":
+            return JunctionMark(
+                position=_to_pt(d["position"]), connected=bool(d.get("connected", True)), **common
+            )
         case "viewport":
             scale = float(d.get("scale", 1.0))
             if not scale > 0:

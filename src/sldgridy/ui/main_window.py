@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPushButton,
     QToolBar,
@@ -68,6 +69,8 @@ from sldgridy.ui.grid_dialog import GridDialog
 from sldgridy.ui.layers_dock import LayersDock
 from sldgridy.ui.library_dock import LibraryDock
 from sldgridy.ui.osnap_dialog import OsnapDialog
+from sldgridy.ui.osnap_menu import HoverMenuButton, OsnapMenu
+from sldgridy.ui.point_menu import point_actions
 from sldgridy.ui.print_dialog import PrintDialog
 from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.sheet_controller import SheetController
@@ -140,6 +143,8 @@ class MainWindow(QMainWindow):
         self.canvas.text_typed.connect(self.command_line.start_typing)
         self.canvas.block_dropped.connect(self.blocks.on_drop)
         self.canvas.empty_double_clicked.connect(self.sheets.on_empty_double_click)
+        self.canvas.point_menu_requested.connect(self._show_point_menu)
+        self.canvas.osnap_menu_requested.connect(lambda pos: self.osnap_menu.exec(pos))
         self.sheets.rebuild_tabs()
         self.command_line.submitted.connect(self._on_command_input)
         self.command_line.cancelled.connect(self._on_command_cancel)
@@ -361,6 +366,9 @@ class MainWindow(QMainWindow):
         self.act_otrack.setCheckable(True)
         self.act_otrack.setChecked(self.canvas.otrack_enabled)
         self.act_otrack.toggled.connect(self.canvas.set_otrack_enabled)
+        self.osnap_menu = OsnapMenu(
+            self, self.act_osnap, lambda: self.canvas.osnap_modes, self._set_osnap_modes
+        )
         self.act_osnap_settings = self._action(
             self.tr("Objektfang ein&stellen …"), self._edit_osnap_settings
         )
@@ -513,10 +521,16 @@ class MainWindow(QMainWindow):
             self.act_osnap,
             self.act_otrack,
         ):
-            button = QToolButton()
+            button = HoverMenuButton() if action is self.act_osnap else QToolButton()
             button.setDefaultAction(action)
             button.setAutoRaise(True)
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            if action is self.act_osnap:
+                button.setMenu(self.osnap_menu)
+                button.setToolTip(
+                    self.tr("Objektfang (F3); verweilen oder Pfeil zeigt die Fangarten")
+                )
+                self.btn_osnap = button
             status.addPermanentWidget(button)
         status.addPermanentWidget(self.lbl_layer)
         status.addPermanentWidget(self.lbl_zoom)
@@ -932,6 +946,18 @@ class MainWindow(QMainWindow):
         self.tools.cancel()
         self.canvas.setFocus()
 
+    def _set_osnap_modes(self, modes) -> None:
+        self.canvas.osnap_modes = frozenset(modes)
+
+    def _show_point_menu(self, scene_pos: QPointF, global_pos) -> None:
+        actions = point_actions(self, Point(scene_pos.x(), scene_pos.y()))
+        if not actions:
+            return
+        menu = QMenu(self)
+        for label, callback in actions:
+            menu.addAction(label, callback)
+        menu.exec(global_pos)
+
     def _edit_osnap_settings(self) -> None:
         dialog = OsnapDialog(self.canvas.osnap_modes, self)
         if dialog.exec() == OsnapDialog.DialogCode.Accepted:
@@ -1043,10 +1069,22 @@ class MainWindow(QMainWindow):
         modes = settings.value("view/osnap_modes", None)
         if isinstance(modes, str):
             modes = [modes] if modes else []
+        known = settings.value("view/osnap_known", None)
+        if isinstance(known, str):
+            known = [known] if known else []
         valid = {m.value for m in SnapMode}
-        self.canvas.osnap_modes = (
-            frozenset(SnapMode(m) for m in modes if m in valid) if modes is not None else ALL_MODES
-        )
+        if modes is None:
+            self.canvas.osnap_modes = ALL_MODES
+        else:
+            chosen = {SnapMode(m) for m in modes if m in valid}
+            # Modes added in a newer version than the saved settings start switched on.
+            known_set = (
+                set(known)
+                if known is not None
+                else {"connection", "endpoint", "midpoint", "intersection", "center"}
+            )
+            chosen |= {m for m in SnapMode if m.value not in known_set}
+            self.canvas.osnap_modes = frozenset(chosen)
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:
@@ -1064,6 +1102,7 @@ class MainWindow(QMainWindow):
         settings.setValue("view/osnap_enabled", self.act_osnap.isChecked())
         settings.setValue("view/otrack_enabled", self.act_otrack.isChecked())
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
+        settings.setValue("view/osnap_known", sorted(m.value for m in SnapMode))
         settings.setValue("view/grid_spacing", self.canvas.grid_spacing())
         settings.setValue("view/snap_spacing", self.canvas.snap_spacing)
 

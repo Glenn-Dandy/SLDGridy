@@ -3,7 +3,7 @@
 import json
 from collections.abc import Callable
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QFont, QKeyEvent, QPainter, QPen, QPolygonF, QWheelEvent
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
@@ -82,6 +82,10 @@ class Canvas(QGraphicsView):
     block_dropped = pyqtSignal(dict, QPointF)
     # Double click where no entity is (raw scene position).
     empty_double_clicked = pyqtSignal(QPointF)
+    # Right click without a running command: snapped scene point and global position.
+    point_menu_requested = pyqtSignal(QPointF, QPoint)
+    # Shift + right click: object snap mode menu at the global position.
+    osnap_menu_requested = pyqtSignal(QPoint)
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
@@ -220,6 +224,7 @@ class Canvas(QGraphicsView):
         entities = self._visible_entities_near(scene_pos, aperture)
         if not entities:
             return None
+        base = self.controller.base_point() if self.controller else None
         return find_snap(
             mpt(scene_pos),
             entities,
@@ -227,6 +232,8 @@ class Canvas(QGraphicsView):
             self.osnap_modes,
             extra=self.snap_extra,
             decompose=self.snap_decompose,
+            base=base,
+            grid=self.snap_spacing if self.snap_enabled else None,
         )
 
     def constrain(self, scene_pos: QPointF) -> QPointF:
@@ -240,7 +247,9 @@ class Canvas(QGraphicsView):
         if self.otrack_enabled and self.acquired:
             tolerance = SNAP_APERTURE_PX / self.transform().m11()
             grid = self.snap_spacing if self.snap_enabled else None
-            result = track(mpt(scene_pos), self.acquired, tolerance, grid, ortho_base)
+            # The command's own base point is no tracking source (ortho covers that).
+            sources = [p for p in self.acquired if p != base]
+            result = track(mpt(scene_pos), sources, tolerance, grid, ortho_base)
             if result is not None:
                 self._track_lines = result.lines
                 return qpt(result.point)
@@ -275,6 +284,13 @@ class Canvas(QGraphicsView):
         if point != self._hover_point:
             self._hover_point = point
             self._acquire_timer.start()
+
+    def _forget_tracking_point(self, p: Point) -> None:
+        """A clicked point is never a tracking source: stop acquiring and drop it."""
+        self._acquire_timer.stop()
+        self._hover_point = p  # no new acquisition while resting on the clicked point
+        if p in self.acquired:
+            self.acquired = [q for q in self.acquired if q != p]
 
     def _acquire_hovered(self) -> None:
         hit = self._snap_hit
@@ -456,7 +472,9 @@ class Canvas(QGraphicsView):
         elif button == Qt.MouseButton.LeftButton:
             self._update_cursor(pos)
             if not self._selecting():
-                self.controller.pick(mpt(self._cursor_scene))
+                picked = mpt(self._cursor_scene)
+                self._forget_tracking_point(picked)
+                self.controller.pick(picked)
             elif not self._tool_active() and (grip := self.grip_at(pos)) is not None:
                 entity_id, index = grip
                 self.controller.start(lambda ctx: GripEditTool(ctx, entity_id, index))
@@ -468,8 +486,14 @@ class Canvas(QGraphicsView):
                 elif not shift and not self._tool_active() and item.isSelected():
                     self._drag_start = pos
         elif button == Qt.MouseButton.RightButton:
-            if self._tool_active():
+            global_pos = event.globalPosition().toPoint()
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                self.osnap_menu_requested.emit(global_pos)
+            elif self._tool_active():
                 self.controller.finish()
+            else:
+                self._update_cursor(pos)
+                self.point_menu_requested.emit(self._cursor_scene, global_pos)
         event.accept()
         self.viewport().update()
 

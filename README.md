@@ -52,6 +52,10 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 
 Ändern-Befehle ohne Auswahl fragen zuerst nach Objekten: wählen und mit Enter bestätigen.
 
+**Objektfang wählen:** am Knopf **OFANG** unten kurz verweilen oder den kleinen Pfeil anklicken, oder **Umschalt+Rechtsklick** auf der Zeichenfläche. Der **Lotfußpunkt** fängt den rechtwinkligen Punkt vom letzten Punkt aus, z. B. eine Leitung senkrecht auf die Sammelschiene.
+
+**Rechtsklick auf einen Punkt** (ohne laufenden Befehl): **Verbinden** setzt einen Verbindungspunkt, **Trennen** unterdrückt einen automatischen Punkt (am Bildschirm als oranger Ring sichtbar, nicht im Druck), **Punkt entfernen** löscht einen Knick oder Eckpunkt einer Leitung oder Polylinie, **Verlängern** zeichnet an einem Ende weiter.
+
 **Objektfangspur (Hilfslinien):** Während eines Befehls den Cursor kurz auf einem Fangpunkt (z. B. Anschlusspunkt) ruhen lassen, bis ein grünes + erscheint. Bewegt man sich danach waagerecht oder senkrecht davon weg, zeigt eine gepunktete Linie die Flucht, und der Punkt rastet darauf ein, im Raster. Zwei vorgemerkte Punkte ergeben den Kreuzungspunkt ihrer Fluchten.
 
 ### Koordinaten eingeben

@@ -3,19 +3,14 @@
 from PyQt6.QtWidgets import QCheckBox, QDialog, QDialogButtonBox, QVBoxLayout
 
 from sldgridy.model.snap import SnapMode
+from sldgridy.ui.osnap_menu import mode_labels
 
 
 class OsnapDialog(QDialog):
     def __init__(self, modes: frozenset[SnapMode], parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Objektfang"))
-        labels = {
-            SnapMode.CONNECTION: self.tr("Anschlusspunkt (hat Vorrang)"),
-            SnapMode.ENDPOINT: self.tr("Endpunkt"),
-            SnapMode.MIDPOINT: self.tr("Mittelpunkt"),
-            SnapMode.INTERSECTION: self.tr("Schnittpunkt"),
-            SnapMode.CENTER: self.tr("Zentrum"),
-        }
+        labels = mode_labels()
         layout = QVBoxLayout(self)
         self._boxes: dict[SnapMode, QCheckBox] = {}
         for mode, label in labels.items():

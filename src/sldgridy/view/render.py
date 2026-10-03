@@ -13,6 +13,7 @@ from sldgridy.model.entities import (
     Circle,
     ConnectionPoint,
     Entity,
+    JunctionMark,
     Line,
     Polyline,
     Rectangle,
@@ -27,6 +28,8 @@ _FONT_LAYOUT_PX = 100
 LINE_SPACING = 1.6  # baseline distance as a multiple of the text height
 
 CONNECTION_COLOR = QColor("#c000c0")
+SEPARATION_COLOR = QColor("#e65100")
+JUNCTION_MARK_RADIUS = 0.9  # mm
 CONNECTION_RADIUS = 0.8  # mm
 CONNECTION_TICK = 2.0  # mm
 
@@ -198,6 +201,19 @@ def displayed(e: Entity) -> Entity:
     return e
 
 
+def junction_mark_path(m: JunctionMark) -> QPainterPath:
+    """Small ring with a cross: marks a point where wires are explicitly not connected."""
+    path = QPainterPath()
+    p = qpt(m.position)
+    r = JUNCTION_MARK_RADIUS
+    path.addEllipse(p, r, r)
+    path.moveTo(p + QPointF(-r, -r))
+    path.lineTo(p + QPointF(r, r))
+    path.moveTo(p + QPointF(-r, r))
+    path.lineTo(p + QPointF(r, -r))
+    return path
+
+
 def connection_marker_path(c: ConnectionPoint) -> QPainterPath:
     path = QPainterPath()
     p = qpt(c.position)
@@ -212,6 +228,15 @@ def paint_entity(
     painter: QPainter, e: Entity, style: Style, px_per_mm: float, helpers: bool = True
 ) -> None:
     """Paint one simple entity. ``helpers`` False leaves out connection markers (output)."""
+    if isinstance(e, JunctionMark):
+        # Forced dots are drawn with the automatic ones; "separated" marks are helpers.
+        if helpers and not e.connected:
+            pen = QPen(SEPARATION_COLOR, 0)
+            pen.setCosmetic(True)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawPath(junction_mark_path(e))
+        return
     if isinstance(e, ConnectionPoint):
         if helpers:
             pen = QPen(CONNECTION_COLOR, 0)
@@ -231,6 +256,9 @@ def paint_entity(
 
 def entity_bounds(e: Entity, lineweight: float) -> QRectF:
     e = displayed(e)
+    if isinstance(e, JunctionMark):
+        r = JUNCTION_MARK_RADIUS * 1.5
+        return QRectF(e.position.x - r, e.position.y - r, 2 * r, 2 * r)
     if isinstance(e, ConnectionPoint):
         r = CONNECTION_TICK
         return QRectF(e.position.x - r, e.position.y - r, 2 * r, 2 * r)

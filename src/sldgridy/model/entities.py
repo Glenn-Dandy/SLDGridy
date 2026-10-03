@@ -336,3 +336,17 @@ class Viewport(Entity):
         return (
             self.left <= p.x <= self.left + self.width and self.top <= p.y <= self.top + self.height
         )
+
+
+@dataclass(frozen=True, kw_only=True)
+class JunctionMark(Entity):
+    """Manual override of the automatic connection dot at ``position``.
+
+    ``connected`` True forces a dot, False suppresses an automatic one.
+    """
+
+    position: Point
+    connected: bool = True
+
+    def _mapped(self, fn, quarters):
+        return replace(self, position=fn(self.position))

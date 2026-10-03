@@ -5,7 +5,15 @@ from collections.abc import Iterable, Mapping
 from dataclasses import replace
 
 from sldgridy.model.blocks import BlockDefinition, world_connections
-from sldgridy.model.entities import BlockReference, ConnectionPoint, Entity, Text, Wire
+from sldgridy.model.entities import (
+    BlockReference,
+    Busbar,
+    ConnectionPoint,
+    Entity,
+    JunctionMark,
+    Text,
+    Wire,
+)
 from sldgridy.model.geometry import Point, distance
 
 EPS = 1e-6
@@ -69,10 +77,17 @@ JUNCTION_MIN_DIAMETER = 1.0  # mm
 JUNCTION_WEIGHT_FACTOR = 4.0  # diameter as a multiple of the wire's line width
 
 
-def junctions(entities: Iterable[Entity]) -> list[tuple[Point, Wire]]:
-    """Connection dots: a wire end on the inside of another wire, or three or more wire ends
-    at one point. Returns each dot with one wire that defines it (for its style)."""
+def junctions(entities: Iterable[Entity]) -> list[tuple[Point, Entity]]:
+    """Connection dots with the entity that gives their style.
+
+    Automatic dots: a wire end on the inside of another wire, a wire end on a
+    bus bar, or three or more wire ends at one point. Junction marks then
+    force (``connected``) or suppress dots at their position.
+    """
+    entities = list(entities)
     wires = [e for e in entities if isinstance(e, Wire) and len(e.points) >= 2]
+    bars = [e for e in entities if isinstance(e, Busbar)]
+    marks = [e for e in entities if isinstance(e, JunctionMark)]
     # Index axis-parallel segments by their constant coordinate.
     vertical: dict[float, list[tuple[str, Point, Point]]] = {}
     horizontal: dict[float, list[tuple[str, Point, Point]]] = {}
@@ -88,7 +103,7 @@ def junctions(entities: Iterable[Entity]) -> list[tuple[Point, Wire]]:
                 other.append((w.id, a, b))
         for p in (w.points[0], w.points[-1]):
             ends.setdefault((round(p.x, 6), round(p.y, 6)), []).append(w)
-    result: list[tuple[Point, Wire]] = []
+    result: list[tuple[Point, Entity]] = []
     for (x, y), owners in ends.items():
         p = Point(x, y)
         if len(owners) >= 3:
@@ -96,9 +111,50 @@ def junctions(entities: Iterable[Entity]) -> list[tuple[Point, Wire]]:
             continue
         candidates = vertical.get(x, []) + horizontal.get(y, []) + other
         owner_ids = {w.id for w in owners}
-        if any(wid not in owner_ids and _on_segment_interior(p, a, b) for wid, a, b in candidates):
+        if any(
+            wid not in owner_ids and _on_segment_interior(p, a, b) for wid, a, b in candidates
+        ) or any(on_segment(p, bar.p1, bar.p2) for bar in bars):
             result.append((p, owners[0]))
+    for mark in marks:
+        result = [(p, o) for p, o in result if not same(p, mark.position)]
+        if mark.connected:
+            result.append((mark.position, mark))
     return result
+
+
+def on_segment(p: Point, a: Point, b: Point) -> bool:
+    """``p`` lies on the segment a-b, end points included."""
+    return same(p, a) or same(p, b) or _on_segment_interior(p, a, b)
+
+
+def entities_at(entities: Iterable[Entity], p: Point) -> list[Entity]:
+    """Wires and bus bars passing through ``p``."""
+    out: list[Entity] = []
+    for e in entities:
+        if (
+            isinstance(e, Wire)
+            and any(on_segment(p, a, b) for a, b in segments(e.points))
+            or isinstance(e, Busbar)
+            and on_segment(p, e.p1, e.p2)
+        ):
+            out.append(e)
+    return out
+
+
+def remove_vertex(wire: Wire, index: int) -> Wire | None:
+    """Wire without point ``index``; corners are replaced so segments stay orthogonal."""
+    pts = list(wire.points)
+    if len(pts) <= 2:
+        return None
+    if index in (0, len(pts) - 1):
+        del pts[index]
+        return replace(wire, points=simplify(pts))
+    prev, removed, nxt = pts[index - 1], pts[index], pts[index + 1]
+    corners = [Point(nxt.x, prev.y), Point(prev.x, nxt.y)]
+    others = [c for c in corners if not same(c, removed)]
+    pts[index] = others[0] if others else corners[0]
+    new = simplify(pts)
+    return replace(wire, points=new) if len(new) >= 2 else None
 
 
 def junction_points(entities: Iterable[Entity]) -> list[Point]:

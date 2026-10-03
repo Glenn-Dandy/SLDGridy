@@ -1,6 +1,8 @@
 """Tools that create new entities."""
 
-from sldgridy.commands.entities import AddEntitiesCommand
+from dataclasses import replace
+
+from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.model.entities import (
     DEFAULT_BUSBAR_WEIGHT,
     Arc,
@@ -310,3 +312,52 @@ class BusbarTool(_DrawTool):
             return []
         bar = self._bar(self.cursor, PREVIEW_ID)
         return [bar] if bar else []
+
+
+class ExtendTool(_DrawTool):
+    """Continue a wire or polyline from one of its ends (``end`` 0 = start, -1 = end)."""
+
+    def __init__(self, ctx, entity_id: str, end: int) -> None:
+        super().__init__(ctx)
+        self._entity = ctx.container.get(entity_id)
+        pts = list(self._entity.points)
+        self._reversed = end == 0
+        self._points = list(reversed(pts)) if self._reversed else pts
+        self._added = 0
+
+    def prompt(self) -> str:
+        return tr("Verlängern: Nächsten Punkt angeben (Enter beendet)")
+
+    def _extend(self, pts: list[Point], p: Point) -> list[Point]:
+        if isinstance(self._entity, Wire):
+            return [*pts, *elbow(pts[-1], p)]
+        return [*pts, p]
+
+    def pick(self, p: Point) -> None:
+        if p == self._points[-1]:
+            return
+        self._points = self._extend(self._points, p)
+        self._added += 1
+
+    def _result(self, pts: list[Point]) -> Entity:
+        ordered = list(reversed(pts)) if self._reversed else pts
+        if isinstance(self._entity, Wire):
+            return replace(self._entity, points=simplify(ordered))
+        return replace(self._entity, points=tuple(ordered))
+
+    def finish(self) -> None:
+        if self._added:
+            self.ctx.push(
+                ReplaceEntitiesCommand(
+                    self.ctx.container, [self._result(self._points)], tr("Verlängern")
+                )
+            )
+        self.done = True
+
+    def base_point(self) -> Point | None:
+        return self._points[-1]
+
+    def preview(self) -> list[Entity]:
+        if self.cursor is None or self.cursor == self._points[-1]:
+            return []
+        return [self._result(self._extend(self._points, self.cursor))]

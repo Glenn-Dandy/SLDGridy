@@ -10,6 +10,7 @@ from sldgridy.model.entities import (
     Circle,
     ConnectionPoint,
     Entity,
+    JunctionMark,
     Line,
     Polyline,
     Rectangle,
@@ -29,7 +30,7 @@ def grip_points(e: Entity) -> list[Point]:
             return [e.points[0], e.points[-1]]
         case BlockReference():
             return [e.insert]
-        case AttributeDefinition() | ConnectionPoint():
+        case AttributeDefinition() | ConnectionPoint() | JunctionMark():
             return [e.position]
         case Polyline():
             return list(e.points)
