@@ -25,6 +25,7 @@ class CommandLine(QWidget):
         self.prompt = QLabel()
         self.edit = _Edit()
         self.edit.setPlaceholderText(self.tr("x,y   @dx,dy   Länge (bei Ortho)"))
+        self.edit.setMinimumWidth(240)
         self.edit.returnPressed.connect(self._submit)
         self.edit.escape_pressed.connect(self._cancel)
         layout = QHBoxLayout(self)

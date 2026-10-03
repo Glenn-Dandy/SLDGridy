@@ -222,3 +222,27 @@ def test_shipped_library_complete():
         for c in d.connection_points():
             for v in (c.position.x, c.position.y):
                 assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)
+
+
+def test_load_break_circles_sit_below_the_bar():
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    from sldgridy.model.entities import Circle, Line
+
+    for d in defs:
+        bars = [
+            e
+            for e in d.entities
+            if isinstance(e, Line) and e.p1.y == e.p2.y == 5 and e.p1.x == -1.25 and e.p2.x == 1.25
+        ]
+        circles = [e for e in d.entities if isinstance(e, Circle) and e.radius == 0.75]
+        for c in circles:
+            assert bars, d.name
+            assert c.center.y - c.radius >= 5, d.name  # below the disconnector bar
+
+
+def test_circuit_breaker_has_thermal_and_magnetic_release():
+    _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
+    ls = {d.name: d for d in defs}["Leitungsschutzschalter"]
+    ids = {e.id for e in ls.entities}
+    assert {"thermal", "magnetic", "link"} <= ids
+    assert not ids & {"l6", "l7", "r8", "l9"}  # no breaker X, box or dashed link any more

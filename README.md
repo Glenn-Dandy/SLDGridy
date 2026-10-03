@@ -48,9 +48,11 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 | Löschen | Entf |
 | Rückgängig / Wiederholen | Strg+Z / Strg+Y (oder Strg+Umschalt+Z) |
 | Ausschneiden / Kopieren / Einfügen | Strg+X / Strg+C / Strg+V |
-| Objektfang / Raster / Ortho / Rasterfang | F3 / F7 / F8 / F9 |
+| Objektfang / Raster / Ortho / Rasterfang / Objektfangspur | F3 / F7 / F8 / F9 / F11 |
 
 Ändern-Befehle ohne Auswahl fragen zuerst nach Objekten: wählen und mit Enter bestätigen.
+
+**Objektfangspur (Hilfslinien):** Während eines Befehls den Cursor kurz auf einem Fangpunkt (z. B. Anschlusspunkt) ruhen lassen, bis ein grünes + erscheint. Bewegt man sich danach waagerecht oder senkrecht davon weg, zeigt eine gepunktete Linie die Flucht, und der Punkt rastet darauf ein, im Raster. Zwei vorgemerkte Punkte ergeben den Kreuzungspunkt ihrer Fluchten.
 
 ### Koordinaten eingeben
 

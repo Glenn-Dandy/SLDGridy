@@ -142,7 +142,11 @@ class _ResizeFilter(QObject):
         return edges
 
     def eventFilter(self, obj, event) -> bool:  # noqa: N802 - Qt API
-        if not self._dock.isFloating():
+        try:
+            floating = self._dock.isFloating()
+        except RuntimeError:  # dock already deleted while the window closes
+            return False
+        if not floating:
             return False
         if event.type() == QEvent.Type.MouseMove and not event.buttons():
             edges = self._edges(event.position().toPoint())

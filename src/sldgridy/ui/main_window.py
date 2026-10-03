@@ -357,6 +357,10 @@ class MainWindow(QMainWindow):
         self.act_osnap.setCheckable(True)
         self.act_osnap.setChecked(self.canvas.osnap_enabled)
         self.act_osnap.toggled.connect(self.canvas.set_osnap_enabled)
+        self.act_otrack = self._action(self.tr("Objektfang&spur"), lambda: None, "F11", "SPUR")
+        self.act_otrack.setCheckable(True)
+        self.act_otrack.setChecked(self.canvas.otrack_enabled)
+        self.act_otrack.toggled.connect(self.canvas.set_otrack_enabled)
         self.act_osnap_settings = self._action(
             self.tr("Objektfang ein&stellen …"), self._edit_osnap_settings
         )
@@ -424,6 +428,7 @@ class MainWindow(QMainWindow):
         m.addActions([self.act_zoom_in, self.act_zoom_out, self.act_zoom_extents])
         m.addSeparator()
         m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
+        m.addAction(self.act_otrack)
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
         m.addSeparator()
         self.docks_menu = m.addMenu(self.tr("&Fenster"))
@@ -501,7 +506,13 @@ class MainWindow(QMainWindow):
         self.lbl_zoom = QLabel()
         status = self.statusBar()
         status.addPermanentWidget(self.lbl_position)
-        for action in (self.act_grid, self.act_snap, self.act_ortho, self.act_osnap):
+        for action in (
+            self.act_grid,
+            self.act_snap,
+            self.act_ortho,
+            self.act_osnap,
+            self.act_otrack,
+        ):
             button = QToolButton()
             button.setDefaultAction(action)
             button.setAutoRaise(True)
@@ -989,6 +1000,10 @@ class MainWindow(QMainWindow):
     # -- slots --------------------------------------------------------------
 
     def _on_tool_changed(self) -> None:
+        active = self.tools.active is not None
+        if getattr(self, "_tool_was_active", False) and not active:
+            self.canvas.clear_tracking()  # tracking points live for one command
+        self._tool_was_active = active
         prompt = self.tools.prompt() or self.tr("Befehl:")
         self.command_line.set_prompt(prompt)
         self.canvas.viewport().update()
@@ -1024,6 +1039,7 @@ class MainWindow(QMainWindow):
         self.act_snap.setChecked(settings.value("view/snap_enabled", True, type=bool))
         self.act_ortho.setChecked(settings.value("view/ortho_enabled", False, type=bool))
         self.act_osnap.setChecked(settings.value("view/osnap_enabled", True, type=bool))
+        self.act_otrack.setChecked(settings.value("view/otrack_enabled", True, type=bool))
         modes = settings.value("view/osnap_modes", None)
         if isinstance(modes, str):
             modes = [modes] if modes else []
@@ -1046,6 +1062,7 @@ class MainWindow(QMainWindow):
         settings.setValue("view/snap_enabled", self.act_snap.isChecked())
         settings.setValue("view/ortho_enabled", self.act_ortho.isChecked())
         settings.setValue("view/osnap_enabled", self.act_osnap.isChecked())
+        settings.setValue("view/otrack_enabled", self.act_otrack.isChecked())
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/grid_spacing", self.canvas.grid_spacing())
         settings.setValue("view/snap_spacing", self.canvas.snap_spacing)

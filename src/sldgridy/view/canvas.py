@@ -3,7 +3,7 @@
 import json
 from collections.abc import Callable
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
+from PyQt6.QtCore import QPointF, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QFont, QKeyEvent, QPainter, QPen, QPolygonF, QWheelEvent
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
@@ -11,6 +11,7 @@ from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, ortho, snap_to_grid
 from sldgridy.model.grips import grip_points
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, find_snap
+from sldgridy.model.tracking import TrackLine, toggle_acquired, track
 from sldgridy.tools.controller import ToolController
 from sldgridy.tools.edit import GripEditTool, MoveTool
 from sldgridy.view.grid import grid_lines, visible_grid_step
@@ -53,6 +54,8 @@ DRAG_THRESHOLD_PX = 3.0
 SNAP_APERTURE_PX = 10.0
 SNAP_MARKER_PX = 6.0
 SNAP_MARKER_COLOR = QColor("#e07000")
+TRACK_COLOR = QColor("#2e7d32")
+ACQUIRE_DELAY_MS = 400  # hover time on a snap point before it is acquired for tracking
 GRIP_PX = 4.0  # half size of a grip square
 MAX_GRIP_ENTITIES = 200
 
@@ -105,6 +108,14 @@ class Canvas(QGraphicsView):
         self.snap_spacing = DEFAULT_SNAP_SPACING_MM
         self.ortho_enabled = False
         self.osnap_enabled = True
+        self.otrack_enabled = True
+        self.acquired: list[Point] = []
+        self._track_lines: tuple[TrackLine, ...] = ()
+        self._hover_point: Point | None = None
+        self._acquire_timer = QTimer(self)
+        self._acquire_timer.setSingleShot(True)
+        self._acquire_timer.setInterval(ACQUIRE_DELAY_MS)
+        self._acquire_timer.timeout.connect(self._acquire_hovered)
         self.osnap_modes: frozenset[SnapMode] = ALL_MODES
         self.controller: ToolController | None = None
         self.resolve_style: StyleResolver | None = None
@@ -221,15 +232,56 @@ class Canvas(QGraphicsView):
     def constrain(self, scene_pos: QPointF) -> QPointF:
         """Apply object snap, or grid snap and ortho mode, to a raw scene position."""
         self._snap_hit = self.object_snap(scene_pos)
+        self._track_lines = ()
         if self._snap_hit is not None:
             return qpt(self._snap_hit.point)
+        base = self.controller.base_point() if self.controller else None
+        ortho_base = base if self.ortho_enabled else None
+        if self.otrack_enabled and self.acquired:
+            tolerance = SNAP_APERTURE_PX / self.transform().m11()
+            grid = self.snap_spacing if self.snap_enabled else None
+            result = track(mpt(scene_pos), self.acquired, tolerance, grid, ortho_base)
+            if result is not None:
+                self._track_lines = result.lines
+                return qpt(result.point)
         p = mpt(scene_pos)
         if self.snap_enabled:
             p = snap_to_grid(p, self.snap_spacing)
-        base = self.controller.base_point() if self.controller else None
-        if self.ortho_enabled and base is not None:
-            p = ortho(base, p)
+        if ortho_base is not None:
+            p = ortho(ortho_base, p)
         return qpt(p)
+
+    # -- object snap tracking -----------------------------------------------
+
+    def set_otrack_enabled(self, enabled: bool) -> None:
+        self.otrack_enabled = enabled
+        if not enabled:
+            self.clear_tracking()
+
+    def clear_tracking(self) -> None:
+        self.acquired = []
+        self._track_lines = ()
+        self._hover_point = None
+        self._acquire_timer.stop()
+        self.viewport().update()
+
+    def _watch_hover(self) -> None:
+        """Start the acquire timer when the cursor rests on a new snap point."""
+        point = self._snap_hit.point if self._snap_hit is not None else None
+        if not self.otrack_enabled or point is None:
+            self._hover_point = None
+            self._acquire_timer.stop()
+            return
+        if point != self._hover_point:
+            self._hover_point = point
+            self._acquire_timer.start()
+
+    def _acquire_hovered(self) -> None:
+        hit = self._snap_hit
+        if hit is None or hit.point != self._hover_point:
+            return
+        self.acquired = toggle_acquired(self.acquired, hit.point)
+        self.viewport().update()
 
     def cursor_point(self) -> QPointF | None:
         return self._cursor_scene
@@ -250,6 +302,7 @@ class Canvas(QGraphicsView):
     def _update_cursor(self, view_pos: QPointF) -> None:
         self._cursor_view = view_pos
         self._cursor_scene = self.constrain(self.map_to_scene_f(view_pos))
+        self._watch_hover()
         self.cursor_moved.emit(self._cursor_scene)
         if self.controller:
             self.controller.hover(mpt(self._cursor_scene))
@@ -523,6 +576,8 @@ class Canvas(QGraphicsView):
         controller = self.controller
         text = event.text()
         if key == Qt.Key.Key_Escape:
+            if self.acquired:
+                self.clear_tracking()
             if self._tool_active():
                 controller.cancel()
             elif self.navigator is not None:
@@ -627,6 +682,7 @@ class Canvas(QGraphicsView):
         if not self._tool_active():
             self._draw_grips(painter)
         self._draw_rubber_band(painter)
+        self._draw_tracking(painter)
         self._draw_snap_marker(painter)
         self._draw_crosshair(painter)
 
@@ -643,6 +699,29 @@ class Canvas(QGraphicsView):
         for _, _, p in grips:
             v = self.map_from_scene_f(qpt(p))
             painter.drawRect(QRectF(v.x() - r, v.y() - r, 2 * r, 2 * r))
+        painter.restore()
+
+    def _draw_tracking(self, painter: QPainter) -> None:
+        if not self.otrack_enabled or (not self.acquired and not self._track_lines):
+            return
+        painter.save()
+        painter.resetTransform()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+        vp = self.viewport().rect()
+        pen = QPen(TRACK_COLOR, 1, Qt.PenStyle.DotLine)
+        painter.setPen(pen)
+        for line in self._track_lines:
+            o = self.map_from_scene_f(qpt(line.origin))
+            if line.vertical:
+                painter.drawLine(QPointF(o.x(), vp.top()), QPointF(o.x(), vp.bottom()))
+            else:
+                painter.drawLine(QPointF(vp.left(), o.y()), QPointF(vp.right(), o.y()))
+        painter.setPen(QPen(TRACK_COLOR, 2))
+        r = 5
+        for p in self.acquired:
+            c = self.map_from_scene_f(qpt(p))
+            painter.drawLine(QPointF(c.x() - r, c.y()), QPointF(c.x() + r, c.y()))
+            painter.drawLine(QPointF(c.x(), c.y() - r), QPointF(c.x(), c.y() + r))
         painter.restore()
 
     def _draw_snap_marker(self, painter: QPainter) -> None:
