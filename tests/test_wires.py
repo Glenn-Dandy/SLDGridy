@@ -224,20 +224,23 @@ def test_shipped_library_complete():
                 assert v / 2.5 == pytest.approx(round(v / 2.5)), (d.name, c.name)
 
 
-def test_load_break_circles_centred_on_the_contact():
+def test_load_break_circles_centred_on_the_contact_below_the_bar():
     _, defs = load_library(system_library_dir() / "din_en_60617.sldglib")
     from sldgridy.model.entities import Circle, Line
 
     for d in defs:
-        bars = [
-            e
-            for e in d.entities
-            if isinstance(e, Line) and e.p1.y == e.p2.y == 5 and e.p1.x == -1.25 and e.p2.x == 1.25
-        ]
         circles = [e for e in d.entities if isinstance(e, Circle) and e.radius == 0.75]
         for c in circles:
-            assert bars, d.name
-            assert c.center.y == 5, d.name  # centred on the contact, on the bar
+            assert c.center.y == 5, d.name  # centred on the switch contact
+            top = c.center.y - c.radius
+            bars = [
+                e
+                for e in d.entities
+                if isinstance(e, Line) and e.p1.y == e.p2.y == top and e.p1.x == -1.25
+            ]
+            assert bars, d.name  # disconnector bar on top of the circle
+            fixed = [e for e in d.entities if isinstance(e, Line) and e.p1 == Point(0, 0)]
+            assert fixed and fixed[0].p2 == Point(0, top), d.name
 
 
 def test_circuit_breaker_has_thermal_and_magnetic_release():
@@ -258,4 +261,4 @@ def test_measuring_relays_and_pv_category():
     pv = {d.name for d in defs if d.category == "Photovoltaik"}
     assert {"PV-Modul", "PV-Generator", "Wechselrichter", "NA-Schutzrelais"} <= pv
     module = by["PV-Modul"]
-    assert {c.name: c.direction for c in module.connection_points()} == {"+": 90, "−": 270}
+    assert [(c.position, c.direction) for c in module.connection_points()] == [(Point(0, 0), 270)]
