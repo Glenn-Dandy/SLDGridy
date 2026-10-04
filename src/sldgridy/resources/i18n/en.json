@@ -567,5 +567,7 @@
  "{name} (neu)": "{name} (new)",
  "Entlang der Leitung in Leserichtung (senkrecht: unten = links)": "Along the wire in reading direction (vertical: bottom = left)",
  "Größe:": "Size:",
- "mitte": "centre"
+ "mitte": "centre",
+ "DC-Solarspeicher": "DC solar storage",
+ "DC-gekoppelter Solarspeicher (Batteriespeicher am Gleichstromkreis), Kastendarstellung, keine Normdarstellung": "DC-coupled solar storage (battery on the DC circuit), box style, not a standard symbol"
 }

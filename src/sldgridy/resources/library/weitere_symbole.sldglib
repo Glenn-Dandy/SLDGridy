@@ -549,6 +549,218 @@
      "valign": "middle"
     }
    ]
+  },
+  {
+   "name": "DC-Solarspeicher",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Photovoltaik",
+   "description": "DC-gekoppelter Solarspeicher (Batteriespeicher am Gleichstromkreis), Kastendarstellung, keine Normdarstellung",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "box",
+     "layer": "0",
+     "p1": [
+      -5.0,
+      0.0
+     ],
+     "p2": [
+      5.0,
+      10.0
+     ]
+    },
+    {
+     "type": "line",
+     "id": "plate_pos",
+     "layer": "0",
+     "p1": [
+      -2.5,
+      3.25
+     ],
+     "p2": [
+      2.5,
+      3.25
+     ]
+    },
+    {
+     "type": "line",
+     "id": "plate_neg",
+     "layer": "0",
+     "p1": [
+      -1.25,
+      4.5
+     ],
+     "p2": [
+      1.25,
+      4.5
+     ],
+     "lineweight": 0.7
+    },
+    {
+     "type": "text",
+     "id": "plus",
+     "layer": "0",
+     "position": [
+      -3.75,
+      2.0
+     ],
+     "text": "+",
+     "height": 2.0,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "line",
+     "id": "dc_solid",
+     "layer": "0",
+     "p1": [
+      -2.0,
+      6.75
+     ],
+     "p2": [
+      2.0,
+      6.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "dc_dash1",
+     "layer": "0",
+     "p1": [
+      -2.0,
+      7.75
+     ],
+     "p2": [
+      -1.1,
+      7.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "dc_dash2",
+     "layer": "0",
+     "p1": [
+      -0.45,
+      7.75
+     ],
+     "p2": [
+      0.45,
+      7.75
+     ]
+    },
+    {
+     "type": "line",
+     "id": "dc_dash3",
+     "layer": "0",
+     "p1": [
+      1.1,
+      7.75
+     ],
+     "p2": [
+      2.0,
+      7.75
+     ]
+    },
+    {
+     "type": "connection",
+     "id": "cp_top",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0.0,
+      0.0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-G2",
+     "position": [
+      7.5,
+      1.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      4.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      8.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
   }
  ]
 }
