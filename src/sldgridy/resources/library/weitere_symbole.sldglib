@@ -156,7 +156,7 @@
      "layer": "0",
      "tag": "TYP",
      "prompt": "Typ",
-     "default": "SHU E",
+     "default": "SHU",
      "position": [
       3.75,
       7.5
@@ -401,7 +401,7 @@
      "layer": "0",
      "tag": "TYP",
      "prompt": "Typ",
-     "default": "SHA E",
+     "default": "SHA",
      "position": [
       6.25,
       7.5
