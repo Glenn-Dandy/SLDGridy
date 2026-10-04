@@ -586,5 +586,9 @@
  "automatisch (längster Abschnitt)": "automatic (longest segment)",
  "frei (Griff auf der Leitung ziehen)": "free (drag the grip along the wire)",
  "Position:": "Position:",
- "Frei: den Griff an der Beschriftung entlang der Leitung ziehen": "Free: drag the grip at the label along the wire"
+ "Frei: den Griff an der Beschriftung entlang der Leitung ziehen": "Free: drag the grip at the label along the wire",
+ "Andockpunkt entfernen": "Remove docking point",
+ "Andockpunkt entfernen ({name})": "Remove docking point ({name})",
+ "Andockpunkt hier setzen ({name})": "Set docking point here ({name})",
+ "Andockpunkt setzen": "Set docking point"
 }

@@ -129,3 +129,38 @@ def test_library_dock_category_filter(window):
     ]
     assert "PV-Modul" in shown and "Leitungsschutzschalter" not in shown
     assert all("mitgeliefert" not in dock.source.itemText(i) for i in range(dock.source.count()))
+
+
+def test_docked_wire_follows_block(window):
+    from sldgridy.model.blocks import BlockDefinition
+    from sldgridy.model.container import EntityContainer
+    from sldgridy.model.entities import BlockReference, Rectangle
+    from sldgridy.ui.point_menu import point_actions
+
+    doc = window.document
+    doc.set_block(
+        BlockDefinition(
+            name="WR",
+            base_point=Point(0, 0),
+            entities=EntityContainer([Rectangle(id="r", p1=Point(-5, 0), p2=Point(5, 10))]),
+        )
+    )
+    ms = doc.model_space
+    ms.add(BlockReference(id="t1", name="WR", insert=Point(100, 50)))
+    ms.add(Wire(id="lan", points=(Point(60, 57.5), Point(95, 57.5))))
+    actions = dict(point_actions(window, Point(95, 57.5)))
+    label = [k for k in actions if k.startswith("Andockpunkt hier setzen")][0]
+    actions[label]()
+    assert ms.get("t1").docks == (Point(-5, 7.5),)
+    # Moving the block drags the wire end along.
+    window._sync.item("t1").setSelected(True)
+    window.act_move.trigger()
+    click(window, 100, 50)
+    click(window, 100, 40)
+    assert ms.get("lan").points[-1] == Point(95, 47.5)
+    assert ms.get("lan").points[0] == Point(60, 57.5)
+    # And the dock can be removed again.
+    actions = dict(point_actions(window, Point(95, 47.5)))
+    remove = [k for k in actions if k.startswith("Andockpunkt entfernen")][0]
+    actions[remove]()
+    assert ms.get("t1").docks == ()

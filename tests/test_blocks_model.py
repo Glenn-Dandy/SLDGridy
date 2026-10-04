@@ -336,3 +336,37 @@ def replace_rotation(ref, rotation):
     from dataclasses import replace
 
     return replace(ref, rotation=rotation)
+
+
+def test_dock_points_follow_the_reference():
+    from dataclasses import replace
+
+    from sldgridy.model.blocks import BlockDefinition, dock_target, world_connections
+    from sldgridy.model.container import EntityContainer
+    from sldgridy.model.entities import BlockReference, ConnectionPoint, Rectangle
+    from sldgridy.model.geometry import Point
+
+    box = BlockDefinition(
+        name="WR",
+        base_point=Point(0, 0),
+        entities=EntityContainer(
+            [
+                Rectangle(id="r", p1=Point(-5, 0), p2=Point(5, 10)),
+                ConnectionPoint(id="c", name="1", position=Point(0, 0), direction=90),
+            ]
+        ),
+    )
+    blocks = {"WR": box}
+    ref = BlockReference(id="t1", name="WR", insert=Point(100, 50))
+    # Left edge, lower than the edge middle.
+    local = dock_target(ref, blocks, Point(95, 57.5), 1.0)
+    assert local == Point(-5, 7.5)
+    assert dock_target(ref, blocks, Point(100, 50), 1.0) is None  # already a connection
+    assert dock_target(ref, blocks, Point(80, 57.5), 1.0) is None  # not on the symbol
+    docked = replace(ref, docks=(local,))
+    dock = [c for c in world_connections(docked, blocks) if c.name == "A1"][0]
+    assert dock.position == Point(95, 57.5) and dock.direction == 180
+    # Moved and rotated, the dock stays on the same spot of the symbol.
+    turned = replace(docked, insert=Point(0, 0), rotation=90)
+    dock = [c for c in world_connections(turned, blocks) if c.name == "A1"][0]
+    assert dock.position.x == pytest.approx(7.5) and dock.position.y == pytest.approx(5)

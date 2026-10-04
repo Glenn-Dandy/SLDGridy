@@ -11,7 +11,9 @@ from sldgridy.commands.entities import (
     RemoveEntitiesCommand,
     ReplaceEntitiesCommand,
 )
-from sldgridy.model.entities import JunctionMark, Line, Polyline, Wire, new_id
+from sldgridy.i18n import library_text
+from sldgridy.model.blocks import dock_target, point_to_world
+from sldgridy.model.entities import BlockReference, JunctionMark, Line, Polyline, Wire, new_id
 from sldgridy.model.geometry import Point
 from sldgridy.model.wires import entities_at, junction_points, remove_vertex, same
 from sldgridy.tools.draw import ExtendTool, LineTool
@@ -60,6 +62,8 @@ def point_actions(w: "MainWindow", p: Point) -> list[tuple[str, Callable[[], Non
             )
         )
 
+    actions += _dock_actions(w, p, entities, push)
+
     for e in entities:
         if isinstance(e, Wire | Polyline):
             name = tr("Leitung") if isinstance(e, Wire) else tr("Polylinie")
@@ -90,6 +94,44 @@ def point_actions(w: "MainWindow", p: Point) -> list[tuple[str, Callable[[], Non
                     )
         elif isinstance(e, Line) and (same(e.p1, p) or same(e.p2, p)):
             actions.append((tr("Verlängern (Linie)"), lambda: w.start_tool(_line_from(p))))
+    return actions
+
+
+DOCK_TOLERANCE = 1.0  # mm around the symbol where a dock may be set
+
+
+def _dock_actions(w, p: Point, entities, push) -> list[tuple[str, Callable[[], None]]]:
+    """Set or remove an instance-only connection point ("dock") of a block at ``p``."""
+    container = w.container
+    blocks = w.block_definitions
+    actions: list[tuple[str, Callable[[], None]]] = []
+    for e in entities:
+        if not isinstance(e, BlockReference) or e.name not in blocks:
+            continue
+        label = e.attribute("BMK") or library_text(e.name)
+        base = blocks[e.name].base_point
+        for i, local in enumerate(e.docks):
+            if same(point_to_world(e, base, local), p):
+                new = replace(e, docks=e.docks[:i] + e.docks[i + 1 :])
+                actions.append(
+                    (
+                        tr("Andockpunkt entfernen ({name})").format(name=label),
+                        lambda n=new: push(
+                            ReplaceEntitiesCommand(container, [n], tr("Andockpunkt entfernen"))
+                        ),
+                    )
+                )
+        target = dock_target(e, blocks, p, DOCK_TOLERANCE)
+        if target is not None:
+            new = replace(e, docks=(*e.docks, target))
+            actions.append(
+                (
+                    tr("Andockpunkt hier setzen ({name})").format(name=label),
+                    lambda n=new: push(
+                        ReplaceEntitiesCommand(container, [n], tr("Andockpunkt setzen"))
+                    ),
+                )
+            )
     return actions
 
 

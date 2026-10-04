@@ -264,6 +264,40 @@ def label_text(wire: Wire) -> Text | None:
     )
 
 
+def move_segment(wire: Wire, index: int, p: Point) -> Wire:
+    """Shift segment ``index`` across its direction so it passes through ``p``.
+
+    The neighbours stretch, and the wire's ends stay where they are (connected): an
+    end segment gets a short perpendicular piece at the fixed end.
+    """
+    pts = list(wire.points)
+    a, b = pts[index], pts[index + 1]
+    if abs(a.y - b.y) <= EPS:  # horizontal: moves up or down
+        dx, dy = 0.0, p.y - a.y
+    else:  # vertical: moves left or right
+        dx, dy = p.x - a.x, 0.0
+    if abs(dx) <= EPS and abs(dy) <= EPS:
+        return wire
+    moved = [a.translated(dx, dy), b.translated(dx, dy)]
+    head = pts[:index] + ([a] if index == 0 else [])
+    tail = ([b] if index + 1 == len(pts) - 1 else []) + pts[index + 2 :]
+    return replace(wire, points=simplify(head + moved + tail))
+
+
+def segment_grips(wire: Wire, avoid: Point | None = None) -> list[tuple[int, Point]]:
+    """(segment index, grip point) for every segment: its middle, or a quarter along it
+    when the middle is taken by the label grip ``avoid``."""
+    result = []
+    for i, (a, b) in enumerate(segments(wire.points)):
+        if distance(a, b) <= EPS:
+            continue
+        mid = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
+        if avoid is not None and distance(mid, avoid) < min(5.0, distance(a, b) / 4):
+            mid = Point(a.x + (b.x - a.x) / 4, a.y + (b.y - a.y) / 4)
+        result.append((i, mid))
+    return result
+
+
 def drag_end(wire: Wire, end: int, p: Point) -> Wire:
     """Move one end (0 = start, -1 = end) keeping all segments orthogonal."""
     pts = list(wire.points)

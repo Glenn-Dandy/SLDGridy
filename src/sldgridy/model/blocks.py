@@ -16,7 +16,7 @@ from sldgridy.model.entities import (
     Rectangle,
     Text,
 )
-from sldgridy.model.geometry import Point
+from sldgridy.model.geometry import Point, mirror_point, rotate_quarter
 from sldgridy.model.layers import DEFAULT_LAYER
 
 MAX_NESTING = 32
@@ -100,6 +100,16 @@ def to_world(ref: BlockReference, base: Point, e: Entity) -> Entity:
 def point_to_world(ref: BlockReference, base: Point, p: Point) -> Point:
     probe = ConnectionPoint(id="", name="", position=p)
     return to_world(ref, base, probe).position
+
+
+def point_to_local(ref: BlockReference, base: Point, p: Point) -> Point:
+    """Inverse of ``point_to_world``: drawing point in definition coordinates."""
+    origin = Point(0.0, 0.0)
+    q = Point(p.x - ref.insert.x, p.y - ref.insert.y)
+    q = rotate_quarter(q, origin, -(ref.rotation // 90))
+    if ref.mirrored_x:
+        q = mirror_point(q, origin, horizontal=False)
+    return Point(round(q.x + base.x, 6), round(q.y + base.y, 6))
 
 
 _FLIP_HALIGN = {"left": "right", "right": "left", "center": "center"}
@@ -288,8 +298,61 @@ def expand(
 def world_connections(
     ref: BlockReference, blocks: Mapping[str, BlockDefinition]
 ) -> list[ConnectionPoint]:
-    """Connection points of the reference's own definition in drawing coordinates."""
+    """Connection points of the reference (its definition's and its own docks) in drawing
+    coordinates."""
     definition = blocks.get(ref.name)
     if definition is None:
         return []
-    return [to_world(ref, definition.base_point, c) for c in definition.connection_points()]
+    points = list(definition.connection_points())
+    if ref.docks:
+        box = symbol_bounds(definition)
+        points += [
+            ConnectionPoint(
+                id=f"dock{i}", name=f"A{i + 1}", position=p, direction=_edge_direction(box, p)
+            )
+            for i, p in enumerate(ref.docks)
+        ]
+    return [to_world(ref, definition.base_point, c) for c in points]
+
+
+def symbol_bounds(definition: BlockDefinition) -> tuple[float, float, float, float] | None:
+    """Bounds of the drawn symbol in definition coordinates (without texts and helpers)."""
+    return bounds(
+        e
+        for e in definition.entities
+        if not isinstance(e, AttributeDefinition | ConnectionPoint | Text)
+    )
+
+
+def _edge_direction(box: tuple[float, float, float, float] | None, p: Point) -> float:
+    """Direction pointing out of the nearest edge of ``box`` (Y down: top is 90)."""
+    if box is None:
+        return 0.0
+    min_x, min_y, max_x, max_y = box
+    edges = [(p.x - min_x, 180.0), (max_x - p.x, 0.0), (p.y - min_y, 90.0), (max_y - p.y, 270.0)]
+    return min(edges, key=lambda e: abs(e[0]))[1]
+
+
+def dock_target(
+    ref: BlockReference, blocks: Mapping[str, BlockDefinition], p: Point, tolerance: float
+) -> Point | None:
+    """Definition coordinates for a new dock at drawing point ``p``, or None if ``p`` is
+    not on the symbol or already a connection point of it."""
+    definition = blocks.get(ref.name)
+    if definition is None:
+        return None
+    if any(
+        abs(c.position.x - p.x) <= 1e-6 and abs(c.position.y - p.y) <= 1e-6
+        for c in world_connections(ref, blocks)
+    ):
+        return None
+    box = symbol_bounds(definition)
+    if box is None:
+        return None
+    local = point_to_local(ref, definition.base_point, p)
+    min_x, min_y, max_x, max_y = box
+    inside = (
+        min_x - tolerance <= local.x <= max_x + tolerance
+        and min_y - tolerance <= local.y <= max_y + tolerance
+    )
+    return local if inside else None

@@ -144,6 +144,8 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
             d["name"], d["insert"] = e.name, _pt(e.insert)
             d["rotation"], d["mirrored"] = e.rotation, e.mirrored_x
             d["attributes"] = dict(e.attributes)
+            if e.docks:
+                d["docks"] = [_pt(p) for p in e.docks]
     return d
 
 
@@ -251,6 +253,7 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 rotation=int(d.get("rotation", 0)) % 360,
                 mirrored_x=bool(d.get("mirrored", False)),
                 attributes=tuple(sorted((str(k), str(v)) for k, v in attributes.items())),
+                docks=tuple(_to_pt(p) for p in d.get("docks", [])),
                 **common,
             )
     raise FileFormatError(f"unknown entity type {kind!r}")

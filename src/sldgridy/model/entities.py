@@ -217,6 +217,9 @@ class BlockReference(Entity):
     rotation: int = 0
     mirrored_x: bool = False
     attributes: tuple[tuple[str, str], ...] = ()
+    # Extra connection points of this instance only ("docks"), in definition coordinates,
+    # so wires attached anywhere on the symbol follow it.
+    docks: tuple[Point, ...] = ()
 
     def _mapped(self, fn, quarters):
         return replace(self, insert=fn(self.insert), rotation=(self.rotation + 90 * quarters) % 360)

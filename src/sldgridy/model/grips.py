@@ -27,12 +27,7 @@ def grip_points(e: Entity) -> list[Point]:
         case Line() | Busbar():
             return [e.p1, e.p2]
         case Wire():
-            if e.label and len(e.points) >= 2:
-                from sldgridy.model.wires import label_anchor
-
-                # Third grip: where the label sits on the wire.
-                return [e.points[0], e.points[-1], label_anchor(e)[0]]
-            return [e.points[0], e.points[-1]]
+            return [p for _, p in _wire_grips(e)]
         case BlockReference():
             return [e.insert]
         case AttributeDefinition() | ConnectionPoint() | JunctionMark():
@@ -50,6 +45,27 @@ def grip_points(e: Entity) -> list[Point]:
     return []
 
 
+def grip_kinds(e: Entity) -> list[str]:
+    """How each grip of ``grip_points`` is drawn: "point", "segment" or "label"."""
+    if isinstance(e, Wire):
+        return ["point" if kind == "end" else kind for (kind, _), _ in _wire_grips(e)]
+    return ["point"] * len(grip_points(e))
+
+
+def _wire_grips(w: Wire) -> list[tuple[tuple[str, int], Point]]:
+    """Grips of a wire: both ends, the label point (if labelled), the segment middles."""
+    from sldgridy.model.wires import label_anchor, segment_grips
+
+    if len(w.points) < 2:
+        return [(("end", 0), p) for p in w.points]
+    grips = [(("end", 0), w.points[0]), (("end", -1), w.points[-1])]
+    label = label_anchor(w)[0] if w.label else None
+    if label is not None:
+        grips.append((("label", 0), label))
+    grips += [(("segment", i), p) for i, p in segment_grips(w, label)]
+    return grips
+
+
 def move_grip(e: Entity, index: int, p: Point) -> Entity | None:
     """Entity with grip ``index`` moved to ``p``, or None if the result is degenerate."""
     match e:
@@ -59,9 +75,15 @@ def move_grip(e: Entity, index: int, p: Point) -> Entity | None:
         case Wire():
             from sldgridy.model.wires import drag_end, project_on_path
 
-            if index == 2:
+            kind, data = _wire_grips(e)[index][0]
+            if kind == "label":
                 at = round(project_on_path(e.points, p), 3)
                 return replace(e, label_pos="free", label_at=at)
+            if kind == "segment":
+                from sldgridy.model.wires import move_segment
+
+                new = move_segment(e, data, p)
+                return new if len(new.points) >= 2 else None
             new = drag_end(e, 0 if index == 0 else -1, p)
             return new if len(new.points) >= 2 else None
         case Polyline():

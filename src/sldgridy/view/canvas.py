@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, ortho, snap_to_grid
-from sldgridy.model.grips import grip_points
+from sldgridy.model.grips import grip_kinds, grip_points
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, find_snap
 from sldgridy.model.tracking import TrackLine, toggle_acquired, track
 from sldgridy.tools.controller import ToolController
@@ -770,11 +770,34 @@ class Canvas(QGraphicsView):
         painter.resetTransform()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
         painter.setPen(QPen(QColor("#0d47a1"), 1))
-        painter.setBrush(QBrush(SELECTION_COLOR))
         r = GRIP_PX
-        for _, _, p in grips:
+        kinds = {item.entity_id: grip_kinds(item.entity) for item in self._selected_entity_items()}
+        for entity_id, index, p in grips:
             v = self.map_from_scene_f(qpt(p))
-            painter.drawRect(QRectF(v.x() - r, v.y() - r, 2 * r, 2 * r))
+            entity_kinds = kinds.get(entity_id, [])
+            kind = entity_kinds[index] if index < len(entity_kinds) else "point"
+            if kind == "label":
+                # Diamond: drags the label along the wire.
+                painter.setBrush(QBrush(QColor("#ff9800")))
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+                d = r + 1
+                painter.drawPolygon(
+                    QPolygonF(
+                        [
+                            QPointF(v.x(), v.y() - d),
+                            QPointF(v.x() + d, v.y()),
+                            QPointF(v.x(), v.y() + d),
+                            QPointF(v.x() - d, v.y()),
+                        ]
+                    )
+                )
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
+            else:
+                # Hollow squares shift a segment, filled ones move a point.
+                painter.setBrush(
+                    QBrush(QColor("#ffffff") if kind == "segment" else SELECTION_COLOR)
+                )
+                painter.drawRect(QRectF(v.x() - r, v.y() - r, 2 * r, 2 * r))
         painter.restore()
 
     def _draw_tracking(self, painter: QPainter) -> None:

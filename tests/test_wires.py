@@ -422,9 +422,43 @@ def test_label_grip_moves_label_along_wire():
     from sldgridy.model.grips import grip_points, move_grip
 
     w = W("w", (0, 0), (0, 40), (60, 40), label="X")
-    assert len(grip_points(w)) == 3
-    assert len(grip_points(W("n", (0, 0), (0, 40)))) == 2  # no label, no grip
+    # Ends, label point, then one grip per segment (the bottom one avoids the label).
+    assert grip_points(w) == [
+        Point(0, 0),
+        Point(60, 40),
+        Point(30, 40),
+        Point(0, 20),
+        Point(15, 40),
+    ]
+    assert grip_points(W("n", (0, 0), (0, 40))) == [Point(0, 0), Point(0, 40), Point(0, 20)]
     moved = move_grip(w, 2, Point(25, 43))  # beside the bottom segment
     assert moved.label_pos == "free" and moved.label_at == pytest.approx(65)
     assert grip_points(moved)[2] == Point(25, 40)
     assert moved.points == w.points
+
+
+def test_segment_grip_moves_segment_and_keeps_the_ends():
+    from sldgridy.model.grips import grip_points, move_grip
+    from sldgridy.model.wires import move_segment
+
+    # Junction at the left, across to x = 70, up to a battery at (70, 20).
+    w = W("w", (0, 40), (70, 40), (70, 20))
+    assert move_segment(w, 1, Point(40, 30)).points == (
+        Point(0, 40),
+        Point(40, 40),
+        Point(40, 20),
+        Point(70, 20),  # the end stays at the battery, a short piece leads to it
+    )
+    # The middle segment of a Z shape just moves; the neighbours stretch.
+    z = W("z", (0, 0), (0, 20), (50, 20), (50, 40))
+    assert move_segment(z, 1, Point(25, 30)).points == (
+        Point(0, 0),
+        Point(0, 30),
+        Point(50, 30),
+        Point(50, 40),
+    )
+    # Through the grips: index 2 is the first segment grip of an unlabelled wire.
+    grips = grip_points(z)
+    assert grips[3] == Point(25, 20)
+    moved = move_grip(z, 3, Point(25, 30))
+    assert moved.points[0] == z.points[0] and moved.points[-1] == z.points[-1]
