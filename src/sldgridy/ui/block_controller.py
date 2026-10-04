@@ -50,8 +50,10 @@ from sldgridy.fileio.paths import user_library_dir
 from sldgridy.i18n import library_text
 from sldgridy.model.blocks import (
     BlockDefinition,
+    BlockError,
     bounds,
     dependencies,
+    expand,
     explode,
     would_create_cycle,
 )
@@ -456,6 +458,25 @@ class BlockController(QObject):
                 )
                 return None
         return renames.get(name, name), to_add, to_replace, merged
+
+    def drag_preview(self, payload: dict, at: Point) -> list[Entity]:
+        """Geometry of a block dragged from the library dock, inserted at ``at``."""
+        name = str(payload.get("name", ""))
+        library = self.w.library_dock.library(str(payload.get("path", "")))
+        blocks = ChainMap(library, self.doc.blocks)
+        if name not in blocks:
+            return []
+        ref = BlockReference(
+            id="drag-preview",
+            name=name,
+            insert=at,
+            layer=self.w.current_layer,
+            attributes=default_attributes(blocks[name]),
+        )
+        try:
+            return expand(ref, blocks)
+        except BlockError:
+            return []
 
     def on_drop(self, payload: dict, point: QPointF) -> None:
         if not isinstance(payload, dict):

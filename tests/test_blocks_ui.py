@@ -490,3 +490,33 @@ def test_drop_is_handled_after_the_drag_ends(window, qapp):
     qapp.processEvents()
     (ref,) = refs(window)
     assert ref.name == "Sicherung"
+
+
+def test_dragged_block_is_previewed_in_the_drawing(window, qapp):
+    import json
+
+    from PyQt6.QtCore import QMimeData
+    from PyQt6.QtGui import QDragEnterEvent, QDragLeaveEvent, QDragMoveEvent
+
+    from sldgridy.view.canvas import BLOCK_MIME
+
+    path = write_library("vorschau")
+    window.library_dock.reload()
+    data = QMimeData()
+    data.setData(BLOCK_MIME, json.dumps({"path": str(path), "name": "Feld"}).encode())
+    canvas = window.canvas
+    pos = canvas.map_from_scene_f(QPointF(40, 40)).toPoint()
+    args = (
+        Qt.DropAction.CopyAction,
+        data,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    canvas.dragEnterEvent(QDragEnterEvent(pos, *args))
+    canvas.dragMoveEvent(QDragMoveEvent(pos, *args))
+    parts = canvas._drag_preview_entities()
+    assert parts and any(isinstance(p, Line) for p in parts)  # nested fuses included
+    assert "Sicherung" not in window.document.blocks  # nothing inserted while dragging
+    canvas.viewport().repaint()
+    canvas.dragLeaveEvent(QDragLeaveEvent())
+    assert canvas._drag_preview_entities() == []

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Protocol
 
 from PyQt6.QtCore import QMimeData, QPoint, QSize, Qt, pyqtSignal
+from PyQt6.QtGui import QDrag, QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
     QDockWidget,
@@ -42,6 +43,19 @@ class LibraryHost(Protocol):
 
 
 class _BlockList(QListWidget):
+    def startDrag(self, supported_actions) -> None:
+        """Drag without a picture at the cursor: the drawing shows the block itself, and a
+        picture would hide the crosshair and the target point."""
+        items = self.selectedItems() or [self.currentItem()]
+        if items[0] is None:
+            return
+        drag = QDrag(self)
+        drag.setMimeData(self.mimeData(items[:1]))
+        pixmap = QPixmap(1, 1)
+        pixmap.fill(Qt.GlobalColor.transparent)
+        drag.setPixmap(pixmap)
+        drag.exec(Qt.DropAction.CopyAction)
+
     def mimeTypes(self) -> list[str]:
         return [BLOCK_MIME]
 

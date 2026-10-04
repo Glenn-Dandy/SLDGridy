@@ -156,6 +156,7 @@ class MainWindow(QMainWindow):
         self.canvas.entity_double_clicked.connect(self._edit_entity)
         self.canvas.text_typed.connect(self.command_line.start_typing)
         self.canvas.block_dropped.connect(self.blocks.on_drop)
+        self.canvas.drag_preview = self.blocks.drag_preview
         self.canvas.empty_double_clicked.connect(self.sheets.on_empty_double_click)
         self.canvas.point_menu_requested.connect(self._show_point_menu)
         self.canvas.osnap_menu_requested.connect(lambda pos: self.osnap_menu.exec(pos))

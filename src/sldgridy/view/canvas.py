@@ -42,7 +42,8 @@ GRID_MAJOR_COLOR = QColor("#c8c8c8")
 AXIS_X_COLOR = QColor("#d03030")
 AXIS_Y_COLOR = QColor("#20a040")
 
-PREVIEW_COLOR = QColor("#7a7a7a")
+# Translucent, so points and lines under a preview (e.g. a block being placed) stay visible.
+PREVIEW_COLOR = QColor(110, 110, 110, 150)
 RUBBER_LINE_COLOR = QColor("#9e9e9e")
 CROSSHAIR_COLOR = QColor("#303030")
 WINDOW_SELECT_COLOR = QColor(30, 136, 229)
@@ -115,6 +116,9 @@ class Canvas(QGraphicsView):
         self.otrack_enabled = True
         self.acquired: list[Point] = []
         self._pending_drops: list[tuple[dict, QPointF]] = []
+        # Entities of a block dragged from the library, placed at a point; set by the window.
+        self.drag_preview: Callable[[dict, Point], list[Entity]] | None = None
+        self._drag_payload: dict | None = None
         self._track_lines: tuple[TrackLine, ...] = ()
         self._hover_point: Point | None = None
         self._acquire_timer = QTimer(self)
@@ -577,8 +581,20 @@ class Canvas(QGraphicsView):
             return
         self.mousePressEvent(event)
 
+    @staticmethod
+    def _block_payload(data) -> dict | None:
+        if not data.hasFormat(BLOCK_MIME):
+            return None
+        try:
+            payload = json.loads(bytes(data.data(BLOCK_MIME)).decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            return None
+        return payload if isinstance(payload, dict) else None
+
     def dragEnterEvent(self, event) -> None:
-        if event.mimeData().hasFormat(BLOCK_MIME):
+        self._drag_payload = self._block_payload(event.mimeData())
+        if self._drag_payload is not None:
+            self._cursor_view = event.position()
             event.acceptProposedAction()
         else:
             event.ignore()
@@ -591,14 +607,21 @@ class Canvas(QGraphicsView):
         else:
             event.ignore()
 
+    def dragLeaveEvent(self, event) -> None:
+        self._drag_payload = None
+        self._cursor_view = None
+        self.viewport().update()
+        event.accept()
+
+    def _drag_preview_entities(self) -> list[Entity]:
+        if self._drag_payload is None or self.drag_preview is None:
+            return []
+        return self.drag_preview(self._drag_payload, mpt(self._cursor_scene))
+
     def dropEvent(self, event) -> None:
-        data = event.mimeData()
-        if not data.hasFormat(BLOCK_MIME):
-            event.ignore()
-            return
-        try:
-            payload = json.loads(bytes(data.data(BLOCK_MIME)).decode("utf-8"))
-        except (ValueError, UnicodeDecodeError):
+        self._drag_payload = None
+        payload = self._block_payload(event.mimeData())
+        if payload is None:
             event.ignore()
             return
         self._update_cursor(event.position())
@@ -721,19 +744,23 @@ class Canvas(QGraphicsView):
             previews = self.controller.preview()
             if self.expand is not None:
                 previews = [part for e in previews for part in self.expand(e)]
-            for e in previews:
-                if self.resolve_style:
-                    style = self.resolve_style(e)
-                    style = Style(PREVIEW_COLOR, style.lineweight, style.linetype)
-                else:
-                    style = Style(PREVIEW_COLOR, 0.25)
-                paint_entity(painter, e, style, scale)
+            self._paint_preview(painter, previews, scale)
+        self._paint_preview(painter, self._drag_preview_entities(), scale)
         if not self._tool_active():
             self._draw_grips(painter)
         self._draw_rubber_band(painter)
         self._draw_tracking(painter)
         self._draw_snap_marker(painter)
         self._draw_crosshair(painter)
+
+    def _paint_preview(self, painter: QPainter, entities: list[Entity], scale: float) -> None:
+        for e in entities:
+            if self.resolve_style:
+                style = self.resolve_style(e)
+                style = Style(PREVIEW_COLOR, style.lineweight, style.linetype)
+            else:
+                style = Style(PREVIEW_COLOR, 0.25)
+            paint_entity(painter, e, style, scale)
 
     def _draw_grips(self, painter: QPainter) -> None:
         grips = self._grips()
