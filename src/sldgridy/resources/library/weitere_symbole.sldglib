@@ -977,6 +977,234 @@
      "valign": "middle"
     }
    ]
+  },
+  {
+   "name": "Wallbox AC-gekoppelt",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Elektromobilität",
+   "description": "Wallbox (Ladeeinrichtung für Elektrofahrzeuge) am Wechselstromnetz, AC-gekoppelt, Kastendarstellung, keine Normdarstellung",
+   "entities": [
+    {
+     "type": "rectangle",
+     "id": "box",
+     "layer": "0",
+     "p1": [
+      -5.0,
+      0.0
+     ],
+     "p2": [
+      5.0,
+      10.0
+     ]
+    },
+    {
+     "type": "arc",
+     "id": "plug",
+     "layer": "0",
+     "center": [
+      0.0,
+      4.75
+     ],
+     "radius": 3.0,
+     "start_angle": 131.41,
+     "end_angle": 48.59
+    },
+    {
+     "type": "line",
+     "id": "plug_top",
+     "layer": "0",
+     "p1": [
+      -1.984,
+      2.5
+     ],
+     "p2": [
+      1.984,
+      2.5
+     ]
+    },
+    {
+     "type": "circle",
+     "id": "pin1",
+     "layer": "0",
+     "center": [
+      -1.0,
+      3.6
+     ],
+     "radius": 0.35
+    },
+    {
+     "type": "circle",
+     "id": "pin2",
+     "layer": "0",
+     "center": [
+      1.0,
+      3.6
+     ],
+     "radius": 0.35
+    },
+    {
+     "type": "circle",
+     "id": "pin3",
+     "layer": "0",
+     "center": [
+      -1.75,
+      5.0
+     ],
+     "radius": 0.4
+    },
+    {
+     "type": "circle",
+     "id": "pin4",
+     "layer": "0",
+     "center": [
+      0.0,
+      5.0
+     ],
+     "radius": 0.4
+    },
+    {
+     "type": "circle",
+     "id": "pin5",
+     "layer": "0",
+     "center": [
+      1.75,
+      5.0
+     ],
+     "radius": 0.4
+    },
+    {
+     "type": "circle",
+     "id": "pin6",
+     "layer": "0",
+     "center": [
+      -1.0,
+      6.5
+     ],
+     "radius": 0.4
+    },
+    {
+     "type": "circle",
+     "id": "pin7",
+     "layer": "0",
+     "center": [
+      1.0,
+      6.5
+     ],
+     "radius": 0.4
+    },
+    {
+     "type": "text",
+     "id": "ac",
+     "layer": "0",
+     "position": [
+      3.6,
+      8.6
+     ],
+     "text": "~",
+     "height": 2.0,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp_top",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0.0,
+      0.0
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      10.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -5.0,
+      5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      5.0,
+      5.0
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "-E1",
+     "position": [
+      7.5,
+      1.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      7.5,
+      4.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      7.5,
+      8.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
   }
  ]
 }

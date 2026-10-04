@@ -575,5 +575,8 @@
  "Internet als Wolke, keine Normdarstellung": "Internet as a cloud, not a standard symbol",
  "Links oben auf 0,0": "Top left to 0,0",
  "Legt die linke obere Ecke des Blattrahmens im Modell auf den Nullpunkt": "Puts the top left corner of the sheet outline in the model on the origin",
- "Ausschnitt links oben:": "Area top left:"
+ "Ausschnitt links oben:": "Area top left:",
+ "Wallbox AC-gekoppelt": "Wallbox, AC-coupled",
+ "Elektromobilität": "Electric mobility",
+ "Wallbox (Ladeeinrichtung für Elektrofahrzeuge) am Wechselstromnetz, AC-gekoppelt, Kastendarstellung, keine Normdarstellung": "Wallbox (charging station for electric vehicles) on the AC grid, AC-coupled, box style, not a standard symbol"
 }

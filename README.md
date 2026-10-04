@@ -29,7 +29,7 @@ SLDGridy then appears in the application menu and `.sldg` files open with a doub
 ### Quick start
 
 1. Draw in the **Model** tab. The origin is marked with axes; 1 unit = 1 mm.
-2. Drag symbols from the **Library** dock (left) into the drawing or double-click them. The shipped library “Symbols to DIN EN 60617” contains 42 symbols for PV, transformer stations and low voltage; a second library “Further symbols” holds common symbols without a standard drawing (selective main switches SHU/SHA, PV module, DC solar storage, Internet cloud). After inserting, the program asks for the attributes `BMK` (reference designation), `TYP` and `WERT`.
+2. Drag symbols from the **Library** dock (left) into the drawing or double-click them. The shipped library “Symbols to DIN EN 60617” contains 42 symbols for PV, transformer stations and low voltage; a second library “Further symbols” holds common symbols without a standard drawing (selective main switches SHU/SHA, PV module, DC solar storage, AC-coupled wallbox, Internet cloud). After inserting, the program asks for the attributes `BMK` (reference designation), `TYP` and `WERT`.
 3. Connect connection points with **Draw > Wire** (Ctrl+W). Wires snap to connection points (magenta markers) and bend at right angles automatically. **Bus bar** draws a 0.7 mm bar that can be connected anywhere. Connection dots appear automatically.
 4. Label wires by double-clicking them or in the Properties dock, e.g. “NYY-J 5x16”; the dock also sets side, alignment (left, centre, right) and size of the label.
 5. The **Sheet 1** tab holds an A0 landscape frame with title block. **Sheet > Fill in title block** sets project, company, title and so on.
@@ -144,7 +144,7 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 ### Kurzanleitung
 
 1. Im Reiter **Modell** zeichnen. Der Nullpunkt ist mit einem Achsenkreuz markiert, 1 Einheit = 1 mm.
-2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „Symbole nach DIN EN 60617“ enthält 42 Symbole für PV, Trafostation und Niederspannung; eine zweite Bibliothek „Weitere Symbole“ enthält übliche Symbole ohne Norm-Schaltzeichen (selektive Hauptschalter netzunabhängig/netzabhängig, PV-Modul, DC-Solarspeicher, Internet-Wolke). Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
+2. Symbole aus dem Dock **Bibliothek** (links) in die Zeichnung ziehen oder doppelklicken. Die mitgelieferte Bibliothek „Symbole nach DIN EN 60617“ enthält 42 Symbole für PV, Trafostation und Niederspannung; eine zweite Bibliothek „Weitere Symbole“ enthält übliche Symbole ohne Norm-Schaltzeichen (selektive Hauptschalter netzunabhängig/netzabhängig, PV-Modul, DC-Solarspeicher, Wallbox AC-gekoppelt, Internet-Wolke). Nach dem Einfügen fragt das Programm die Attribute `BMK`, `TYP` und `WERT` ab.
 3. Mit **Zeichnen > Leitung** (Strg+W) Anschlusspunkte verbinden. Die Leitung rastet auf Anschlusspunkte (magentafarbene Marker) und knickt automatisch rechtwinklig. **Sammelschiene** zeichnet eine 0,7-mm-Schiene, an die überall angeschlossen werden kann. Verbindungspunkte entstehen automatisch.
 4. Leitungen beschriften: Doppelklick auf die Leitung oder Eigenschaften-Dock, z. B. „NYY-J 5x16“; im Dock auch Lage, Ausrichtung (links, mitte, rechts) und Größe der Beschriftung.
 5. Im Reiter **Blatt 1** liegt der Zeichnungsrahmen A0 quer mit Schriftfeld. **Blatt > Schriftfeld ausfüllen** setzt Projekt, Firma, Titel usw.
