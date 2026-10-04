@@ -101,6 +101,8 @@ class Canvas(QGraphicsView):
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
         self._layer: QPixmap | None = None
+        # Off by default: on some Wayland setups (mixed screen scaling) it flickered.
+        self.layer_cache_enabled = False
         self._layer_key_value: tuple = ()
         self._rendering_layer = False
         self._watched_scenes: list[QGraphicsScene] = []
@@ -206,7 +208,15 @@ class Canvas(QGraphicsView):
             vp.devicePixelRatioF(),
         )
 
+    def set_layer_cache_enabled(self, enabled: bool) -> None:
+        self.layer_cache_enabled = enabled
+        self._invalidate_layer()
+        self.viewport().update()
+
     def paintEvent(self, event) -> None:
+        if not self.layer_cache_enabled:
+            super().paintEvent(event)
+            return
         vp = self.viewport()
         key = self._layer_key()
         if self._layer is None or key != self._layer_key_value:

@@ -113,3 +113,14 @@ def test_mouse_side_buttons_undo_and_redo(window):
         assert "x" not in ms
         QTest.mouseClick(widget, Qt.MouseButton.ForwardButton)
         assert "x" in ms
+
+
+def test_layer_cache_is_optional_and_off_by_default(window):
+    assert not window.act_layer_cache.isChecked()
+    assert not window.canvas.layer_cache_enabled
+    plain = window.canvas.viewport().grab()
+    window.act_layer_cache.setChecked(True)
+    assert window.canvas.layer_cache_enabled
+    cached = window.canvas.viewport().grab()
+    assert cached.size() == plain.size()
+    window.act_layer_cache.setChecked(False)

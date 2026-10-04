@@ -592,5 +592,7 @@
  "Andockpunkt hier setzen ({name})": "Set docking point here ({name})",
  "Andockpunkt setzen": "Set docking point",
  "Punkt hinzufügen": "Add point",
- "Punkt hinzufügen ({name})": "Add point ({name})"
+ "Punkt hinzufügen ({name})": "Add point ({name})",
+ "Schnelle Darstellung (Zwischenspeicher)": "Fast display (cache)",
+ "Zeichnung als Bild zwischenspeichern: Mausbewegungen bei großen Plänen deutlich flüssiger. Bei Darstellungsfehlern ausschalten.": "Keep the drawing as a cached image: mouse moves are much smoother in large plans. Switch off if the display looks wrong."
 }

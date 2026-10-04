@@ -401,6 +401,17 @@ class MainWindow(QMainWindow):
         self.act_otrack.setCheckable(True)
         self.act_otrack.setChecked(self.canvas.otrack_enabled)
         self.act_otrack.toggled.connect(self.canvas.set_otrack_enabled)
+        self.act_layer_cache = self._action(
+            self.tr("Schnelle Darstellung (Zwischenspeicher)"), lambda: None
+        )
+        self.act_layer_cache.setCheckable(True)
+        self.act_layer_cache.setToolTip(
+            self.tr(
+                "Zeichnung als Bild zwischenspeichern: Mausbewegungen bei großen Plänen "
+                "deutlich flüssiger. Bei Darstellungsfehlern ausschalten."
+            )
+        )
+        self.act_layer_cache.toggled.connect(self.canvas.set_layer_cache_enabled)
         self.osnap_menu = OsnapMenu(
             self, self.act_osnap, lambda: self.canvas.osnap_modes, self._set_osnap_modes
         )
@@ -473,6 +484,7 @@ class MainWindow(QMainWindow):
         m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
         m.addAction(self.act_otrack)
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
+        m.addAction(self.act_layer_cache)
         m.addSeparator()
         self.docks_menu = m.addMenu(self.tr("&Fenster"))
         # Deliberately bilingual: findable whatever language is active.
@@ -1191,6 +1203,7 @@ class MainWindow(QMainWindow):
             )
             chosen |= {m for m in SnapMode if m.value not in known_set}
             self.canvas.osnap_modes = frozenset(chosen)
+        self.act_layer_cache.setChecked(settings.value("view/layer_cache", False, type=bool))
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:
@@ -1207,6 +1220,7 @@ class MainWindow(QMainWindow):
         settings.setValue("view/ortho_enabled", self.act_ortho.isChecked())
         settings.setValue("view/osnap_enabled", self.act_osnap.isChecked())
         settings.setValue("view/otrack_enabled", self.act_otrack.isChecked())
+        settings.setValue("view/layer_cache", self.act_layer_cache.isChecked())
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/osnap_known", sorted(m.value for m in SnapMode))
         settings.setValue("view/grid_spacing", self.canvas.grid_spacing())
