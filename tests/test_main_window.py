@@ -99,3 +99,17 @@ def test_save_and_open_roundtrip(window, tmp_path):
     from sldgridy.view.items import EntityItem
 
     assert len([i for i in window.scene.items() if isinstance(i, EntityItem)]) == 6
+
+
+def test_mouse_side_buttons_undo_and_redo(window):
+    from sldgridy.commands.entities import AddEntitiesCommand
+    from sldgridy.model.entities import Line
+
+    ms = window.document.model_space
+    window.push(AddEntitiesCommand(ms, [Line(id="x", p1=Point(0, 0), p2=Point(5, 0))], "Linie"))
+    assert "x" in ms
+    for widget in (window.canvas.viewport(), window.library_dock.list.viewport()):
+        QTest.mouseClick(widget, Qt.MouseButton.BackButton)
+        assert "x" not in ms
+        QTest.mouseClick(widget, Qt.MouseButton.ForwardButton)
+        assert "x" in ms

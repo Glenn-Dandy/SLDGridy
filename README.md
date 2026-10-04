@@ -50,7 +50,7 @@ SLDGridy then appears in the application menu and `.sldg` files open with a doub
 | End command | Enter or right click |
 | Repeat last command | Space |
 | Delete | Del |
-| Undo / Redo | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) |
+| Undo / Redo | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), mouse back / forward button |
 | Cut / Copy / Paste | Ctrl+X / Ctrl+C / Ctrl+V |
 | Object snap / grid / ortho / grid snap / snap tracking | F3 / F7 / F8 / F9 / F11 |
 
@@ -165,7 +165,7 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 | Befehl beenden | Enter oder Rechtsklick |
 | Letzten Befehl wiederholen | Leertaste |
 | Löschen | Entf |
-| Rückgängig / Wiederholen | Strg+Z / Strg+Y (oder Strg+Umschalt+Z) |
+| Rückgängig / Wiederholen | Strg+Z / Strg+Y (oder Strg+Umschalt+Z), Maustaste zurück / vor |
 | Ausschneiden / Kopieren / Einfügen | Strg+X / Strg+C / Strg+V |
 | Objektfang / Raster / Ortho / Rasterfang / Objektfangspur | F3 / F7 / F8 / F9 / F11 |
 

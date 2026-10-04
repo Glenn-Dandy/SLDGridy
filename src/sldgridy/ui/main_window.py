@@ -5,7 +5,7 @@ from dataclasses import replace
 from functools import partial
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QSettings, Qt
+from PyQt6.QtCore import QEvent, QPointF, QSettings, Qt
 from PyQt6.QtGui import (
     QAction,
     QActionGroup,
@@ -17,6 +17,7 @@ from PyQt6.QtGui import (
     QUndoStack,
 )
 from PyQt6.QtWidgets import (
+    QApplication,
     QComboBox,
     QFileDialog,
     QFormLayout,
@@ -156,6 +157,8 @@ class MainWindow(QMainWindow):
         self.canvas.entity_double_clicked.connect(self._edit_entity)
         self.canvas.text_typed.connect(self.command_line.start_typing)
         self.canvas.block_dropped.connect(self.blocks.on_drop)
+        # Side buttons of the mouse anywhere in this window: back undoes, forward redoes.
+        QApplication.instance().installEventFilter(self)
         self.canvas.drag_preview = self.blocks.drag_preview
         self.canvas.empty_double_clicked.connect(self.sheets.on_empty_double_click)
         self.canvas.point_menu_requested.connect(self._show_point_menu)
@@ -1197,6 +1200,18 @@ class MainWindow(QMainWindow):
         if not getattr(self, "_initial_view_done", False):
             self._initial_view_done = True
             self.canvas.zoom_extents()
+
+    def eventFilter(self, watched, event) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress and isinstance(watched, QWidget):
+            button = event.button()
+            if button in (Qt.MouseButton.BackButton, Qt.MouseButton.ForwardButton) and (
+                watched.window() is self
+            ):
+                action = self.act_undo if button == Qt.MouseButton.BackButton else self.act_redo
+                if action.isEnabled():
+                    action.trigger()
+                return True
+        return super().eventFilter(watched, event)
 
     def closeEvent(self, event: QCloseEvent) -> None:
         if not self._maybe_save():
