@@ -226,3 +226,37 @@ def test_add_point_then_shift_one_half(window):
         Point(100, 60),
         Point(100, 50),
     )
+
+
+def test_moving_a_device_does_not_connect_wires_by_chance(window, qapp):
+    from sldgridy.model.entities import JunctionMark
+
+    window.document.blocks.update(blocks())
+    window._on_blocks_changed("")
+    ms = window.document.model_space
+    ms.add(BlockReference(id="f", name="Sicherung", insert=Point(50, 100)))
+    ms.add(Wire(id="w", points=(Point(50, 100), Point(50, 20))))  # docked at the fuse
+    ms.add(Wire(id="x", points=(Point(47.5, 140), Point(47.5, 100))))  # someone else's end
+
+    window.act_osnap.setChecked(False)  # plain grid clicks
+
+    def move_fuse(dx):
+        window.scene.clearSelection()
+        window._sync.item("f").setSelected(True)
+        window.act_move.trigger()
+        click(window, 50 if dx == -5 else 45, 100)
+        click(window, (50 if dx == -5 else 45) + dx, 100)
+
+    move_fuse(-5)
+    # The pulled wire now runs through x's end, but they must not be connected.
+    assert ms.get("w").points[0] == Point(45, 100)
+    marks = [e for e in ms if isinstance(e, JunctionMark)]
+    assert [(m.position, m.connected) for m in marks] == [(Point(47.5, 100), False)]
+    qapp.processEvents()
+    assert window.space.extra["junctions"]._dots == []
+    move_fuse(-5)
+    assert ms.get("x").points == (Point(47.5, 140), Point(47.5, 100))  # stays put
+    # Undo removes the separation mark again.
+    window.act_undo.trigger()
+    window.act_undo.trigger()
+    assert not [e for e in ms if isinstance(e, JunctionMark)]

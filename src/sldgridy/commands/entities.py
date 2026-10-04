@@ -41,18 +41,25 @@ class RemoveEntitiesCommand(QUndoCommand):
 
 
 class ReplaceEntitiesCommand(QUndoCommand):
-    """Swap entities for modified versions with the same ids."""
+    """Swap entities for modified versions with the same ids. Entities whose id is not
+    in the container yet (e.g. junction marks created by a move) are added."""
 
     def __init__(self, container: EntityContainer, new: Iterable[Entity], text: str) -> None:
         super().__init__(text)
         self._container = container
-        self._new = list(new)
+        entities = list(new)
+        self._new = [e for e in entities if e.id in container]
+        self._added = [e for e in entities if e.id not in container]
         self._old = [container.get(e.id) for e in self._new]
 
     def redo(self) -> None:
         for e in self._new:
             self._container.replace(e)
+        for e in self._added:
+            self._container.add(e)
 
     def undo(self) -> None:
+        for e in reversed(self._added):
+            self._container.remove(e.id)
         for e in self._old:
             self._container.replace(e)

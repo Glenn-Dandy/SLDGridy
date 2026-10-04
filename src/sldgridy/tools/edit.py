@@ -5,18 +5,24 @@ from collections.abc import Sequence
 from PyQt6.QtCore import QTimer
 
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
-from sldgridy.model.entities import Entity
+from sldgridy.model.entities import Entity, JunctionMark, new_id
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_points, move_grip
-from sldgridy.model.wires import follow_connections, follow_wires
+from sldgridy.model.wires import follow_connections, follow_wires, new_contacts
 from sldgridy.tools.base import Tool, tr
 
 MAX_FOLLOW_DEPTH = 20  # wires pulled along by wires, at most this deep
 
 
-def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
+def with_followers(
+    ctx, old: list[Entity], new: list[Entity], separate: bool = False
+) -> list[Entity]:
     """``new`` plus wires whose ends were attached to moved connection points or to
-    moved wires and bus bars (and the junction marks there)."""
+    moved wires and bus bars (and the junction marks there).
+
+    ``separate`` (when the change is committed): where a pulled-along wire now touches
+    another wire by chance, add a separation mark so it does not become connected.
+    """
     blocks = getattr(ctx, "block_definitions", {})
     entities = list(ctx.container)
     by_id = {e.id: e for e in entities}
@@ -37,6 +43,12 @@ def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
         taken |= fresh.keys()
         step_old = [by_id[i] for i in fresh if i in by_id]
         step_new = list(fresh.values())
+    if separate:
+        follower_ids = {e.id for e in result} - {e.id for e in new}
+        result += [
+            JunctionMark(id=new_id(), position=p, connected=False)
+            for p in new_contacts(entities, result, follower_ids)
+        ]
     return result
 
 
@@ -104,7 +116,10 @@ class MoveTool(_SelectionTool):
         dx, dy = p.x - self._base.x, p.y - self._base.y
         if dx or dy:
             moved = with_followers(
-                self.ctx, self._entities, [e.translated(dx, dy) for e in self._entities]
+                self.ctx,
+                self._entities,
+                [e.translated(dx, dy) for e in self._entities],
+                separate=True,
             )
             self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, moved, tr("Verschieben")))
         self.done = True
@@ -168,7 +183,10 @@ class RotateTool(_SelectionTool):
         k = self._quarters(p)
         if k:
             rotated = with_followers(
-                self.ctx, self._entities, [e.rotated(self._base, k) for e in self._entities]
+                self.ctx,
+                self._entities,
+                [e.rotated(self._base, k) for e in self._entities],
+                separate=True,
             )
             self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, rotated, tr("Drehen")))
         self.done = True
@@ -206,7 +224,10 @@ class MirrorTool(_SelectionTool):
             return
         horizontal = self._horizontal(p)
         mirrored = with_followers(
-            self.ctx, self._entities, [e.mirrored(self._base, horizontal) for e in self._entities]
+            self.ctx,
+            self._entities,
+            [e.mirrored(self._base, horizontal) for e in self._entities],
+            separate=True,
         )
         self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, mirrored, tr("Spiegeln")))
         self.done = True
@@ -262,7 +283,7 @@ class GripEditTool(Tool):
     def pick(self, p: Point) -> None:
         new = move_grip(self._entity, self._index, p)
         if new is not None and new != self._entity:
-            changed = with_followers(self.ctx, [self._entity], [new])
+            changed = with_followers(self.ctx, [self._entity], [new], separate=True)
             self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, changed, tr("Griff ziehen")))
         self.done = True
 

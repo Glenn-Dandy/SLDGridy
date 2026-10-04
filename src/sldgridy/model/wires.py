@@ -530,3 +530,49 @@ def insert_point(points: tuple[Point, ...], p: Point) -> tuple[Point, ...] | Non
         if _on_segment_interior(p, a, b):
             return (*points[: i + 1], p, *points[i + 1 :])
     return None
+
+
+def _touches(p: Point, e: Entity) -> bool:
+    return any(on_segment(p, a, b) for a, b in _segments_of(e))
+
+
+def new_contacts(
+    entities: Iterable[Entity], changed: Iterable[Entity], follower_ids: set[str]
+) -> list[Point]:
+    """Points where a wire pulled along (``follower_ids``) now touches another wire or
+    bus bar with an end, or is touched by another wire's end, although these two did
+    not touch there before. Such chance contacts must not become connections."""
+    original = {e.id: e for e in entities}
+    final = dict(original)
+    final.update({e.id: e for e in changed})
+    bodies = [e for e in final.values() if isinstance(e, Wire | Busbar)]
+    marked = [e.position for e in final.values() if isinstance(e, JunctionMark)]
+    found: list[Point] = []
+
+    def add(p: Point) -> None:
+        if not any(same(p, q) for q in marked) and not any(same(p, q) for q in found):
+            found.append(p)
+
+    def was_touching(wire_id: str, index: int, body_id: str) -> bool:
+        wire, body = original.get(wire_id), original.get(body_id)
+        if not isinstance(wire, Wire) or body is None or len(wire.points) < 2:
+            return False
+        return _touches(wire.points[index], body)
+
+    for fid in follower_ids:
+        f = final.get(fid)
+        if not isinstance(f, Wire) or len(f.points) < 2:
+            continue
+        for index in (0, -1):
+            p = f.points[index]
+            for body in bodies:
+                if body.id != fid and _touches(p, body) and not was_touching(fid, index, body.id):
+                    add(p)
+        for other in bodies:
+            if other.id == fid or not isinstance(other, Wire) or len(other.points) < 2:
+                continue
+            for index in (0, -1):
+                q = other.points[index]
+                if _touches(q, f) and not was_touching(other.id, index, fid):
+                    add(q)
+    return found
