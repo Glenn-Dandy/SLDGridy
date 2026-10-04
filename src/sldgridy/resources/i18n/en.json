@@ -564,5 +564,8 @@
  "{name} (Bibliothek {library})": "{name} (library {library})",
  "Anschlusspunkte und Attribute festlegen, dann „Speichern und schließen“. Der Basispunkt springt auf den ersten Anschlusspunkt, bis du ihn selbst setzt.": "Define connection points and attributes, then “Save and close”. The base point jumps to the first connection point until you set it yourself.",
  "Danach im Blockeditor Anschlusspunkte, Attribute und Basispunkt festlegen": "Then define connection points, attributes and base point in the block editor",
- "{name} (neu)": "{name} (new)"
+ "{name} (neu)": "{name} (new)",
+ "Entlang der Leitung in Leserichtung (senkrecht: unten = links)": "Along the wire in reading direction (vertical: bottom = left)",
+ "Größe:": "Size:",
+ "mitte": "centre"
 }

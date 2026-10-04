@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import pytest
 from PyQt6.QtGui import QUndoStack
 
@@ -369,3 +371,16 @@ def test_box_devices_have_four_connections_on_the_edges(name):
     for line in (e for e in d.entities if isinstance(e, Line)):
         for p in (line.p1, line.p2):
             assert not (p.y < y0 - 1e-6 or p.y > y1 + 1e-6) or p.x != cx, name
+
+
+def test_label_alignment_along_segment():
+    h = W("h", (0, 0), (40, 0), label="X", label_align="left")
+    t = label_text(h)
+    assert t.halign == "left" and t.position == Point(2.5, -1)
+    t = label_text(replace(h, label_align="right"))
+    assert t.halign == "right" and t.position == Point(37.5, -1)
+    # Vertical labels read bottom to top: left is the lower end.
+    v = W("v", (0, 0), (0, 30), label="X", label_align="left", label_height=3.5)
+    t = label_text(v)
+    assert t.halign == "left" and t.position == Point(-1, 27.5) and t.height == 3.5
+    assert label_text(replace(v, label_align="right")).position == Point(-1, 2.5)

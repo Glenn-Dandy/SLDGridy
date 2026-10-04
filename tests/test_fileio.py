@@ -123,3 +123,21 @@ def test_saved_file_gets_normal_permissions(tmp_path):
     os.chmod(path, 0o640)
     save_document(Document.new("Blatt 1"), path)
     assert path.stat().st_mode & 0o777 == 0o640
+
+
+def test_wire_label_roundtrip():
+    from sldgridy.model.entities import Wire
+    from sldgridy.model.geometry import Point
+
+    for align in ("left", "center", "right"):
+        wire = Wire(
+            id="w",
+            points=(Point(0, 0), Point(40, 0)),
+            label="NYY-J 5x16",
+            label_side=-1,
+            label_height=3.5,
+            label_align=align,
+        )
+        d = entity_to_dict(wire)
+        assert ("label_align" in d) == (align != "center")
+        assert entity_from_dict(json.loads(json.dumps(d))) == wire

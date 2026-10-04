@@ -251,12 +251,15 @@ DEFAULT_WIRE_LABEL_HEIGHT = 2.5
 @dataclass(frozen=True, kw_only=True)
 class Wire(Entity):
     """Orthogonal wire. ``label`` is shown at the longest segment; ``label_side``
-    1 puts it above (horizontal) or left (vertical), -1 below or right."""
+    1 puts it above (horizontal) or left (vertical), -1 below or right.
+    ``label_align`` "left", "center" or "right" places it along the segment in
+    reading direction (vertical labels read bottom to top)."""
 
     points: tuple[Point, ...]
     label: str = ""
     label_side: int = 1
     label_height: float = DEFAULT_WIRE_LABEL_HEIGHT
+    label_align: str = "center"
 
     def _mapped(self, fn, quarters):
         return replace(self, points=tuple(fn(p) for p in self.points))

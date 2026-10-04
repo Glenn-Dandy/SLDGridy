@@ -1,7 +1,7 @@
 import pytest
 from PyQt6.QtCore import QPointF, QRectF, QSettings, Qt
 from PyQt6.QtTest import QTest
-from PyQt6.QtWidgets import QLineEdit, QPushButton
+from PyQt6.QtWidgets import QComboBox, QLineEdit, QPushButton
 
 from blocks_fixtures import blocks
 from sldgridy.model.entities import BlockReference, Busbar, Wire
@@ -83,6 +83,18 @@ def test_wire_label_in_properties_dock(window):
     [b for b in dock.widget().findChildren(QPushButton) if "Beschriftung" in b.text()][0].click()
     assert window.document.model_space.get("w").label == "NYY-J 5x10"
     assert any(p.id == "w:label" for p in window._sync.item("w")._parts)
+    combos = dock.widget().findChildren(QComboBox)
+    align = [c for c in combos if c.findData("right") >= 0][0]
+    align.setCurrentIndex(align.findData("right"))
+    align.activated.emit(align.currentIndex())
+    assert window.document.model_space.get("w").label_align == "right"
+    height = [c for c in dock.widget().findChildren(QComboBox) if c.findData(3.5) >= 0][-1]
+    height.setCurrentIndex(height.findData(3.5))
+    height.activated.emit(height.currentIndex())
+    wire = window.document.model_space.get("w")
+    assert wire.label_height == 3.5 and wire.label_align == "right"
+    window.act_undo.trigger()
+    assert window.document.model_space.get("w").label_height != 3.5
 
 
 def test_busbar_tool_in_window(window):

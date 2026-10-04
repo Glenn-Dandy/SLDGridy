@@ -43,7 +43,15 @@ from sldgridy.i18n import ui_locale
 from sldgridy.model.blocks import BlockDefinition, BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
-from sldgridy.model.entities import BlockReference, Busbar, ConnectionPoint, Entity, Text, Wire
+from sldgridy.model.entities import (
+    TEXT_HEIGHTS,
+    BlockReference,
+    Busbar,
+    ConnectionPoint,
+    Entity,
+    Text,
+    Wire,
+)
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode
@@ -79,6 +87,7 @@ from sldgridy.ui.print_dialog import PrintDialog
 from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
+from sldgridy.ui.styles import mm_label
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import BACKGROUND_COLOR, Canvas
 from sldgridy.view.display import title_labels
@@ -1054,19 +1063,43 @@ class MainWindow(QMainWindow):
         side.addItem(self.tr("oben / links"), 1)
         side.addItem(self.tr("unten / rechts"), -1)
         side.setCurrentIndex(0 if wire.label_side > 0 else 1)
+        align = QComboBox()
+        align.addItem(self.tr("links"), "left")
+        align.addItem(self.tr("mitte"), "center")
+        align.addItem(self.tr("rechts"), "right")
+        align.setCurrentIndex(max(align.findData(wire.label_align), 0))
+        align.setToolTip(self.tr("Entlang der Leitung in Leserichtung (senkrecht: unten = links)"))
+        height = QComboBox()
+        for h in TEXT_HEIGHTS:
+            height.addItem(mm_label(h), h)
+        if height.findData(wire.label_height) < 0:
+            height.addItem(mm_label(wire.label_height), wire.label_height)
+        height.setCurrentIndex(height.findData(wire.label_height))
         apply = QPushButton(self.tr("Beschriftung übernehmen"))
         form.addRow(self.tr("Text:"), edit)
         form.addRow(self.tr("Lage:"), side)
+        form.addRow(self.tr("Ausrichtung:"), align)
+        form.addRow(self.tr("Größe:"), height)
         form.addRow(apply)
         layout.addWidget(box)
 
         def on_apply() -> None:
             current = self.container.get(wire.id)
-            new = replace(current, label=edit.text(), label_side=int(side.currentData()))
+            new = replace(
+                current,
+                label=edit.text(),
+                label_side=int(side.currentData()),
+                label_align=str(align.currentData()),
+                label_height=float(height.currentData()),
+            )
             if new != current:
                 self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Beschriftung")))
 
         apply.clicked.connect(on_apply)
+        # Choices take effect at once, like the other property fields.
+        side.activated.connect(lambda _i: on_apply())
+        align.activated.connect(lambda _i: on_apply())
+        height.activated.connect(lambda _i: on_apply())
         edit.returnPressed.connect(on_apply)
 
     def _edit_grid_settings(self) -> None:

@@ -156,7 +156,7 @@ Umsetzung (M5):
 - Das Leitungswerkzeug fügt bei nicht fluchtenden Punkten automatisch einen Knick ein (zuerst entlang der größeren Differenz). Enter oder Rechtsklick beendet.
 - Sammelschienen sind immer waagerecht oder senkrecht und werden mit 0,7 mm angelegt. Der Objektfang bietet jeden Punkt einer Sammelschiene als Anschlusspunkt an.
 - Mitziehen: Verschieben, Drehen, Spiegeln, Ziehen und Griffe ziehen Leitungsenden mit, die auf Anschlusspunkten der bewegten Blöcke (oder auf bewegten einzelnen Anschlusspunkten) liegen. Der letzte Knick wird dabei so angepasst, dass alle Segmente orthogonal bleiben; liegen beide Enden auf gleich bewegten Punkten, wird die Leitung als Ganzes verschoben.
-- Die Beschriftung sitzt mittig am längsten Segment, 1 mm Abstand, oben bzw. links (`label_side` 1) oder unten bzw. rechts (-1), Höhe 2,5 mm. Bearbeiten per Doppelklick oder im Eigenschaften-Dock.
+- Die Beschriftung sitzt am längsten Segment, 1 mm Abstand, oben bzw. links (`label_side` 1) oder unten bzw. rechts (-1), Höhe `label_height` (Standard 2,5 mm). `label_align` „left“/„center“/„right“ (Standard Mitte, in der Datei nur gespeichert, wenn nicht Mitte) richtet sie in Leserichtung am Segment aus, 2,5 mm vom Segmentende; senkrecht liest von unten nach oben, links ist also unten. Bearbeiten per Doppelklick (Text) oder im Eigenschaften-Dock (Text, Lage, Ausrichtung, Größe; Auswahlfelder wirken sofort).
 - Leitungen haben nur an ihren Enden Griffe.
 
 ### Blöcke

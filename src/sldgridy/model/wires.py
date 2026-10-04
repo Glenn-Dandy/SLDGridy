@@ -18,6 +18,8 @@ from sldgridy.model.geometry import Point, distance
 
 EPS = 1e-6
 LABEL_GAP = 1.0  # mm between wire and label
+LABEL_INSET = 2.5  # mm from the segment end for left or right aligned labels
+LABEL_ALIGNS = ("left", "center", "right")
 
 
 def same(a: Point, b: Point) -> bool:
@@ -172,14 +174,19 @@ def label_text(wire: Wire) -> Text | None:
     a, b = max(segments(wire.points), key=lambda s: distance(*s))
     mid = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
     h = wire.label_height
+    align = wire.label_align if wire.label_align in LABEL_ALIGNS else "center"
     vertical = abs(a.x - b.x) <= EPS
     if vertical:
         # Rotation 90 reads bottom to top; the glyphs extend towards -x.
         x = mid.x - LABEL_GAP if wire.label_side > 0 else mid.x + LABEL_GAP + h
-        position, rotation = Point(x, mid.y), 90
+        bottom, top = max(a.y, b.y), min(a.y, b.y)
+        along = {"left": bottom - LABEL_INSET, "center": mid.y, "right": top + LABEL_INSET}
+        position, rotation = Point(x, along[align]), 90
     else:
         y = mid.y - LABEL_GAP if wire.label_side > 0 else mid.y + LABEL_GAP + h
-        position, rotation = Point(mid.x, y), 0
+        left, right = min(a.x, b.x), max(a.x, b.x)
+        along = {"left": left + LABEL_INSET, "center": mid.x, "right": right - LABEL_INSET}
+        position, rotation = Point(along[align], y), 0
     return Text(
         id=f"{wire.id}:label",
         layer=wire.layer,
@@ -188,7 +195,7 @@ def label_text(wire: Wire) -> Text | None:
         text=wire.label,
         height=h,
         rotation=rotation,
-        halign="center",
+        halign=align,
     )
 
 
