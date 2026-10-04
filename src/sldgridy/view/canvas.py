@@ -276,6 +276,14 @@ class Canvas(QGraphicsView):
 
     def _watch_hover(self) -> None:
         """Start the acquire timer when the cursor rests on a new snap point."""
+        if not self._picking_point():
+            # Tracking only helps while a command asks for a point; idle clicks and
+            # grips (e.g. on a selected wire) must not leave tracking points behind.
+            if self.acquired:
+                self.clear_tracking()
+            self._hover_point = None
+            self._acquire_timer.stop()
+            return
         point = self._snap_hit.point if self._snap_hit is not None else None
         if not self.otrack_enabled or point is None:
             self._hover_point = None
@@ -370,6 +378,10 @@ class Canvas(QGraphicsView):
 
     def _tool_active(self) -> bool:
         return self.controller is not None and self.controller.active is not None
+
+    def _picking_point(self) -> bool:
+        """True while the active command waits for a point."""
+        return self._tool_active() and not self.controller.selecting()
 
     def _selecting(self) -> bool:
         """True when clicks select objects (idle, or a command asking for objects)."""
@@ -478,6 +490,9 @@ class Canvas(QGraphicsView):
             elif not self._tool_active() and (grip := self.grip_at(pos)) is not None:
                 entity_id, index = grip
                 self.controller.start(lambda ctx: GripEditTool(ctx, entity_id, index))
+                for grip_id, grip_index, p in self._grips():
+                    if (grip_id, grip_index) == grip:
+                        self._forget_tracking_point(p)
                 self._update_cursor(pos)
             else:
                 item = self._click_select(pos, shift)

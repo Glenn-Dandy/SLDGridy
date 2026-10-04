@@ -86,3 +86,18 @@ def test_tracking_can_be_switched_off(window):
     window.act_otrack.setChecked(False)
     assert window.canvas.acquired == []
     assert window.canvas.constrain(QPointF(20.6, 71.1)) == QPointF(20, 70)  # grid only
+
+
+def test_no_tracking_point_without_command(window):
+    window.document.model_space.add(Line(id="a", p1=Point(20, 20), p2=Point(20, 40)))
+    viewport = window.canvas.viewport()
+    QTest.mouseClick(viewport, Qt.MouseButton.LeftButton, pos=vp(window, 20, 30))  # select
+    QTest.mouseMove(viewport, vp(window, 20.3, 40.2))  # rest on the end point / grip
+    QTest.qWait(500)
+    assert window.canvas.acquired == []
+    # Dragging the grip: the end point moves freely, without a tracking point.
+    QTest.mouseClick(viewport, Qt.MouseButton.LeftButton, pos=vp(window, 20, 40))
+    assert window.tools.active is not None
+    QTest.qWait(500)
+    assert window.canvas.acquired == []
+    window.tools.cancel()
