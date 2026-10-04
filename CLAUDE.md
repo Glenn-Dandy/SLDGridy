@@ -19,7 +19,7 @@ Nicht im Umfang: allgemeines 2D-CAD (Bemaßung, Schraffur, Splines), Stromlaufpl
 - Lizenz: GPL-3.0-or-later (folgt aus PyQt6), Volltext in `LICENSE`
 - Öffentliches Repository: https://github.com/Glenn-Dandy/SLDGridy (Autor in Commits und Paket: Glenn-Dandy). Releases tragen das `.deb` als Asset (`v<version>`); die Update-Prüfung im Über-Dialog liest `releases/latest`.
 - Über-Dialog wie bei BoatSpeedy: Fehler melden / Funktion vorschlagen (vorausgefülltes Issue mit Version, System, Qt, Sitzungstyp), Stern auf GitHub, Quellcode, Projekt unterstützen (https://paypal.me/GlennDandy), Update-Prüfung. Konstanten in `src/sldgridy/project.py`. Unterstützen, Stern und Fehler melden stehen zusätzlich im Hilfe-Menü.
-- Zielsystem: Ubuntu 24.04 LTS, X11 und Wayland. Entwickelt und getestet wird nur dagegen.
+- Zielsystem: Ubuntu 24.04 LTS, X11 und Wayland. Entwickelt und getestet wird dagegen. Zusätzlich läuft vor Releases die Testsuite in einem Docker-Container mit Ubuntu 26.04 LTS (Python 3.14, Qt/PyQt 6.10) gegen das installierte .deb (`docker run ubuntu:26.04`, Pakete python3-pyqt6, python3-pyqt6.qtsvg, python3-pytest, `QT_QPA_PLATFORM=offscreen`). Qt 6.10 schickt beim Zerstören eines Fensters noch Ereignisse durch Application-Eventfilter: Filter auf dem Fenster deshalb in closeEvent entfernen.
 
 ## Grundregeln
 

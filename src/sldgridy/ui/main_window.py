@@ -1220,4 +1220,7 @@ class MainWindow(QMainWindow):
         self.tools.cancel()
         self.autosave.discard()
         self._save_settings()
+        # Qt 6.10 still routes events through application filters while a window is
+        # destroyed; a filter living on the dying window then crashes (Ubuntu 26.04).
+        QApplication.instance().removeEventFilter(self)
         super().closeEvent(event)

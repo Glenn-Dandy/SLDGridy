@@ -14,7 +14,7 @@ CAD-style editor for single-line electrical diagrams on Linux: photovoltaic syst
 
 The user interface is available in **English and German** (View > Sprache / Language).
 
-License: GPL-3.0-or-later. Target system: Ubuntu 24.04 (X11 and Wayland).
+License: GPL-3.0-or-later. Target system: Ubuntu 24.04 LTS and 26.04 LTS (X11 and Wayland).
 
 ### Installation
 
@@ -129,7 +129,7 @@ Einpolige Übersichtsschaltpläne (Single-Line-Diagramme) für Photovoltaikanlag
 
 Die Oberfläche gibt es auf **Deutsch und Englisch** (Ansicht > Sprache / Language).
 
-Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 (X11 und Wayland).
+Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 LTS und 26.04 LTS (X11 und Wayland).
 
 ### Installation
 
