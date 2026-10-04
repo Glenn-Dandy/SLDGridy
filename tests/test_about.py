@@ -64,3 +64,19 @@ def test_dev_versions_sort_before_their_release():
     release = {"tag_name": "v1.1.3", "assets": []}
     assert evaluate("1.1.3.dev1", release).available
     assert not evaluate("1.1.3", release).available
+
+
+def test_about_rows_are_never_squeezed(qapp):
+    from PyQt6.QtWidgets import QGroupBox
+
+    from sldgridy.ui.about_dialog import AboutDialog, ActionRow
+
+    d = AboutDialog()
+    d.show()
+    qapp.processEvents()
+    for box in d.findChildren(QGroupBox):
+        assert box.height() >= box.minimumSizeHint().height(), box.title()
+        rows = sorted(box.findChildren(ActionRow), key=lambda r: r.y())
+        for upper, lower in zip(rows, rows[1:], strict=False):
+            assert lower.y() >= upper.y() + upper.height(), (upper.text(), lower.text())
+    d.close()

@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -64,6 +65,9 @@ class _UpdateWorker(QObject):
         threading.Thread(target=lambda: self.finished.emit(check(__version__)), daemon=True).start()
 
 
+DIALOG_WIDTH = 420
+
+
 class ActionRow(QPushButton):
     """Full-width flat row with symbol, label and arrow, as in BoatSpeedy."""
 
@@ -76,6 +80,10 @@ class ActionRow(QPushButton):
         if color:
             style += f" QPushButton {{ color: {color}; font-weight: bold; }}"
         self.setStyleSheet(style)
+        # Never squeeze a row: symbols from fallback fonts make rows taller than Qt
+        # expects, and a too small dialog would otherwise cut the labels in half.
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        self.setMinimumHeight(self.sizeHint().height())
 
 
 def _section(title: str, rows: list[QWidget]) -> QGroupBox:
@@ -166,10 +174,21 @@ class AboutDialog(QDialog):
         layout.addSpacing(6)
         layout.addWidget(footer)
         layout.addWidget(close, alignment=Qt.AlignmentFlag.AlignRight)
-        self.setMinimumWidth(420)
+        self._fit()
 
         self._worker = _UpdateWorker(self)
         self._worker.finished.connect(self.show_update_result)
+
+    def _fit(self) -> None:
+        """Size for the real width: the wrapped texts need more lines in a narrow dialog,
+        and Qt's own minimum height does not account for that (it squeezed the rows)."""
+        layout = self.layout()
+        layout.activate()
+        width = max(DIALOG_WIDTH, self.width() if self.isVisible() else 0)
+        width = max(width, layout.minimumSize().width())
+        self.setMinimumSize(width, layout.totalHeightForWidth(width))
+        if self.height() < self.minimumHeight() or not self.isVisible():
+            self.resize(width, self.minimumHeight())
 
     def _open(self, url: str) -> None:
         self.opened.append(url)
@@ -181,9 +200,14 @@ class AboutDialog(QDialog):
         self.lbl_update.show()
         self.btn_download.hide()
         self.btn_release.hide()
+        self._fit()
         self._worker.start()
 
     def show_update_result(self, result: UpdateResult) -> None:
+        self._show_update_result(result)
+        self._fit()  # the result adds lines and buttons
+
+    def _show_update_result(self, result: UpdateResult) -> None:
         self.btn_update.setEnabled(True)
         self.lbl_update.show()
         for b in (self.btn_download, self.btn_release):
