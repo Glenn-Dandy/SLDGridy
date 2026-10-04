@@ -114,6 +114,7 @@ class Canvas(QGraphicsView):
         self.osnap_enabled = True
         self.otrack_enabled = True
         self.acquired: list[Point] = []
+        self._pending_drops: list[tuple[dict, QPointF]] = []
         self._track_lines: tuple[TrackLine, ...] = ()
         self._hover_point: Point | None = None
         self._acquire_timer = QTimer(self)
@@ -603,7 +604,16 @@ class Canvas(QGraphicsView):
         self._update_cursor(event.position())
         event.acceptProposedAction()
         self.setFocus()
-        self.block_dropped.emit(payload, self._cursor_scene)
+        # Handle the drop only after the drag has fully ended: inserting may open
+        # modal dialogs and rebuild the library list (the drag source). Doing that
+        # inside the drag crashes Qt's Wayland drag handling.
+        self._pending_drops.append((payload, QPointF(self._cursor_scene)))
+        QTimer.singleShot(0, self._emit_pending_drops)
+
+    def _emit_pending_drops(self) -> None:
+        drops, self._pending_drops = self._pending_drops, []
+        for payload, point in drops:
+            self.block_dropped.emit(payload, point)
 
     def leaveEvent(self, event) -> None:
         self._cursor_view = None

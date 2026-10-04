@@ -1,11 +1,13 @@
 """Application entry point."""
 
+import faulthandler
 import sys
 from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication
 
 from sldgridy import __version__, i18n
+from sldgridy.fileio.paths import cache_dir
 from sldgridy.ui.main_window import APP_NAME, MainWindow
 
 
@@ -20,7 +22,27 @@ def create_application(argv: list[str]) -> QApplication:
     return app
 
 
+def enable_crash_log() -> None:
+    """Write Python tracebacks of hard crashes (e.g. in Qt) to ~/.cache/sldgridy/crash.log."""
+    try:
+        directory = cache_dir()
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / "crash.log"
+        mode = "w" if path.exists() and path.stat().st_size > 256 * 1024 else "a"
+        log = open(path, mode, encoding="utf-8")  # noqa: SIM115 - kept open
+    except OSError:
+        return
+    log.write(f"--- SLDGridy {__version__} started\n")
+    log.flush()
+    faulthandler.enable(log, all_threads=True)
+    _crash_log.append(log)  # keep the file object alive
+
+
+_crash_log: list = []
+
+
 def main(argv: list[str] | None = None) -> int:
+    enable_crash_log()
     app = create_application(sys.argv if argv is None else argv)
     window = MainWindow()
     window.show()

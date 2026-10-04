@@ -130,6 +130,8 @@ Umsetzung (M6):
 - Eigenschaften-Dock für Ebene, Farbe, Linienbreite, Linienart (durchgezogen, gestrichelt, strichpunktiert), Text und Blockattribute.
 - Unbegrenztes Rückgängig/Wiederholen.
 - Docks (Ebenen, Eigenschaften, Bibliothek) haben eine eigene Titelleiste mit Knopf zum Ab- und Andocken; Doppelklick auf den Titel schaltet ebenfalls um. Grund: unter Wayland lassen sich schwebende Docks mit Fensterrahmen nicht per Ziehen zurückdocken. Ansicht > Fenster bietet „Alle Fenster andocken“ und „Fensteranordnung zurücksetzen“. Schwebende Docks werden über den Fenstermanager verschoben und in der Größe geändert (`startSystemMove`/`startSystemResize`). Unter Wayland ist das Herausziehen angedockter Docks gesperrt; stattdessen Rechtsklick auf den Titel: links, rechts oder unten andocken, abdocken.
+- Drag-and-drop aus der Bibliothek: Die Zeichenfläche verarbeitet einen Drop erst nach Ende des Drags (`QTimer.singleShot(0)`). Ein modaler Dialog oder das Neuaufbauen der Bibliotheksliste innerhalb von `dropEvent` lässt Qt 6.4 unter Wayland abstürzen (SIGSEGV in `QWaylandDrag::finishDrag`).
+- Harte Abstürze schreibt `faulthandler` mit Python-Traceback nach `~/.cache/sldgridy/crash.log` (wird ab 256 KiB neu begonnen).
 
 ### Ebenen
 

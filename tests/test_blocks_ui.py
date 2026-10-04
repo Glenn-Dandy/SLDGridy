@@ -462,3 +462,31 @@ def test_discarding_new_block_creates_nothing(window, monkeypatch):
     assert window.blocks.close_editor(save=False)
     assert "Weg" not in window.document.blocks
     assert len(window.document.model_space) == 1
+
+
+def test_drop_is_handled_after_the_drag_ends(window, qapp):
+    import json
+
+    from PyQt6.QtCore import QMimeData
+    from PyQt6.QtGui import QDropEvent
+
+    from sldgridy.view.canvas import BLOCK_MIME
+
+    path = write_library("ziehen")
+    window.library_dock.reload()
+    data = QMimeData()
+    data.setData(BLOCK_MIME, json.dumps({"path": str(path), "name": "Sicherung"}).encode())
+    pos = window.canvas.map_from_scene_f(QPointF(40, 40))
+    event = QDropEvent(
+        pos,
+        Qt.DropAction.CopyAction,
+        data,
+        Qt.MouseButton.LeftButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    window.canvas.dropEvent(event)
+    assert event.isAccepted()
+    assert not refs(window)  # nothing happens inside the drag
+    qapp.processEvents()
+    (ref,) = refs(window)
+    assert ref.name == "Sicherung"
