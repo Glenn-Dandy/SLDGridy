@@ -761,6 +761,222 @@
      "valign": "middle"
     }
    ]
+  },
+  {
+   "name": "Internet",
+   "base_point": [
+    0,
+    0
+   ],
+   "category": "Kommunikation",
+   "description": "Internet als Wolke, keine Normdarstellung",
+   "entities": [
+    {
+     "type": "arc",
+     "id": "a0",
+     "layer": "0",
+     "center": [
+      0,
+      -3
+     ],
+     "radius": 3,
+     "start_angle": 199.243,
+     "end_angle": 340.757
+    },
+    {
+     "type": "arc",
+     "id": "a1",
+     "layer": "0",
+     "center": [
+      6,
+      -3.5
+     ],
+     "radius": 3.5,
+     "start_angle": 205.173,
+     "end_angle": 334.951
+    },
+    {
+     "type": "arc",
+     "id": "a2",
+     "layer": "0",
+     "center": [
+      9.5,
+      -5
+     ],
+     "radius": 3,
+     "start_angle": 263.7,
+     "end_angle": 80.411
+    },
+    {
+     "type": "arc",
+     "id": "a3",
+     "layer": "0",
+     "center": [
+      6.5,
+      -8
+     ],
+     "radius": 3.5,
+     "start_angle": 359.314,
+     "end_angle": 151.221
+    },
+    {
+     "type": "arc",
+     "id": "a4",
+     "layer": "0",
+     "center": [
+      0,
+      -9
+     ],
+     "radius": 3.5,
+     "start_angle": 11.287,
+     "end_angle": 168.713
+    },
+    {
+     "type": "arc",
+     "id": "a5",
+     "layer": "0",
+     "center": [
+      -6.5,
+      -8
+     ],
+     "radius": 3.5,
+     "start_angle": 28.779,
+     "end_angle": 180.686
+    },
+    {
+     "type": "arc",
+     "id": "a6",
+     "layer": "0",
+     "center": [
+      -9.5,
+      -5
+     ],
+     "radius": 3,
+     "start_angle": 99.589,
+     "end_angle": 276.3
+    },
+    {
+     "type": "arc",
+     "id": "a7",
+     "layer": "0",
+     "center": [
+      -6,
+      -3.5
+     ],
+     "radius": 3.5,
+     "start_angle": 205.049,
+     "end_angle": 334.827
+    },
+    {
+     "type": "text",
+     "id": "label",
+     "layer": "0",
+     "position": [
+      0,
+      -6.25
+     ],
+     "text": "Internet",
+     "height": 2.5,
+     "rotation": 0,
+     "halign": "center",
+     "valign": "middle"
+    },
+    {
+     "type": "connection",
+     "id": "cp_bottom",
+     "layer": "0",
+     "name": "1",
+     "position": [
+      0.0,
+      0.0
+     ],
+     "direction": 270
+    },
+    {
+     "type": "connection",
+     "id": "cp_top",
+     "layer": "0",
+     "name": "2",
+     "position": [
+      0.0,
+      -12.5
+     ],
+     "direction": 90
+    },
+    {
+     "type": "connection",
+     "id": "cp_left",
+     "layer": "0",
+     "name": "3",
+     "position": [
+      -12.5,
+      -5.0
+     ],
+     "direction": 180
+    },
+    {
+     "type": "connection",
+     "id": "cp_right",
+     "layer": "0",
+     "name": "4",
+     "position": [
+      12.5,
+      -5.0
+     ],
+     "direction": 0
+    },
+    {
+     "type": "attdef",
+     "id": "att_bmk",
+     "layer": "0",
+     "tag": "BMK",
+     "prompt": "Betriebsmittelkennzeichen",
+     "default": "",
+     "position": [
+      15.0,
+      -11.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_typ",
+     "layer": "0",
+     "tag": "TYP",
+     "prompt": "Typ",
+     "default": "",
+     "position": [
+      15.0,
+      -7.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_wert",
+     "layer": "0",
+     "tag": "WERT",
+     "prompt": "Wert",
+     "default": "",
+     "position": [
+      15.0,
+      -4.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    }
+   ]
   }
  ]
 }

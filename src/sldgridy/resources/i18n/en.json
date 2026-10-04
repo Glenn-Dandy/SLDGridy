@@ -569,5 +569,8 @@
  "Größe:": "Size:",
  "mitte": "centre",
  "DC-Solarspeicher": "DC solar storage",
- "DC-gekoppelter Solarspeicher (Batteriespeicher am Gleichstromkreis), Kastendarstellung, keine Normdarstellung": "DC-coupled solar storage (battery on the DC circuit), box style, not a standard symbol"
+ "DC-gekoppelter Solarspeicher (Batteriespeicher am Gleichstromkreis), Kastendarstellung, keine Normdarstellung": "DC-coupled solar storage (battery on the DC circuit), box style, not a standard symbol",
+ "Internet": "Internet",
+ "Kommunikation": "Communication",
+ "Internet als Wolke, keine Normdarstellung": "Internet as a cloud, not a standard symbol"
 }
