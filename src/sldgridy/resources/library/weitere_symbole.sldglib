@@ -506,7 +506,24 @@
      "default": "-G1",
      "position": [
       7.5,
-      -13.5
+      -16.25
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
+     "id": "att_hersteller",
+     "layer": "0",
+     "tag": "HERSTELLER",
+     "prompt": "Hersteller",
+     "default": "",
+     "position": [
+      7.5,
+      -12.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -523,7 +540,7 @@
      "default": "",
      "position": [
       7.5,
-      -10
+      -9.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -540,7 +557,7 @@
      "default": "",
      "position": [
       7.5,
-      -6.5
+      -5.75
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1172,6 +1189,23 @@
     },
     {
      "type": "attdef",
+     "id": "att_hersteller",
+     "layer": "0",
+     "tag": "HERSTELLER",
+     "prompt": "Hersteller",
+     "default": "",
+     "position": [
+      7.5,
+      4.75
+     ],
+     "height": 2.5,
+     "rotation": 0,
+     "visible": true,
+     "halign": "left",
+     "valign": "middle"
+    },
+    {
+     "type": "attdef",
      "id": "att_typ",
      "layer": "0",
      "tag": "TYP",
@@ -1179,7 +1213,7 @@
      "default": "",
      "position": [
       7.5,
-      4.75
+      8.25
      ],
      "height": 2.5,
      "rotation": 0,
@@ -1196,7 +1230,7 @@
      "default": "",
      "position": [
       7.5,
-      8.25
+      11.75
      ],
      "height": 2.5,
      "rotation": 0,

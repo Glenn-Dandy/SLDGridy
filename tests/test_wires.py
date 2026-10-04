@@ -384,3 +384,20 @@ def test_label_alignment_along_segment():
     t = label_text(v)
     assert t.halign == "left" and t.position == Point(-1, 27.5) and t.height == 3.5
     assert label_text(replace(v, label_align="right")).position == Point(-1, 2.5)
+
+
+@pytest.mark.parametrize(
+    "library, name",
+    [
+        ("weitere_symbole", "PV-Modul"),
+        ("din_en_60617", "Wechselrichter"),
+        ("weitere_symbole", "Wallbox AC-gekoppelt"),
+    ],
+)
+def test_manufacturer_attribute_between_designation_and_type(library, name):
+    _, defs = load_library(system_library_dir() / f"{library}.sldglib")
+    definition = {d.name: d for d in defs}[name]
+    atts = definition.attribute_definitions()
+    assert [a.tag for a in atts][:4] == ["BMK", "HERSTELLER", "TYP", "WERT"]
+    ys = [a.position.y for a in atts[:4]]
+    assert all(b - a == pytest.approx(3.5) for a, b in zip(ys, ys[1:], strict=False))
