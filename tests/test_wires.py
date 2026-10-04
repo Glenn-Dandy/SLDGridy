@@ -392,6 +392,7 @@ def test_label_alignment_along_segment():
         ("weitere_symbole", "PV-Modul"),
         ("din_en_60617", "Wechselrichter"),
         ("weitere_symbole", "Wallbox AC-gekoppelt"),
+        ("weitere_symbole", "DC-Solarspeicher"),
     ],
 )
 def test_manufacturer_attribute_between_designation_and_type(library, name):
