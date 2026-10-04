@@ -110,6 +110,10 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
                 )
                 if e.label_align != "center":
                     d["label_align"] = e.label_align
+                if e.label_pos != "auto":
+                    d["label_pos"] = e.label_pos
+                if e.label_pos == "free":
+                    d["label_at"] = e.label_at
         case Polyline():
             d["points"] = [_pt(p) for p in e.points]
             d["closed"] = e.closed
@@ -185,6 +189,10 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 label_align=str(d.get("label_align", "center"))
                 if d.get("label_align") in ("left", "right")
                 else "center",
+                label_pos=str(d["label_pos"])
+                if d.get("label_pos") in ("start", "end", "free")
+                else "auto",
+                label_at=float(d.get("label_at", 0.0)),
                 **common,
             )
         case "polyline":

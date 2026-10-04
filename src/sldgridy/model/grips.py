@@ -27,6 +27,11 @@ def grip_points(e: Entity) -> list[Point]:
         case Line() | Busbar():
             return [e.p1, e.p2]
         case Wire():
+            if e.label and len(e.points) >= 2:
+                from sldgridy.model.wires import label_anchor
+
+                # Third grip: where the label sits on the wire.
+                return [e.points[0], e.points[-1], label_anchor(e)[0]]
             return [e.points[0], e.points[-1]]
         case BlockReference():
             return [e.insert]
@@ -52,8 +57,11 @@ def move_grip(e: Entity, index: int, p: Point) -> Entity | None:
             new = replace(e, p1=p) if index == 0 else replace(e, p2=p)
             return new if new.p1 != new.p2 else None
         case Wire():
-            from sldgridy.model.wires import drag_end
+            from sldgridy.model.wires import drag_end, project_on_path
 
+            if index == 2:
+                at = round(project_on_path(e.points, p), 3)
+                return replace(e, label_pos="free", label_at=at)
             new = drag_end(e, 0 if index == 0 else -1, p)
             return new if len(new.points) >= 2 else None
         case Polyline():

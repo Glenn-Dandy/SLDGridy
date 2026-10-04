@@ -167,26 +167,91 @@ def junction_diameter(lineweight: float) -> float:
     return max(JUNCTION_MIN_DIAMETER, JUNCTION_WEIGHT_FACTOR * lineweight)
 
 
-def label_text(wire: Wire) -> Text | None:
-    """The wire's label as a text entity placed at the longest segment."""
-    if not wire.label or len(wire.points) < 2:
-        return None
-    a, b = max(segments(wire.points), key=lambda s: distance(*s))
-    mid = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
-    h = wire.label_height
+LABEL_POSITIONS = ("auto", "start", "end", "free")
+
+
+def path_length(points: tuple[Point, ...]) -> float:
+    return sum(distance(a, b) for a, b in segments(points))
+
+
+def point_along(points: tuple[Point, ...], at: float) -> tuple[Point, Point, Point]:
+    """Point at path distance ``at`` from the start (clamped) and its segment (a, b)."""
+    segs = [(a, b) for a, b in segments(points) if distance(a, b) > EPS]
+    if not segs:
+        return points[0], points[0], points[-1]
+    at = max(0.0, at)
+    for a, b in segs:
+        length = distance(a, b)
+        if at <= length + EPS:
+            t = min(at / length, 1.0)
+            return Point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t), a, b
+        at -= length
+    a, b = segs[-1]
+    return b, a, b
+
+
+def project_on_path(points: tuple[Point, ...], p: Point) -> float:
+    """Path distance from the start of the point on the wire nearest to ``p``."""
+    best, best_at, walked = None, 0.0, 0.0
+    for a, b in segments(points):
+        length = distance(a, b)
+        if length <= EPS:
+            continue
+        t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / length**2
+        t = min(max(t, 0.0), 1.0)
+        foot = Point(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)
+        d = distance(foot, p)
+        if best is None or d < best - EPS:
+            best, best_at = d, walked + t * length
+        walked += length
+    return best_at
+
+
+def label_anchor(wire: Wire) -> tuple[Point, Point, Point, str]:
+    """Anchor point of the label, its segment (a, b) and the text alignment."""
     align = wire.label_align if wire.label_align in LABEL_ALIGNS else "center"
-    vertical = abs(a.x - b.x) <= EPS
-    if vertical:
-        # Rotation 90 reads bottom to top; the glyphs extend towards -x.
-        x = mid.x - LABEL_GAP if wire.label_side > 0 else mid.x + LABEL_GAP + h
-        bottom, top = max(a.y, b.y), min(a.y, b.y)
-        along = {"left": bottom - LABEL_INSET, "center": mid.y, "right": top + LABEL_INSET}
-        position, rotation = Point(x, along[align]), 90
-    else:
-        y = mid.y - LABEL_GAP if wire.label_side > 0 else mid.y + LABEL_GAP + h
+    if wire.label_pos not in ("start", "end", "free"):
+        a, b = max(segments(wire.points), key=lambda s: distance(*s))
+        mid = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
+        vertical = abs(a.x - b.x) <= EPS
+        if vertical:
+            bottom, top = max(a.y, b.y), min(a.y, b.y)
+            along = {"left": bottom - LABEL_INSET, "center": mid.y, "right": top + LABEL_INSET}
+            return Point(mid.x, along[align]), a, b, align
         left, right = min(a.x, b.x), max(a.x, b.x)
         along = {"left": left + LABEL_INSET, "center": mid.x, "right": right - LABEL_INSET}
-        position, rotation = Point(along[align], y), 0
+        return Point(along[align], mid.y), a, b, align
+    total = path_length(wire.points)
+    if wire.label_pos == "start":
+        at = min(LABEL_INSET, total / 2)
+    elif wire.label_pos == "end":
+        at = max(total - LABEL_INSET, total / 2)
+    else:
+        at = wire.label_at
+    p, a, b = point_along(wire.points, at)
+    if wire.label_pos == "free":
+        return p, a, b, align
+    # Start and end: the text runs from the anchor into the wire.
+    vertical = abs(a.x - b.x) <= EPS
+    # Reading direction: left to right, vertical texts bottom to top.
+    forward_reads = (a.y > b.y) if vertical else (b.x > a.x)
+    inward_reads = forward_reads if wire.label_pos == "start" else not forward_reads
+    return p, a, b, "left" if inward_reads else "right"
+
+
+def label_text(wire: Wire) -> Text | None:
+    """The wire's label as a text entity beside the wire (see ``label_anchor``)."""
+    if not wire.label or len(wire.points) < 2:
+        return None
+    anchor, a, b, align = label_anchor(wire)
+    h = wire.label_height
+    if abs(a.x - b.x) <= EPS:
+        # Rotation 90 reads bottom to top; the glyphs extend towards -x.
+        x = anchor.x - LABEL_GAP if wire.label_side > 0 else anchor.x + LABEL_GAP + h
+        position, rotation = Point(x, anchor.y), 90
+    else:
+        y = anchor.y - LABEL_GAP if wire.label_side > 0 else anchor.y + LABEL_GAP + h
+        position, rotation = Point(anchor.x, y), 0
     return Text(
         id=f"{wire.id}:label",
         layer=wire.layer,

@@ -402,3 +402,29 @@ def test_manufacturer_attribute_between_designation_and_type(library, name):
     assert [a.tag for a in atts][:4] == ["BMK", "HERSTELLER", "TYP", "WERT"]
     ys = [a.position.y for a in atts[:4]]
     assert all(b - a == pytest.approx(3.5) for a, b in zip(ys, ys[1:], strict=False))
+
+
+def test_label_position_start_end_and_free():
+    # Down 40 mm, then right 60 mm (like a feeder leaving a panel).
+    w = W("w", (0, 0), (0, 40), (60, 40), label="NYY-J 5x16")
+    t = label_text(replace(w, label_pos="start"))
+    # Vertical first segment runs downwards: the text reads upwards, so it ends at the anchor.
+    assert t.rotation == 90 and t.position == Point(-1, 2.5) and t.halign == "right"
+    t = label_text(replace(w, label_pos="end"))
+    assert t.rotation == 0 and t.position == Point(57.5, 39) and t.halign == "right"
+    t = label_text(replace(w, label_pos="free", label_at=70))  # 30 mm into the bottom part
+    assert t.rotation == 0 and t.position == Point(30, 39) and t.halign == "center"
+    t = label_text(replace(w, label_pos="free", label_at=500))  # clamped to the end
+    assert t.position.x == pytest.approx(60)
+
+
+def test_label_grip_moves_label_along_wire():
+    from sldgridy.model.grips import grip_points, move_grip
+
+    w = W("w", (0, 0), (0, 40), (60, 40), label="X")
+    assert len(grip_points(w)) == 3
+    assert len(grip_points(W("n", (0, 0), (0, 40)))) == 2  # no label, no grip
+    moved = move_grip(w, 2, Point(25, 43))  # beside the bottom segment
+    assert moved.label_pos == "free" and moved.label_at == pytest.approx(65)
+    assert grip_points(moved)[2] == Point(25, 40)
+    assert moved.points == w.points

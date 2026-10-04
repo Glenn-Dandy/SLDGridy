@@ -260,6 +260,9 @@ class Wire(Entity):
     label_side: int = 1
     label_height: float = DEFAULT_WIRE_LABEL_HEIGHT
     label_align: str = "center"
+    # "auto" (longest segment), "start", "end" or "free" at ``label_at`` mm along the wire.
+    label_pos: str = "auto"
+    label_at: float = 0.0
 
     def _mapped(self, fn, quarters):
         return replace(self, points=tuple(fn(p) for p in self.points))

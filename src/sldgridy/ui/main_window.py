@@ -56,7 +56,7 @@ from sldgridy.model.entities import (
 from sldgridy.model.geometry import Point
 from sldgridy.model.layers import DEFAULT_LAYER
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode
-from sldgridy.model.wires import label_text
+from sldgridy.model.wires import label_anchor, label_text, project_on_path
 from sldgridy.printing.output import export_pdf, export_png, export_svg
 from sldgridy.tools.controller import ToolController, ToolFactory
 from sldgridy.tools.coord_input import CoordinateError, parse_coordinate
@@ -1073,6 +1073,16 @@ class MainWindow(QMainWindow):
         align.addItem(self.tr("rechts"), "right")
         align.setCurrentIndex(max(align.findData(wire.label_align), 0))
         align.setToolTip(self.tr("Entlang der Leitung in Leserichtung (senkrecht: unten = links)"))
+        position = QComboBox()
+        position.addItem(self.tr("automatisch (längster Abschnitt)"), "auto")
+        position.addItem(self.tr("Anfang"), "start")
+        position.addItem(self.tr("Ende"), "end")
+        position.addItem(self.tr("frei (Griff auf der Leitung ziehen)"), "free")
+        position.setCurrentIndex(max(position.findData(wire.label_pos), 0))
+        position.setToolTip(
+            self.tr("Frei: den Griff an der Beschriftung entlang der Leitung ziehen")
+        )
+        align.setEnabled(wire.label_pos in ("auto", "free"))
         height = QComboBox()
         for h in TEXT_HEIGHTS:
             height.addItem(mm_label(h), h)
@@ -1082,6 +1092,7 @@ class MainWindow(QMainWindow):
         apply = QPushButton(self.tr("Beschriftung übernehmen"))
         form.addRow(self.tr("Text:"), edit)
         form.addRow(self.tr("Lage:"), side)
+        form.addRow(self.tr("Position:"), position)
         form.addRow(self.tr("Ausrichtung:"), align)
         form.addRow(self.tr("Größe:"), height)
         form.addRow(apply)
@@ -1095,7 +1106,12 @@ class MainWindow(QMainWindow):
                 label_side=int(side.currentData()),
                 label_align=str(align.currentData()),
                 label_height=float(height.currentData()),
+                label_pos=str(position.currentData()),
             )
+            if new.label_pos == "free" and current.label_pos != "free":
+                # Start where the label is now, then the grip moves it along the wire.
+                anchor = label_anchor(current)[0]
+                new = replace(new, label_at=round(project_on_path(current.points, anchor), 3))
             if new != current:
                 self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Beschriftung")))
 
@@ -1103,6 +1119,7 @@ class MainWindow(QMainWindow):
         # Choices take effect at once, like the other property fields.
         side.activated.connect(lambda _i: on_apply())
         align.activated.connect(lambda _i: on_apply())
+        position.activated.connect(lambda _i: on_apply())
         height.activated.connect(lambda _i: on_apply())
         edit.returnPressed.connect(on_apply)
 

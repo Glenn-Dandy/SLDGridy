@@ -141,3 +141,16 @@ def test_wire_label_roundtrip():
         d = entity_to_dict(wire)
         assert ("label_align" in d) == (align != "center")
         assert entity_from_dict(json.loads(json.dumps(d))) == wire
+
+
+def test_wire_label_position_roundtrip():
+    from sldgridy.model.entities import Wire
+    from sldgridy.model.geometry import Point
+
+    for pos, at in (("auto", 0.0), ("start", 0.0), ("end", 0.0), ("free", 12.5)):
+        wire = Wire(
+            id="w", points=(Point(0, 0), Point(40, 0)), label="L", label_pos=pos, label_at=at
+        )
+        d = entity_to_dict(wire)
+        assert ("label_pos" in d) == (pos != "auto")
+        assert entity_from_dict(json.loads(json.dumps(d))) == wire

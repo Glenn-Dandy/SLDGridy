@@ -580,5 +580,11 @@
  "Elektromobilität": "Electric mobility",
  "Wallbox (Ladeeinrichtung für Elektrofahrzeuge) am Wechselstromnetz, AC-gekoppelt, Kastendarstellung, keine Normdarstellung": "Wallbox (charging station for electric vehicles) on the AC grid, AC-coupled, box style, not a standard symbol",
  "Hersteller": "Manufacturer",
- "Umschalt+Enter: neue Zeile": "Shift+Enter: new line"
+ "Umschalt+Enter: neue Zeile": "Shift+Enter: new line",
+ "Anfang": "Start",
+ "Ende": "End",
+ "automatisch (längster Abschnitt)": "automatic (longest segment)",
+ "frei (Griff auf der Leitung ziehen)": "free (drag the grip along the wire)",
+ "Position:": "Position:",
+ "Frei: den Griff an der Beschriftung entlang der Leitung ziehen": "Free: drag the grip at the label along the wire"
 }

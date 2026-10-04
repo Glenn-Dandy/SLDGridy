@@ -95,6 +95,11 @@ def test_wire_label_in_properties_dock(window):
     assert wire.label_height == 3.5 and wire.label_align == "right"
     window.act_undo.trigger()
     assert window.document.model_space.get("w").label_height != 3.5
+    position = [c for c in dock.widget().findChildren(QComboBox) if c.findData("free") >= 0][0]
+    position.setCurrentIndex(position.findData("free"))
+    position.activated.emit(position.currentIndex())
+    wire = window.document.model_space.get("w")
+    assert wire.label_pos == "free"
 
 
 def test_busbar_tool_in_window(window):
