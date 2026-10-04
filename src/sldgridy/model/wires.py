@@ -90,38 +90,48 @@ def junctions(entities: Iterable[Entity]) -> list[tuple[Point, Entity]]:
     wires = [e for e in entities if isinstance(e, Wire) and len(e.points) >= 2]
     bars = [e for e in entities if isinstance(e, Busbar)]
     marks = [e for e in entities if isinstance(e, JunctionMark)]
-    # Index axis-parallel segments by their constant coordinate.
-    vertical: dict[float, list[tuple[str, Point, Point]]] = {}
-    horizontal: dict[float, list[tuple[str, Point, Point]]] = {}
+    # Index axis-parallel segments by their constant coordinate as (low, high, wire id)
+    # of the running coordinate, so one end is checked with plain comparisons.
+    vertical: dict[float, list[tuple[float, float, str]]] = {}
+    horizontal: dict[float, list[tuple[float, float, str]]] = {}
     other: list[tuple[str, Point, Point]] = []
     ends: dict[tuple[float, float], list[Wire]] = {}
     for w in wires:
         for a, b in segments(w.points):
             if abs(a.x - b.x) <= EPS:
-                vertical.setdefault(round(a.x, 6), []).append((w.id, a, b))
+                vertical.setdefault(round(a.x, 6), []).append((min(a.y, b.y), max(a.y, b.y), w.id))
             elif abs(a.y - b.y) <= EPS:
-                horizontal.setdefault(round(a.y, 6), []).append((w.id, a, b))
+                horizontal.setdefault(round(a.y, 6), []).append(
+                    (min(a.x, b.x), max(a.x, b.x), w.id)
+                )
             else:
                 other.append((w.id, a, b))
         for p in (w.points[0], w.points[-1]):
             ends.setdefault((round(p.x, 6), round(p.y, 6)), []).append(w)
-    result: list[tuple[Point, Entity]] = []
+
+    def inside(runs: list[tuple[float, float, str]], v: float, owner_ids: set[str]) -> bool:
+        return any(lo + EPS < v < hi - EPS and wid not in owner_ids for lo, hi, wid in runs)
+
+    dots: dict[tuple[float, float], tuple[Point, Entity]] = {}
     for (x, y), owners in ends.items():
         p = Point(x, y)
         if len(owners) >= 3:
-            result.append((p, owners[0]))
+            dots[(x, y)] = (p, owners[0])
             continue
-        candidates = vertical.get(x, []) + horizontal.get(y, []) + other
         owner_ids = {w.id for w in owners}
-        if any(
-            wid not in owner_ids and _on_segment_interior(p, a, b) for wid, a, b in candidates
-        ) or any(on_segment(p, bar.p1, bar.p2) for bar in bars):
-            result.append((p, owners[0]))
+        if (
+            inside(vertical.get(x, ()), y, owner_ids)
+            or inside(horizontal.get(y, ()), x, owner_ids)
+            or any(wid not in owner_ids and _on_segment_interior(p, a, b) for wid, a, b in other)
+            or any(on_segment(p, bar.p1, bar.p2) for bar in bars)
+        ):
+            dots[(x, y)] = (p, owners[0])
     for mark in marks:
-        result = [(p, o) for p, o in result if not same(p, mark.position)]
+        key = (round(mark.position.x, 6), round(mark.position.y, 6))
+        dots.pop(key, None)
         if mark.connected:
-            result.append((mark.position, mark))
-    return result
+            dots[key] = (mark.position, mark)
+    return list(dots.values())
 
 
 def on_segment(p: Point, a: Point, b: Point) -> bool:

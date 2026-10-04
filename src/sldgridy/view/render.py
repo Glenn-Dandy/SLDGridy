@@ -1,5 +1,6 @@
 """Painting of model entities with Qt. Shared by scene items, previews and later printing."""
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -26,6 +27,9 @@ TEXT_FONT_FAMILY = "DejaVu Sans"
 # Fonts are laid out at this pixel size and scaled down to the text height in mm.
 _FONT_LAYOUT_PX = 100
 LINE_SPACING = 1.6  # baseline distance as a multiple of the text height
+# On screen, texts smaller than this are not drawn (unreadable anyway, and text is the
+# most expensive part of a big drawing). Output devices always get every text.
+MIN_SCREEN_TEXT_PX = 2.0
 
 CONNECTION_COLOR = QColor("#c000c0")
 SEPARATION_COLOR = QColor("#e65100")
@@ -89,15 +93,27 @@ def entity_path(e: Entity) -> QPainterPath:
 # -- text -----------------------------------------------------------------
 
 
+@functools.cache
 def _layout_font() -> QFont:
     font = QFont(TEXT_FONT_FAMILY)
     font.setPixelSize(_FONT_LAYOUT_PX)
     return font
 
 
+@functools.cache
+def _metrics() -> QFontMetricsF:
+    """Metrics of the layout font; texts are measured often, the font never changes."""
+    return QFontMetricsF(_layout_font())
+
+
+@functools.lru_cache(maxsize=20000)
+def _advance(line: str) -> float:
+    return _metrics().horizontalAdvance(line)
+
+
 def _text_scale(height: float) -> float:
     """Factor from layout pixels to mm so that capital letters are ``height`` mm tall."""
-    return height / QFontMetricsF(_layout_font()).capHeight()
+    return height / _metrics().capHeight()
 
 
 def _text_lines(e: Text) -> list[str]:
@@ -105,9 +121,8 @@ def _text_lines(e: Text) -> list[str]:
 
 
 def _line_widths(e: Text) -> list[float]:
-    fm = QFontMetricsF(_layout_font())
     k = _text_scale(e.height)
-    return [fm.horizontalAdvance(line) * k for line in _text_lines(e)]
+    return [_advance(line) * k for line in _text_lines(e)]
 
 
 def _x_offset(e: Text, width: float) -> float:
@@ -128,7 +143,7 @@ def _y_offset(e: Text) -> float:
 
 def text_local_rect(e: Text) -> QRectF:
     """Bounding box in the text's unrotated local frame (origin at the anchor, mm)."""
-    fm = QFontMetricsF(_layout_font())
+    fm = _metrics()
     k = _text_scale(e.height)
     widths = _line_widths(e)
     left = min(_x_offset(e, w) for w in widths)
@@ -247,7 +262,8 @@ def paint_entity(
         return
     e = displayed(e)
     if isinstance(e, Text):
-        _paint_text(painter, e, style.color)
+        if px_per_mm <= 0 or e.height * px_per_mm >= MIN_SCREEN_TEXT_PX:
+            _paint_text(painter, e, style.color)
         return
     painter.setPen(make_pen(style.color, style.lineweight, px_per_mm, style.linetype))
     painter.setBrush(Qt.BrushStyle.NoBrush)

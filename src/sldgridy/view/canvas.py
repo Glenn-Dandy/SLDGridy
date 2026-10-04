@@ -4,7 +4,17 @@ import json
 from collections.abc import Callable
 
 from PyQt6.QtCore import QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QBrush, QColor, QFont, QKeyEvent, QPainter, QPen, QPolygonF, QWheelEvent
+from PyQt6.QtGui import (
+    QBrush,
+    QColor,
+    QFont,
+    QKeyEvent,
+    QPainter,
+    QPen,
+    QPixmap,
+    QPolygonF,
+    QWheelEvent,
+)
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
 from sldgridy.model.entities import Entity
@@ -90,6 +100,10 @@ class Canvas(QGraphicsView):
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
+        self._layer: QPixmap | None = None
+        self._layer_key_value: tuple = ()
+        self._rendering_layer = False
+        self._watched_scenes: list[QGraphicsScene] = []
         if scene is None:
             scene = QGraphicsScene(self)
         self.setScene(scene)
@@ -157,6 +171,68 @@ class Canvas(QGraphicsView):
         scene.setSceneRect(
             -SCENE_EXTENT_MM, -SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM, 2 * SCENE_EXTENT_MM
         )
+        if scene not in self._watched_scenes:
+            scene.changed.connect(self._invalidate_layer)
+            self._watched_scenes.append(scene)
+            scene.destroyed.connect(self._forget_scene)
+
+    def _forget_scene(self, scene=None) -> None:
+        self._watched_scenes = [s for s in self._watched_scenes if s is not scene]
+
+    # -- drawing layer cache ------------------------------------------------
+    # The drawing (background, grid and all items) is rendered into a pixmap that is
+    # reused while only the overlays change (crosshair, snap marker, previews, rubber
+    # band). It is rebuilt when the scene changes, on zoom, pan or resize.
+
+    def _invalidate_layer(self, *_args) -> None:
+        self._layer = None
+
+    def resetCachedContent(self) -> None:  # noqa: N802 - Qt name
+        self._invalidate_layer()
+        super().resetCachedContent()
+
+    def _layer_key(self) -> tuple:
+        t = self.viewportTransform()
+        vp = self.viewport()
+        return (
+            t.m11(),
+            t.m12(),
+            t.m21(),
+            t.m22(),
+            t.dx(),
+            t.dy(),
+            vp.width(),
+            vp.height(),
+            vp.devicePixelRatioF(),
+        )
+
+    def paintEvent(self, event) -> None:
+        vp = self.viewport()
+        key = self._layer_key()
+        if self._layer is None or key != self._layer_key_value:
+            dpr = vp.devicePixelRatioF()
+            pixmap = QPixmap(max(1, round(vp.width() * dpr)), max(1, round(vp.height() * dpr)))
+            pixmap.setDevicePixelRatio(dpr)
+            pixmap.fill(self.background_color)
+            self._rendering_layer = True
+            try:
+                p = QPainter(pixmap)
+                self.render(
+                    p,
+                    QRectF(0, 0, vp.width(), vp.height()),
+                    vp.rect(),
+                    Qt.AspectRatioMode.IgnoreAspectRatio,
+                )
+                p.end()
+            finally:
+                self._rendering_layer = False
+            self._layer, self._layer_key_value = pixmap, key
+        painter = QPainter(vp)
+        painter.drawPixmap(0, 0, self._layer)
+        painter.setRenderHints(self.renderHints())
+        painter.setTransform(self.viewportTransform())
+        self.drawForeground(painter, self.mapToScene(vp.rect()).boundingRect())
+        painter.end()
 
     def set_scene(self, scene: QGraphicsScene) -> None:
         """Switch to another scene (model, sheet, block editor)."""
@@ -731,6 +807,8 @@ class Canvas(QGraphicsView):
         painter.restore()
 
     def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
+        if self._rendering_layer:
+            return
         scale = self.transform().m11()
         if self.extra_overlay is not None:
             self.extra_overlay(painter, scale)

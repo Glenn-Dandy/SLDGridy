@@ -63,14 +63,17 @@ def test_drag_block_pulls_wire(window):
     assert ms.get("w").points[0] == Point(60, 30)
 
 
-def test_junction_dots_follow_model(window):
+def test_junction_dots_follow_model(window, qapp):
     ms = window.document.model_space
     ms.add(Wire(id="a", points=(Point(0, 0), Point(100, 0))))
     junctions = window.space.extra["junctions"]
+    qapp.processEvents()
     assert junctions._dots == []
     ms.add(Wire(id="b", points=(Point(50, 0), Point(50, 40))))
+    qapp.processEvents()  # dots are computed once per batch of changes
     assert len(junctions._dots) == 1
     ms.remove("b")
+    qapp.processEvents()
     assert junctions._dots == []
 
 

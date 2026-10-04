@@ -63,10 +63,11 @@ class EntityItem(QGraphicsItem):
 
     def _update_geometry(self) -> None:
         self._parts = self._expand(self.entity)
+        # Styles are looked up once here, not on every repaint.
+        self._styles = [self._resolve_style(part) for part in self._parts]
         bounds = QRectF()
         shape = QPainterPath()
-        for part in self._parts:
-            style = self._resolve_style(part)
+        for part, style in zip(self._parts, self._styles, strict=True):
             bounds = bounds.united(entity_bounds(part, style.lineweight))
             shown = displayed(part)
             if isinstance(shown, Text):
@@ -90,8 +91,8 @@ class EntityItem(QGraphicsItem):
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget=None) -> None:
         lod = option.levelOfDetailFromTransform(painter.worldTransform())
-        for part in self._parts:
-            style = self._resolve_style(part)
-            if self.isSelected():
+        selected = self.isSelected()
+        for part, style in zip(self._parts, self._styles, strict=True):
+            if selected:
                 style = Style(SELECTION_COLOR, style.lineweight, style.linetype)
             paint_entity(painter, part, style, lod)

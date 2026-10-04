@@ -2,7 +2,7 @@
 
 from collections.abc import Callable
 
-from PyQt6.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtCore import QPointF, QRectF, Qt, QTimer
 from PyQt6.QtGui import QBrush, QPainter
 from PyQt6.QtWidgets import QGraphicsItem
 
@@ -26,6 +26,7 @@ class JunctionItem(QGraphicsItem):
         self._resolve_style = resolve_style
         self._visible = visible
         self._dots: list[tuple[QPointF, float, object]] = []
+        self._pending = False
         self._bounds = QRectF()
         self.setZValue(JUNCTION_Z)
         self.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
@@ -36,9 +37,24 @@ class JunctionItem(QGraphicsItem):
         self._container.unsubscribe(self._on_change)
 
     def _on_change(self, _event: str, _entity: Entity) -> None:
+        # Many changes come at once (paste, open, move of a selection): compute once,
+        # when control is back in the event loop.
+        if not self._pending:
+            self._pending = True
+            QTimer.singleShot(0, self._flush)
+
+    def _flush(self) -> None:
+        if not self._pending:
+            return
+        try:
+            if self.scene() is None:
+                return
+        except RuntimeError:  # the item is gone already
+            return
         self.recompute()
 
     def recompute(self) -> None:
+        self._pending = False
         self.prepareGeometryChange()
         dots = []
         bounds = QRectF()
