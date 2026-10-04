@@ -91,6 +91,7 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 
 - Rechteck auf dem Blatt, das einen Ausschnitt des Modells zeigt. Eigenschaften: Lage und Größe auf dem Blatt, Modellpunkt in der Mitte, Maßstab, gesperrt, Rahmen drucken ja/nein (Standard nein).
 - Maßstab: 1:1 als Standard, feste Stufen 2:1 / 1:2 / 1:5 / 1:10, freier Wert und „Modellgrenzen einpassen“.
+- Eigenschaften-Dock: Lage des Ausschnitts als Modellkoordinate der linken oberen Ecke (X/Y-Felder, wirken sofort) und Knopf „Links oben auf 0,0“; ändert nur `center`, gesperrte Ansichtsfenster sind dort ausgegraut.
 - Ein neuer Zeichnungsrahmen erhält ein Ansichtsfenster, das die Zeichenfläche innerhalb des Rahmens füllt; das Schriftfeld liegt deckend darüber.
 - Doppelklick in ein Ansichtsfenster aktiviert es, dann lässt sich der Ausschnitt verschieben und zoomen. Modellobjekte werden dort nicht bearbeitet, das geschieht nur im Reiter „Modell“.
 - Linienbreiten und Texthöhen skalieren mit dem Maßstab des Ansichtsfensters. Bei 1:1 entsprechen sie den eingestellten Millimetern.

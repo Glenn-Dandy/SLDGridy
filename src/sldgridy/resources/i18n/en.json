@@ -572,5 +572,8 @@
  "DC-gekoppelter Solarspeicher (Batteriespeicher am Gleichstromkreis), Kastendarstellung, keine Normdarstellung": "DC-coupled solar storage (battery on the DC circuit), box style, not a standard symbol",
  "Internet": "Internet",
  "Kommunikation": "Communication",
- "Internet als Wolke, keine Normdarstellung": "Internet as a cloud, not a standard symbol"
+ "Internet als Wolke, keine Normdarstellung": "Internet as a cloud, not a standard symbol",
+ "Links oben auf 0,0": "Top left to 0,0",
+ "Legt die linke obere Ecke des Blattrahmens im Modell auf den Nullpunkt": "Puts the top left corner of the sheet outline in the model on the origin",
+ "Ausschnitt links oben:": "Area top left:"
 }

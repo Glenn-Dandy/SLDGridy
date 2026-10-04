@@ -159,3 +159,27 @@ def test_viewport_tool(window):
         QTest.mouseClick(window.canvas.viewport(), Qt.MouseButton.LeftButton, pos=pos)
     vps = [e for e in window.document.sheets[0].entities if isinstance(e, Viewport)]
     assert len(vps) == 2
+
+
+def test_viewport_corner_fields_and_origin_button(window):
+    from PyQt6.QtWidgets import QDoubleSpinBox, QPushButton
+
+    window.sheets.tabs.setCurrentIndex(1)
+    sheet = window.document.sheets[0]
+    v = sheet.viewports()[0]
+    window._sync.item(v.id).setSelected(True)
+    box = window.properties_dock.widget()
+    spins = box.findChildren(QDoubleSpinBox)
+    assert len(spins) == 2
+    assert spins[0].value() == pytest.approx(v.model_rect()[0].x, abs=0.01)
+    [b for b in box.findChildren(QPushButton) if "0,0" in b.text()][0].click()
+    corner = sheet.entities.get(v.id).model_rect()[0]
+    assert corner.x == pytest.approx(0) and corner.y == pytest.approx(0)
+    assert sheet.entities.get(v.id).scale == v.scale  # only the position changes
+    spins = window.properties_dock.widget().findChildren(QDoubleSpinBox)
+    spins[1].setValue(-50)
+    corner = sheet.entities.get(v.id).model_rect()[0]
+    assert corner.x == pytest.approx(0) and corner.y == pytest.approx(-50)
+    window.act_undo.trigger()
+    window.act_undo.trigger()
+    assert sheet.entities.get(v.id).center == v.center

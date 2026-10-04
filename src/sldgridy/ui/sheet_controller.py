@@ -12,10 +12,13 @@ from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
+    QHBoxLayout,
     QInputDialog,
+    QLabel,
     QMenu,
     QMenuBar,
     QMessageBox,
@@ -455,7 +458,29 @@ class SheetController(QObject):
         border = QCheckBox(self.tr("Rahmen drucken"))
         border.setChecked(vp.print_border)
         fit = QPushButton(self.tr("Modellgrenzen einpassen"))
+        # Model position of the shown area's top left corner (the sheet outline in the model).
+        corner = vp.model_rect()[0]
+        corner_x, corner_y = QDoubleSpinBox(), QDoubleSpinBox()
+        for spin, value in ((corner_x, corner.x), (corner_y, corner.y)):
+            spin.setRange(-1_000_000.0, 1_000_000.0)
+            spin.setDecimals(2)
+            spin.setSuffix(" mm")
+            spin.setKeyboardTracking(False)
+            spin.setValue(value)
+            spin.setEnabled(not vp.locked)
+        origin = QPushButton(self.tr("Links oben auf 0,0"))
+        origin.setToolTip(
+            self.tr("Legt die linke obere Ecke des Blattrahmens im Modell auf den Nullpunkt")
+        )
+        origin.setEnabled(not vp.locked)
+        corner_row = QHBoxLayout()
+        corner_row.addWidget(QLabel("X"))
+        corner_row.addWidget(corner_x, 1)
+        corner_row.addWidget(QLabel("Y"))
+        corner_row.addWidget(corner_y, 1)
         form.addRow(self.tr("Maßstab:"), scale)
+        form.addRow(self.tr("Ausschnitt links oben:"), corner_row)
+        form.addRow(origin)
         form.addRow(locked)
         form.addRow(border)
         form.addRow(fit)
@@ -478,7 +503,16 @@ class SheetController(QObject):
                 return
             apply(scale=value)
 
+        def move_corner(x: float, y: float) -> None:
+            current = self.w.container.get(vp.id)
+            hw, hh = current.width / 2 / current.scale, current.height / 2 / current.scale
+            center = Point(x + hw, y + hh)
+            apply(center=center)
+
         scale.activated.connect(lambda _i: on_scale())
+        corner_x.valueChanged.connect(lambda v: move_corner(v, corner_y.value()))
+        corner_y.valueChanged.connect(lambda v: move_corner(corner_x.value(), v))
+        origin.clicked.connect(lambda: move_corner(0.0, 0.0))
         scale.lineEdit().returnPressed.connect(on_scale)
         locked.toggled.connect(lambda v: apply(locked=v))
         border.toggled.connect(lambda v: apply(print_border=v))

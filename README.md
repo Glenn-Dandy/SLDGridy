@@ -77,7 +77,7 @@ Modify commands without a selection first ask for objects: select them and press
 
 - Tabs at the bottom: model and sheets (new, rename, duplicate, delete, format, templates via right click).
 - Formats A4 to A0, portrait and landscape, frame to DIN EN ISO 5457, title block to DIN EN ISO 7200 (180 mm; the block “Schriftfeld” can be changed in the block editor).
-- Double-click into a viewport activates it: the wheel zooms, the middle button pans, Esc ends. Scale, lock and “Fit model extents” in the Properties dock.
+- Double-click into a viewport activates it: the wheel zooms, the middle button pans, Esc ends. Scale, position of the area's top left corner in the model (X/Y, button “Top left to 0,0”), lock and “Fit model extents” in the Properties dock.
 - Printing **1:1** (A0 on the plotter), **fit to paper** (e.g. A0 on A3) or **tiles** (1:1 on smaller sheets with 10 mm overlap, cut marks and tile numbers); quick print of the model; black and white; printable layers only.
 - Vector PDF with exact sheet size and one page per sheet, SVG in mm, PNG with selectable resolution.
 
@@ -198,7 +198,7 @@ Im Dock **Ebenen**: Name, Farbe, Linienbreite (ISO 128: 0,18 bis 0,7 mm), Linien
 
 - Reiter unten: Modell und Blätter. Rechtsklick auf einen Reiter bietet Neu, Umbenennen, Duplizieren, Löschen, Format und Vorlagen. Reiter lassen sich verschieben.
 - Formate A4 bis A0, hoch und quer, Rahmen nach DIN EN ISO 5457, Schriftfeld nach DIN EN ISO 7200 (180 mm). Das Schriftfeld ist der Block „Schriftfeld“ und kann im Blockeditor angepasst werden.
-- Doppelklick in ein Ansichtsfenster aktiviert es: Mausrad zoomt, mittlere Taste verschiebt den Ausschnitt, Esc beendet. Maßstab (1:1, 2:1, 1:2, 1:5, 1:10 oder frei), Sperre und „Modellgrenzen einpassen“ im Eigenschaften-Dock.
+- Doppelklick in ein Ansichtsfenster aktiviert es: Mausrad zoomt, mittlere Taste verschiebt den Ausschnitt, Esc beendet. Maßstab (1:1, 2:1, 1:2, 1:5, 1:10 oder frei), Lage der linken oberen Ecke des Ausschnitts im Modell (X/Y, Knopf „Links oben auf 0,0“), Sperre und „Modellgrenzen einpassen“ im Eigenschaften-Dock.
 - Im Modell zeigen gestrichelte Umrisse, was auf welches Blatt passt (**Blatt > Blattumrisse im Modell**).
 - **Blatt > Als Vorlage speichern** legt eigene Rahmen in `~/.local/share/sldgridy/templates/` ab.
 
