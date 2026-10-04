@@ -11,15 +11,33 @@ from sldgridy.model.grips import grip_points, move_grip
 from sldgridy.model.wires import follow_connections, follow_wires
 from sldgridy.tools.base import Tool, tr
 
+MAX_FOLLOW_DEPTH = 20  # wires pulled along by wires, at most this deep
+
 
 def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
     """``new`` plus wires whose ends were attached to moved connection points or to
     moved wires and bus bars (and the junction marks there)."""
     blocks = getattr(ctx, "block_definitions", {})
     entities = list(ctx.container)
-    result = new + follow_connections(entities, old, new, blocks)
+    by_id = {e.id: e for e in entities}
+    result = list(new)
     taken = {e.id for e in result}
-    return result + [e for e in follow_wires(entities, old, new) if e.id not in taken]
+    # Changes travel along: a wire pulled by a block pulls its branches, and so on.
+    step_old, step_new = list(old), list(new)
+    for _ in range(MAX_FOLLOW_DEPTH):
+        followers = follow_connections(entities, step_old, step_new, blocks)
+        followers += follow_wires(entities, step_old, step_new)
+        fresh: dict[str, Entity] = {}
+        for e in followers:
+            if e.id not in taken and e.id not in fresh:
+                fresh[e.id] = e
+        if not fresh:
+            break
+        result += fresh.values()
+        taken |= fresh.keys()
+        step_old = [by_id[i] for i in fresh if i in by_id]
+        step_new = list(fresh.values())
+    return result
 
 
 class _SelectionTool(Tool):

@@ -33,7 +33,8 @@ SLDGridy then appears in the application menu and `.sldg` files open with a doub
 3. Connect connection points with **Draw > Wire** (Ctrl+W). Wires snap to connection points (magenta markers) and bend at right angles automatically. **Bus bar** draws a 0.7 mm bar that can be connected anywhere. Connection dots appear automatically.
 4. Label wires by double-clicking them or in the Properties dock, e.g. “NYY-J 5x16”; the dock also sets side, position (automatic, start, end, free), alignment (left, centre, right) and size of the label. A selected labelled wire has an orange diamond grip at its label: drag it along the wire to place the label on any segment. Hollow square grips in the middle of each segment shift just that segment; the wire ends stay connected.
 - Right-click on a wire end at the edge of a block: “Set docking point here” makes it a connection point of this block instance, so the wire follows when the block is moved.
-- Wires attached to another wire or bus bar (T branch or end to end) follow when that wire is moved, rotated or reshaped; points separated with right-click “Separate” stay put.
+- Wires attached to another wire or bus bar (T branch or end to end) follow when that wire is moved, rotated or reshaped; points separated with right-click “Separate” stay put. This also travels along: a moved block pulls its wire, the wire pulls its branches.
+- Right-click inside a wire segment: “Add point” splits it, so each part gets its own segment grip and can be offset on its own.
 5. The **Sheet 1** tab holds an A0 landscape frame with title block. **Sheet > Fill in title block** sets project, company, title and so on.
 6. **File > Print** (Ctrl+P) or **File > Export** to PDF, SVG or PNG.
 
@@ -150,7 +151,8 @@ Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich
 3. Mit **Zeichnen > Leitung** (Strg+W) Anschlusspunkte verbinden. Die Leitung rastet auf Anschlusspunkte (magentafarbene Marker) und knickt automatisch rechtwinklig. **Sammelschiene** zeichnet eine 0,7-mm-Schiene, an die überall angeschlossen werden kann. Verbindungspunkte entstehen automatisch.
 4. Leitungen beschriften: Doppelklick auf die Leitung oder Eigenschaften-Dock, z. B. „NYY-J 5x16“; im Dock auch Lage, Position (automatisch, Anfang, Ende, frei), Ausrichtung (links, mitte, rechts) und Größe der Beschriftung. Eine ausgewählte beschriftete Leitung hat einen orangen Rautengriff an der Beschriftung: entlang der Leitung ziehen, um sie auf einen beliebigen Abschnitt zu setzen. Hohle Quadratgriffe in der Mitte jedes Abschnitts verschieben nur diesen Abschnitt, die Leitungsenden bleiben angeschlossen.
 - Rechtsklick auf ein Leitungsende am Rand eines Blocks: „Andockpunkt hier setzen“ macht die Stelle zum Anschlusspunkt dieses einen Blocks, die Leitung folgt dann beim Verschieben.
-- Leitungen, die an einer anderen Leitung oder Sammelschiene hängen (T-Abzweig oder Ende an Ende), wandern mit, wenn diese verschoben, gedreht oder umgeformt wird; per Rechtsklick „Trennen“ getrennte Stellen bleiben stehen.
+- Leitungen, die an einer anderen Leitung oder Sammelschiene hängen (T-Abzweig oder Ende an Ende), wandern mit, wenn diese verschoben, gedreht oder umgeformt wird; per Rechtsklick „Trennen“ getrennte Stellen bleiben stehen. Das setzt sich fort: Ein verschobener Block zieht seine Leitung, die Leitung ihre Abzweige.
+- Rechtsklick in einen Leitungsabschnitt: „Punkt hinzufügen“ teilt ihn, jeder Teil bekommt seinen eigenen Abschnittsgriff und lässt sich einzeln versetzen.
 5. Im Reiter **Blatt 1** liegt der Zeichnungsrahmen A0 quer mit Schriftfeld. **Blatt > Schriftfeld ausfüllen** setzt Projekt, Firma, Titel usw.
 6. **Datei > Drucken** (Strg+P) oder **Datei > Exportieren** als PDF, SVG oder PNG.
 

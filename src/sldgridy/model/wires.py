@@ -279,9 +279,34 @@ def move_segment(wire: Wire, index: int, p: Point) -> Wire:
     if abs(dx) <= EPS and abs(dy) <= EPS:
         return wire
     moved = [a.translated(dx, dy), b.translated(dx, dy)]
-    head = pts[:index] + ([a] if index == 0 else [])
-    tail = ([b] if index + 1 == len(pts) - 1 else []) + pts[index + 2 :]
-    return replace(wire, points=simplify(head + moved + tail))
+
+    def straight(p: Point, q: Point, r: Point) -> bool:
+        return (abs(p.x - q.x) <= EPS and abs(q.x - r.x) <= EPS) or (
+            abs(p.y - q.y) <= EPS and abs(q.y - r.y) <= EPS
+        )
+
+    # Keep the old corner (a short cross piece) at a fixed end and where the neighbour
+    # runs straight on, e.g. after "Add point" split a straight run.
+    keep_a = index == 0 or straight(pts[index - 1], a, b)
+    keep_b = index + 1 == len(pts) - 1 or straight(a, b, pts[index + 2])
+    head = pts[:index] + ([a] if keep_a else [])
+    tail = ([b] if keep_b else []) + pts[index + 2 :]
+    new_pts = head + moved + tail
+    # Tidy up only around the moved piece; other points (added on purpose) stay.
+    touched = {id(q) for q in moved} | {id(a), id(b)}
+    out: list[Point] = []
+    for q in new_pts:
+        if out and same(out[-1], q):
+            continue
+        out.append(q)
+    i = 1
+    while i < len(out) - 1:
+        if (id(out[i]) in touched) and straight(out[i - 1], out[i], out[i + 1]):
+            del out[i]
+            i = max(1, i - 1)
+        else:
+            i += 1
+    return replace(wire, points=tuple(out))
 
 
 def segment_grips(wire: Wire, avoid: Point | None = None) -> list[tuple[int, Point]]:
@@ -487,3 +512,11 @@ def follow_wires(
                     result.append(replace(e, position=dst))
                     break
     return result
+
+
+def insert_point(points: tuple[Point, ...], p: Point) -> tuple[Point, ...] | None:
+    """``points`` with ``p`` added inside the segment it lies on, or None."""
+    for i, (a, b) in enumerate(segments(points)):
+        if _on_segment_interior(p, a, b):
+            return (*points[: i + 1], p, *points[i + 1 :])
+    return None

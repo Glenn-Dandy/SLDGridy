@@ -15,7 +15,13 @@ from sldgridy.i18n import library_text
 from sldgridy.model.blocks import dock_target, point_to_world
 from sldgridy.model.entities import BlockReference, JunctionMark, Line, Polyline, Wire, new_id
 from sldgridy.model.geometry import Point
-from sldgridy.model.wires import entities_at, junction_points, remove_vertex, same
+from sldgridy.model.wires import (
+    entities_at,
+    insert_point,
+    junction_points,
+    remove_vertex,
+    same,
+)
 from sldgridy.tools.draw import ExtendTool, LineTool
 
 if TYPE_CHECKING:
@@ -68,6 +74,17 @@ def point_actions(w: "MainWindow", p: Point) -> list[tuple[str, Callable[[], Non
         if isinstance(e, Wire | Polyline):
             name = tr("Leitung") if isinstance(e, Wire) else tr("Polylinie")
             last = len(e.points) - 1
+            added = insert_point(e.points, p)
+            if added is not None:
+                with_point = replace(e, points=added)
+                actions.append(
+                    (
+                        tr("Punkt hinzufügen ({name})").format(name=name),
+                        lambda n=with_point: push(
+                            ReplaceEntitiesCommand(container, [n], tr("Punkt hinzufügen"))
+                        ),
+                    )
+                )
             for i, q in enumerate(e.points):
                 if not same(q, p):
                     continue

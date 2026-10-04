@@ -590,5 +590,7 @@
  "Andockpunkt entfernen": "Remove docking point",
  "Andockpunkt entfernen ({name})": "Remove docking point ({name})",
  "Andockpunkt hier setzen ({name})": "Set docking point here ({name})",
- "Andockpunkt setzen": "Set docking point"
+ "Andockpunkt setzen": "Set docking point",
+ "Punkt hinzufügen": "Add point",
+ "Punkt hinzufügen ({name})": "Add point ({name})"
 }

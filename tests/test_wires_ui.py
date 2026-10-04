@@ -178,3 +178,48 @@ def test_moving_a_wire_drags_its_branches(window):
     assert ms.get("lan").points == (Point(10, 40), Point(60, 40))
     window.act_undo.trigger()
     assert ms.get("lan").points == (Point(20, 40), Point(60, 40))
+
+
+def test_moving_a_block_drags_wire_and_its_branches(window):
+    window.document.blocks.update(blocks())
+    window._on_blocks_changed("")
+    ms = window.document.model_space
+    # Fuse at (50, 100): connection 1 at the top (50, 100).
+    ms.add(BlockReference(id="e1", name="Sicherung", insert=Point(50, 100)))
+    ms.add(Wire(id="trunk", points=(Point(50, 100), Point(50, 20))))
+    ms.add(Wire(id="lan", points=(Point(50, 40), Point(90, 40))))
+    window._sync.item("e1").setSelected(True)
+    window.act_move.trigger()
+    click(window, 50, 100)
+    click(window, 40, 100)
+    trunk = ms.get("trunk")
+    assert trunk.points[0] == Point(40, 100)
+    lan = ms.get("lan")
+    # The branch end is still on the trunk.
+    from sldgridy.model.wires import on_segment, segments
+
+    assert any(on_segment(lan.points[0], a, b) for a, b in segments(trunk.points))
+    assert lan.points[-1] == Point(90, 40)
+
+
+def test_add_point_then_shift_one_half(window):
+    from sldgridy.model.grips import grip_points, move_grip
+    from sldgridy.ui.point_menu import point_actions
+
+    ms = window.document.model_space
+    ms.add(Wire(id="w", points=(Point(0, 50), Point(100, 50))))
+    actions = dict(point_actions(window, Point(40, 50)))
+    add = [k for k in actions if k.startswith("Punkt hinzufügen")][0]
+    actions[add]()
+    w = ms.get("w")
+    assert w.points == (Point(0, 50), Point(40, 50), Point(100, 50))
+    # Segment grips: ends, then one per half.
+    assert grip_points(w)[2:] == [Point(20, 50), Point(70, 50)]
+    jog = move_grip(w, 3, Point(70, 60))  # right half 10 mm down
+    assert jog.points == (
+        Point(0, 50),
+        Point(40, 50),
+        Point(40, 60),
+        Point(100, 60),
+        Point(100, 50),
+    )
