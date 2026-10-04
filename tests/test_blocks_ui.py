@@ -147,13 +147,23 @@ def test_attribute_edit_in_properties_dock(window):
     window.document.model_space.add(BlockReference(id="r", name="Sicherung", insert=Point(50, 50)))
     window._sync.item("r").setSelected(True)
     dock = window.properties_dock
-    from PyQt6.QtWidgets import QLineEdit, QPushButton
+    from PyQt6.QtWidgets import QPushButton
 
-    edits = dock.widget().findChildren(QLineEdit)
+    from sldgridy.ui.block_dialogs import AttributeValueEdit
+
+    edits = dock.widget().findChildren(AttributeValueEdit)
     edit = [e for e in edits if e.text() == "F1"][0]
     edit.setText("-F9")
     [b for b in dock.widget().findChildren(QPushButton) if "Attribute" in b.text()][0].click()
     assert window.document.model_space.get("r").attribute("BMK") == "-F9"
+    # Shift+Enter starts a new line, Enter applies.
+    edit = [e for e in dock.widget().findChildren(AttributeValueEdit) if e.text() == "-F9"][0]
+    edit.setFocus()
+    edit.moveCursor(edit.textCursor().MoveOperation.End)
+    QTest.keyClick(edit, Qt.Key.Key_Return, Qt.KeyboardModifier.ShiftModifier)
+    QTest.keyClicks(edit, "NH00")
+    QTest.keyClick(edit, Qt.Key.Key_Return)
+    assert window.document.model_space.get("r").attribute("BMK") == "-F9\nNH00"
 
 
 def write_library(name="test"):

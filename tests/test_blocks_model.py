@@ -290,3 +290,49 @@ def test_block_in_use_and_layer_usage_inside_blocks():
     doc.blocks.update(blocks())
     assert doc.block_in_use("Sicherung")  # used inside "Feld"
     assert not doc.block_in_use("Feld")
+
+
+def test_multi_line_attribute_pushes_the_next_ones_down():
+    from sldgridy.model.blocks import BlockDefinition, explode
+    from sldgridy.model.container import EntityContainer
+    from sldgridy.model.entities import AttributeDefinition, BlockReference, Line
+    from sldgridy.model.geometry import Point
+
+    def att(tag, y):
+        return AttributeDefinition(id=tag, tag=tag, position=Point(7.5, y), height=2.5)
+
+    definition = BlockDefinition(
+        name="Kasten",
+        base_point=Point(0, 0),
+        entities=EntityContainer(
+            [Line(id="l", p1=Point(0, 0), p2=Point(0, 10)), att("BMK", 1.25), att("TYP", 4.75)]
+        ),
+    )
+    ref = BlockReference(
+        id="r",
+        name="Kasten",
+        insert=Point(100, 100),
+        attributes=(("BMK", "-T1"), ("TYP", "Symo GEN24\n10.0 Plus")),
+    )
+    texts = {t.text: t.position for t in explode(ref, {"Kasten": definition}) if hasattr(t, "text")}
+    assert texts["-T1"] == Point(107.5, 101.25)
+    assert texts["Symo GEN24"] == Point(107.5, 104.75)
+    assert texts["10.0 Plus"] == Point(107.5, 108.25)  # one line pitch (2.5 * 1.4) lower
+
+    # A break in BMK moves TYP down by one line.
+    ref2 = ref.with_attribute("BMK", "-T1\nWR 1")
+    texts = {
+        t.text: t.position for t in explode(ref2, {"Kasten": definition}) if hasattr(t, "text")
+    }
+    assert texts["WR 1"] == Point(107.5, 104.75)
+    assert texts["Symo GEN24"] == Point(107.5, 108.25)
+
+    # Rotated: every line is its own row of the block above the symbol.
+    rotated = explode(replace_rotation(ref, 90), {"Kasten": definition})
+    assert [t.text for t in rotated if hasattr(t, "text")] == ["-T1", "Symo GEN24", "10.0 Plus"]
+
+
+def replace_rotation(ref, rotation):
+    from dataclasses import replace
+
+    return replace(ref, rotation=rotation)

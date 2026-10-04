@@ -2,7 +2,7 @@
 
 from collections.abc import Mapping
 
-from PyQt6.QtCore import QCoreApplication, QSize, Qt
+from PyQt6.QtCore import QCoreApplication, QSize, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMessageBox,
+    QPlainTextEdit,
     QVBoxLayout,
 )
 
@@ -22,6 +23,47 @@ from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.entities import TEXT_HEIGHTS, AttributeDefinition
 from sldgridy.ui.styles import mm_label
 from sldgridy.view.thumbnails import block_icon
+
+
+class AttributeValueEdit(QPlainTextEdit):
+    """Attribute value input: Enter confirms like a line edit, Shift+Enter starts a
+    new line (the value is then drawn on several lines)."""
+
+    submitted = pyqtSignal()
+    MAX_LINES = 4
+
+    def __init__(self, text: str = "", parent=None) -> None:
+        super().__init__(parent)
+        self.setTabChangesFocus(True)
+        self.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setToolTip(self.tr("Umschalt+Enter: neue Zeile"))
+        self.setPlainText(text)
+        self.textChanged.connect(self._fit_height)
+        self._fit_height()
+
+    def text(self) -> str:
+        return self.toPlainText()
+
+    def setText(self, text: str) -> None:  # noqa: N802 - QLineEdit compatible
+        self.setPlainText(text)
+
+    def _fit_height(self) -> None:
+        lines = min(max(self.document().blockCount(), 1), self.MAX_LINES)
+        metrics = self.fontMetrics()
+        margins = self.contentsMargins()
+        frame = 2 * self.frameWidth() + margins.top() + margins.bottom()
+        doc_margin = 2 * int(self.document().documentMargin())
+        self.setFixedHeight(lines * metrics.lineSpacing() + frame + doc_margin)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            if event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                self.insertPlainText("\n")
+            else:
+                self.submitted.emit()
+            return
+        super().keyPressEvent(event)
 
 
 def _buttons(dialog: QDialog) -> QDialogButtonBox:
@@ -181,10 +223,11 @@ class AttributeValuesDialog(QDialog):
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle(self.tr("Attribute: {name}").format(name=library_text(block_name)))
-        self._edits: dict[str, QLineEdit] = {}
+        self._edits: dict[str, AttributeValueEdit] = {}
         form = QFormLayout(self)
         for d in definitions:
-            edit = QLineEdit(values.get(d.tag, d.default))
+            edit = AttributeValueEdit(values.get(d.tag, d.default))
+            edit.submitted.connect(self.accept)
             label = library_text(d.prompt) or d.tag
             form.addRow(f"{label}:", edit)
             self._edits[d.tag] = edit

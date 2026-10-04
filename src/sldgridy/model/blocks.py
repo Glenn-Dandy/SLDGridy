@@ -156,6 +156,18 @@ def bounds(entities: Iterable[Entity]) -> tuple[float, float, float, float] | No
     return min(xs), min(ys), max(xs), max(ys)
 
 
+COLUMN_TOLERANCE = 0.5  # mm: attributes this close in x form one column
+
+
+def value_lines(value: str) -> list[str]:
+    """Lines of an attribute value; line breaks are entered by the user."""
+    return value.replace("\r\n", "\n").split("\n")
+
+
+def line_pitch(a: AttributeDefinition) -> float:
+    return a.height * ATTRIBUTE_LINE_FACTOR
+
+
 def _attribute_texts(
     ref: BlockReference, definition: BlockDefinition, geometry: list[Entity]
 ) -> list[Text]:
@@ -164,17 +176,31 @@ def _attribute_texts(
     Unrotated references keep the positions of the definition. Rotated or
     mirrored ones place the non-empty values as a left-aligned block: above
     the symbol when it lies (90/270 degrees), right of it otherwise.
+
+    A value may contain line breaks: every line becomes its own text one line
+    pitch lower, and the attributes below it in the same column move down.
     """
     attdefs = [a for a in definition.attribute_definitions() if a.visible]
     if not attdefs:
         return []
     if ref.rotation % 360 == 0 and not ref.mirrored_x:
-        return [
-            readable(
-                to_world(ref, definition.base_point, a).as_text(ref.attribute(a.tag, a.default))
+        texts: list[Text] = []
+        for a in attdefs:
+            shift = sum(
+                (len(value_lines(ref.attribute(o.tag, o.default))) - 1) * line_pitch(o)
+                for o in attdefs
+                if o is not a
+                and abs(o.position.x - a.position.x) <= COLUMN_TOLERANCE
+                and o.position.y < a.position.y
             )
-            for a in attdefs
-        ]
+            for n, line in enumerate(value_lines(ref.attribute(a.tag, a.default))):
+                moved = replace(
+                    a,
+                    id=a.id if n == 0 else f"{a.id}~{n}",
+                    position=Point(a.position.x, a.position.y + shift + n * line_pitch(a)),
+                )
+                texts.append(readable(to_world(ref, definition.base_point, moved).as_text(line)))
+        return texts
     world_bounds = bounds(geometry)
     local_bounds = bounds(
         e for e in definition.entities if not isinstance(e, AttributeDefinition | ConnectionPoint)
@@ -183,7 +209,11 @@ def _attribute_texts(
         return []
     min_x, min_y, max_x, max_y = world_bounds
     ordered = sorted(attdefs, key=lambda a: (a.position.y, a.position.x))
-    lines = [(a, ref.attribute(a.tag, a.default)) for a in ordered]
+    lines = [
+        (a if n == 0 else replace(a, id=f"{a.id}~{n}"), line)
+        for a in ordered
+        for n, line in enumerate(value_lines(ref.attribute(a.tag, a.default)))
+    ]
     lines = [(a, v) for a, v in lines if v.strip()]
     if not lines:
         return []

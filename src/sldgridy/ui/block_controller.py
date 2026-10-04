@@ -18,7 +18,6 @@ from PyQt6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMenuBar,
     QMessageBox,
     QPushButton,
@@ -73,6 +72,7 @@ from sldgridy.ui.block_dialogs import (
     RENAME,
     REPLACE,
     AttributeDefinitionDialog,
+    AttributeValueEdit,
     AttributeValuesDialog,
     BlockChooserDialog,
     BlockPropertiesDialog,
@@ -198,9 +198,9 @@ class BlockController(QObject):
             return
         box = QGroupBox(self.tr("Attribute"))
         form = QFormLayout(box)
-        edits: dict[str, QLineEdit] = {}
+        edits: dict[str, AttributeValueEdit] = {}
         for d in attdefs:
-            edit = QLineEdit(ref.attribute(d.tag, d.default))
+            edit = AttributeValueEdit(ref.attribute(d.tag, d.default))
             form.addRow(f"{d.tag}:", edit)
             edits[d.tag] = edit
         apply = QPushButton(self.tr("Attribute übernehmen"))
@@ -219,7 +219,7 @@ class BlockController(QObject):
 
         apply.clicked.connect(on_apply)
         for edit in edits.values():
-            edit.returnPressed.connect(on_apply)
+            edit.submitted.connect(on_apply)
 
     # -- create -------------------------------------------------------------
 
