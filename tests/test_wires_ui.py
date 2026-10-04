@@ -164,3 +164,17 @@ def test_docked_wire_follows_block(window):
     remove = [k for k in actions if k.startswith("Andockpunkt entfernen")][0]
     actions[remove]()
     assert ms.get("t1").docks == ()
+
+
+def test_moving_a_wire_drags_its_branches(window):
+    ms = window.document.model_space
+    ms.add(Wire(id="main", points=(Point(20, 0), Point(20, 80))))
+    ms.add(Wire(id="lan", points=(Point(20, 40), Point(60, 40))))
+    window._sync.item("main").setSelected(True)
+    window.act_move.trigger()
+    click(window, 20, 10)
+    click(window, 10, 10)
+    assert ms.get("main").points == (Point(10, 0), Point(10, 80))
+    assert ms.get("lan").points == (Point(10, 40), Point(60, 40))
+    window.act_undo.trigger()
+    assert ms.get("lan").points == (Point(20, 40), Point(60, 40))

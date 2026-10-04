@@ -371,3 +371,119 @@ def follow_connections(
             wire = drag_end(wire, index, dst)
         result.append(wire)
     return result
+
+
+def _segments_of(e: Entity) -> list[tuple[Point, Point]]:
+    if isinstance(e, Wire):
+        return segments(e.points)
+    if isinstance(e, Busbar):
+        return [(e.p1, e.p2)]
+    return []
+
+
+def _ends_of(e: Entity) -> tuple[Point, Point]:
+    return (e.points[0], e.points[-1]) if isinstance(e, Wire) else (e.p1, e.p2)
+
+
+def _translation(old: Entity, new: Entity) -> tuple[float, float] | None:
+    """The common offset if ``new`` is ``old`` just moved, else None."""
+    if isinstance(old, Wire) and isinstance(new, Wire):
+        if len(old.points) != len(new.points):
+            return None
+        pairs = list(zip(old.points, new.points, strict=True))
+    elif isinstance(old, Busbar) and isinstance(new, Busbar):
+        pairs = [(old.p1, new.p1), (old.p2, new.p2)]
+    else:
+        return None
+    dx, dy = pairs[0][1].x - pairs[0][0].x, pairs[0][1].y - pairs[0][0].y
+    if all(
+        math.isclose(b.x - a.x, dx, abs_tol=EPS) and math.isclose(b.y - a.y, dy, abs_tol=EPS)
+        for a, b in pairs
+    ):
+        return dx, dy
+    return None
+
+
+def _moved_point(old: Entity, new: Entity, p: Point) -> Point | None:
+    """Where the point ``p`` of ``old`` is on ``new``; None if it did not move or is gone."""
+    offset = _translation(old, new)
+    if offset is not None:
+        return p.translated(*offset) if offset != (0.0, 0.0) else None
+    for o_end, n_end in zip(_ends_of(old), _ends_of(new), strict=True):
+        if same(p, o_end):
+            return None if same(o_end, n_end) else n_end
+    seg = next(((a, b) for a, b in _segments_of(old) if on_segment(p, a, b)), None)
+    if seg is None:
+        return None
+    a, b = seg
+    horizontal = abs(a.y - b.y) <= EPS
+    candidates = []
+    for c, d in _segments_of(new):
+        if (
+            horizontal
+            and abs(c.y - d.y) <= EPS
+            and min(c.x, d.x) - EPS <= p.x <= max(c.x, d.x) + EPS
+        ):
+            candidates.append(Point(p.x, c.y))
+        elif (
+            not horizontal
+            and abs(c.x - d.x) <= EPS
+            and min(c.y, d.y) - EPS <= p.y <= max(c.y, d.y) + EPS
+        ):
+            candidates.append(Point(c.x, p.y))
+    if not candidates or any(same(q, p) for q in candidates):
+        return None
+    return min(candidates, key=lambda q: distance(q, p))
+
+
+def follow_wires(
+    all_entities: Iterable[Entity], old: Iterable[Entity], new: Iterable[Entity]
+) -> list[Entity]:
+    """Wires attached with an end to a changed wire or bus bar (T branch or end to end),
+    moved along with it, plus the junction marks there. Points separated with a
+    junction mark (``connected`` False) stay where they are."""
+    new_by_id = {e.id: e for e in new}
+    changed = [
+        (o, new_by_id[o.id])
+        for o in old
+        if isinstance(o, Wire | Busbar) and o.id in new_by_id and o != new_by_id[o.id]
+    ]
+    if not changed:
+        return []
+    entities = list(all_entities)
+    separated = [e.position for e in entities if isinstance(e, JunctionMark) and not e.connected]
+
+    def target(p: Point) -> Point | None:
+        if any(same(p, q) for q in separated):
+            return None
+        for o, n in changed:
+            if any(on_segment(p, a, b) for a, b in _segments_of(o)):
+                return _moved_point(o, n, p)
+        return None
+
+    result: list[Entity] = []
+    moved_points: list[tuple[Point, Point]] = []
+    for e in entities:
+        if not isinstance(e, Wire) or e.id in new_by_id or len(e.points) < 2:
+            continue
+        targets = {i: t for i in (0, -1) if (t := target(e.points[i])) is not None}
+        if not targets:
+            continue
+        moved_points += [(e.points[i], t) for i, t in targets.items()]
+        if len(targets) == 2:
+            d0 = (targets[0].x - e.points[0].x, targets[0].y - e.points[0].y)
+            d1 = (targets[-1].x - e.points[-1].x, targets[-1].y - e.points[-1].y)
+            if math.isclose(d0[0], d1[0], abs_tol=EPS) and math.isclose(d0[1], d1[1], abs_tol=EPS):
+                result.append(e.translated(*d0))
+                continue
+        wire = e
+        for index, dst in targets.items():
+            wire = drag_end(wire, index, dst)
+        result.append(wire)
+    for e in entities:
+        if isinstance(e, JunctionMark) and e.connected and e.id not in new_by_id:
+            for src, dst in moved_points:
+                if same(e.position, src):
+                    result.append(replace(e, position=dst))
+                    break
+    return result

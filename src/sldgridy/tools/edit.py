@@ -8,14 +8,18 @@ from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesComman
 from sldgridy.model.entities import Entity
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_points, move_grip
-from sldgridy.model.wires import follow_connections
+from sldgridy.model.wires import follow_connections, follow_wires
 from sldgridy.tools.base import Tool, tr
 
 
 def with_followers(ctx, old: list[Entity], new: list[Entity]) -> list[Entity]:
-    """``new`` plus wires whose ends were attached to moved connection points."""
+    """``new`` plus wires whose ends were attached to moved connection points or to
+    moved wires and bus bars (and the junction marks there)."""
     blocks = getattr(ctx, "block_definitions", {})
-    return new + follow_connections(list(ctx.container), old, new, blocks)
+    entities = list(ctx.container)
+    result = new + follow_connections(entities, old, new, blocks)
+    taken = {e.id for e in result}
+    return result + [e for e in follow_wires(entities, old, new) if e.id not in taken]
 
 
 class _SelectionTool(Tool):

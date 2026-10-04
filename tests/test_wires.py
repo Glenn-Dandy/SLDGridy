@@ -462,3 +462,37 @@ def test_segment_grip_moves_segment_and_keeps_the_ends():
     assert grips[3] == Point(25, 20)
     moved = move_grip(z, 3, Point(25, 30))
     assert moved.points[0] == z.points[0] and moved.points[-1] == z.points[-1]
+
+
+def test_branch_follows_moved_wire_unless_separated():
+    from sldgridy.model.entities import JunctionMark
+    from sldgridy.model.wires import follow_wires, move_segment
+
+    main = W("main", (0, 0), (0, 100))  # vertical LAN trunk
+    branch = W("lan", (0, 40), (35, 40))  # T branch to the battery
+    other = W("x", (50, 0), (50, 10))  # not attached
+    mark = JunctionMark(id="m", position=Point(0, 40), connected=True)
+    entities = [main, branch, other, mark]
+
+    # Moved as a whole 10 mm to the left: the branch end and the dot go along.
+    moved = main.translated(-10, 0)
+    result = {e.id: e for e in follow_wires(entities, [main], [moved])}
+    assert result["lan"].points == (Point(-10, 40), Point(35, 40))
+    assert result["m"].position == Point(-10, 40)
+    assert "x" not in result
+
+    # Shifting one segment of an L-shaped trunk moves the branch on it.
+    trunk = W("main", (0, 0), (0, 100), (60, 100))
+    shifted = move_segment(trunk, 0, Point(-20, 50))
+    result = {e.id: e for e in follow_wires([trunk, branch], [trunk], [shifted])}
+    assert result["lan"].points[0] == Point(-20, 40)
+
+    # Separated: the branch stays.
+    cut = JunctionMark(id="m", position=Point(0, 40), connected=False)
+    assert follow_wires([main, branch, cut], [main], [moved]) == []
+
+    # End to end: a wire continuing at the moved end follows that end.
+    tail = W("tail", (0, 100), (0, 130))
+    stretched = replace(main, points=(Point(0, 0), Point(0, 110)))
+    result = {e.id: e for e in follow_wires([main, tail], [main], [stretched])}
+    assert result["tail"].points == (Point(0, 110), Point(0, 130))
