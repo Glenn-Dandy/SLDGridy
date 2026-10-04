@@ -34,7 +34,6 @@
  "Drehen: Richtung angeben (90°-Schritte)": "Rotate: specify direction (90° steps)",
  "Spiegeln: Richtung der Achse angeben (waagerecht oder senkrecht)": "Mirror: specify axis direction (horizontal or vertical)",
  "Einfügen: Einfügepunkt angeben": "Paste: specify insertion point",
- "Griff: Neue Position angeben": "Grip: specify new position",
  "Verschieben: Basispunkt angeben": "Move: specify base point",
  "Kopieren: Basispunkt angeben": "Copy: specify base point",
  "Drehen: Drehpunkt angeben": "Rotate: specify centre of rotation",
@@ -594,5 +593,8 @@
  "Punkt hinzufügen": "Add point",
  "Punkt hinzufügen ({name})": "Add point ({name})",
  "Schnelle Darstellung (Zwischenspeicher)": "Fast display (cache)",
- "Zeichnung als Bild zwischenspeichern: Mausbewegungen bei großen Plänen deutlich flüssiger. Bei Darstellungsfehlern ausschalten.": "Keep the drawing as a cached image: mouse moves are much smoother in large plans. Switch off if the display looks wrong."
+ "Zeichnung als Bild zwischenspeichern: Mausbewegungen bei großen Plänen deutlich flüssiger. Bei Darstellungsfehlern ausschalten.": "Keep the drawing as a cached image: mouse moves are much smoother in large plans. Switch off if the display looks wrong.",
+ "Abschnitt verschieben: neue Lage angeben (loslassen oder klicken)": "Shift segment: specify new position (release or click)",
+ "Beschriftung verschieben: Stelle auf der Leitung angeben": "Move label: specify the spot on the wire",
+ "Griff: Neue Position angeben (loslassen oder klicken)": "Grip: specify new position (release or click)"
 }

@@ -260,3 +260,30 @@ def test_moving_a_device_does_not_connect_wires_by_chance(window, qapp):
     window.act_undo.trigger()
     window.act_undo.trigger()
     assert not [e for e in ms if isinstance(e, JunctionMark)]
+
+
+def test_drag_segment_grip_with_the_mouse(window, qapp):
+    from sldgridy.model.grips import grip_kinds, grip_points
+
+    ms = window.document.model_space
+    ms.add(Wire(id="w", points=(Point(0, 40), Point(60, 40), Point(60, 10))))
+    window._sync.item("w").setSelected(True)
+    window.act_osnap.setChecked(True)  # the own midpoint must not catch the grip
+    qapp.processEvents()
+    wire = ms.get("w")
+    index = [i for i, k in enumerate(grip_kinds(wire)) if k == "segment"][1]
+    grip = grip_points(wire)[index]
+    assert grip == Point(60, 25)
+    viewport = window.canvas.viewport()
+    press = window.canvas.map_from_scene_f(QPointF(grip.x, grip.y)).toPoint()
+    press.setX(press.x() + 5)  # a little beside the grip still takes it
+    QTest.mousePress(viewport, Qt.MouseButton.LeftButton, pos=press)
+    assert window.tools.active is not None
+    assert "Abschnitt verschieben" in window.tools.prompt()
+    target = window.canvas.map_from_scene_f(QPointF(40, 25)).toPoint()
+    QTest.mouseMove(viewport, target)
+    QTest.mouseRelease(viewport, Qt.MouseButton.LeftButton, pos=target)
+    moved = ms.get("w")
+    assert moved.points[0] == Point(0, 40) and moved.points[-1] == Point(60, 10)
+    assert Point(40, 40) in moved.points and Point(40, 10) in moved.points
+    assert window.tools.active is None

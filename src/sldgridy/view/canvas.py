@@ -68,6 +68,8 @@ SNAP_MARKER_COLOR = QColor("#e07000")
 TRACK_COLOR = QColor("#2e7d32")
 ACQUIRE_DELAY_MS = 400  # hover time on a snap point before it is acquired for tracking
 GRIP_PX = 4.0  # half size of a grip square
+GRIP_HIT_PX = GRIP_PX + 4  # a click this close to a grip takes the grip, not the object
+GRIP_HOVER_COLOR = "#e53935"
 MAX_GRIP_ENTITIES = 200
 
 # Drag and drop payload of a library block: JSON {"path": str, "name": str}.
@@ -166,6 +168,10 @@ class Canvas(QGraphicsView):
         # Press on a selected entity that may turn into a drag-move.
         self._drag_start: QPointF | None = None
         self._dragging = False
+        # A press on a grip: dragging it and letting go places it (a click without
+        # dragging keeps the click, click mode).
+        self._grip_press: QPointF | None = None
+        self._grip_dragging = False
 
         self._set_scale(1.0)
 
@@ -313,6 +319,11 @@ class Canvas(QGraphicsView):
             return None
         aperture = SNAP_APERTURE_PX / self.transform().m11()
         entities = self._visible_entities_near(scene_pos, aperture)
+        tool = self.controller.active if self.controller else None
+        ignored = tool.snap_ignored_ids() if tool is not None else set()
+        if ignored:
+            # E.g. while a grip is dragged: its own object would only pull it back.
+            entities = [e for e in entities if e.id not in ignored]
         if not entities:
             return None
         base = self.controller.base_point() if self.controller else None
@@ -416,7 +427,13 @@ class Canvas(QGraphicsView):
 
     def _update_cursor(self, view_pos: QPointF) -> None:
         self._cursor_view = view_pos
-        self._cursor_scene = self.constrain(self.map_to_scene_f(view_pos))
+        if not self._tool_active() and self.grip_at(view_pos) is not None:
+            # On a grip nothing else is offered: no snap marker competing with it.
+            self._snap_hit = None
+            self._track_lines = ()
+            self._cursor_scene = self.map_to_scene_f(view_pos)
+        else:
+            self._cursor_scene = self.constrain(self.map_to_scene_f(view_pos))
         self._watch_hover()
         self.cursor_moved.emit(self._cursor_scene)
         if self.controller:
@@ -494,14 +511,14 @@ class Canvas(QGraphicsView):
         ]
 
     def grip_at(self, view_pos: QPointF) -> tuple[str, int] | None:
+        """The grip nearest to ``view_pos`` within the hit distance."""
+        best, best_d = None, None
         for entity_id, index, p in self._grips():
             v = self.map_from_scene_f(qpt(p))
-            if (
-                abs(v.x() - view_pos.x()) <= GRIP_PX + 1
-                and abs(v.y() - view_pos.y()) <= GRIP_PX + 1
-            ):
-                return entity_id, index
-        return None
+            dx, dy = abs(v.x() - view_pos.x()), abs(v.y() - view_pos.y())
+            if dx <= GRIP_HIT_PX and dy <= GRIP_HIT_PX and (best_d is None or dx + dy < best_d):
+                best, best_d = (entity_id, index), dx + dy
+        return best
 
     # -- zoom and pan -------------------------------------------------------
 
@@ -580,10 +597,11 @@ class Canvas(QGraphicsView):
                 self.controller.pick(picked)
             elif not self._tool_active() and (grip := self.grip_at(pos)) is not None:
                 entity_id, index = grip
-                self.controller.start(lambda ctx: GripEditTool(ctx, entity_id, index))
                 for grip_id, grip_index, p in self._grips():
                     if (grip_id, grip_index) == grip:
                         self._forget_tracking_point(p)
+                self.controller.start(lambda ctx: GripEditTool(ctx, entity_id, index))
+                self._grip_press, self._grip_dragging = pos, False
                 self._update_cursor(pos)
             else:
                 item = self._click_select(pos, shift)
@@ -615,6 +633,9 @@ class Canvas(QGraphicsView):
             self._pan_last = pos
         if self._rubber_start is not None:
             self._rubber_end = pos
+        if self._grip_press is not None and not self._grip_dragging:
+            delta = pos - self._grip_press
+            self._grip_dragging = max(abs(delta.x()), abs(delta.y())) > DRAG_THRESHOLD_PX
         if self._drag_start is not None and not self._dragging:
             delta = pos - self._drag_start
             if max(abs(delta.x()), abs(delta.y())) > DRAG_THRESHOLD_PX:
@@ -637,7 +658,13 @@ class Canvas(QGraphicsView):
             self._pan_last = None
             self.viewport().setCursor(Qt.CursorShape.BlankCursor)
         elif button == Qt.MouseButton.LeftButton:
-            if self._dragging:
+            grip_dragged = self._grip_dragging and self._tool_active()
+            self._grip_press, self._grip_dragging = None, False
+            if grip_dragged:
+                # Press, drag, release: the grip goes where the mouse was let go.
+                self._update_cursor(pos)
+                self.controller.pick(mpt(self._cursor_scene))
+            elif self._dragging:
                 self._update_cursor(pos)
                 self.controller.pick(mpt(self._cursor_scene))
             elif self._rubber_start is not None:
@@ -860,8 +887,15 @@ class Canvas(QGraphicsView):
         painter.setPen(QPen(QColor("#0d47a1"), 1))
         r = GRIP_PX
         kinds = {item.entity_id: grip_kinds(item.entity) for item in self._selected_entity_items()}
+        hovered = self.grip_at(self._cursor_view) if self._cursor_view is not None else None
         for entity_id, index, p in grips:
             v = self.map_from_scene_f(qpt(p))
+            if (entity_id, index) == hovered:
+                # The grip a click would take: drawn bigger and red.
+                painter.setBrush(QBrush(QColor(GRIP_HOVER_COLOR)))
+                h = GRIP_PX + 2
+                painter.drawRect(QRectF(v.x() - h, v.y() - h, 2 * h, 2 * h))
+                continue
             entity_kinds = kinds.get(entity_id, [])
             kind = entity_kinds[index] if index < len(entity_kinds) else "point"
             if kind == "label":

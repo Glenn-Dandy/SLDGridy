@@ -67,6 +67,10 @@ class Tool:
         """Escape."""
         self.done = True
 
+    def snap_ignored_ids(self) -> set[str]:
+        """Objects the object snap leaves out while this tool runs."""
+        return set()
+
     def base_point(self) -> Point | None:
         """Reference point for ortho mode and the rubber band line."""
         return None

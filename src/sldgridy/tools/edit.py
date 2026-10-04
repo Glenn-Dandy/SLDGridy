@@ -7,7 +7,7 @@ from PyQt6.QtCore import QTimer
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.model.entities import Entity, JunctionMark, new_id
 from sldgridy.model.geometry import Point, quarters_towards
-from sldgridy.model.grips import grip_points, move_grip
+from sldgridy.model.grips import grip_kinds, grip_points, move_grip
 from sldgridy.model.wires import follow_connections, follow_wires, new_contacts
 from sldgridy.tools.base import Tool, tr
 
@@ -275,7 +275,16 @@ class GripEditTool(Tool):
         self._origin = grip_points(self._entity)[index]
 
     def prompt(self) -> str:
-        return tr("Griff: Neue Position angeben")
+        kinds = grip_kinds(self._entity)
+        kind = kinds[self._index] if self._index < len(kinds) else "point"
+        if kind == "segment":
+            return tr("Abschnitt verschieben: neue Lage angeben (loslassen oder klicken)")
+        if kind == "label":
+            return tr("Beschriftung verschieben: Stelle auf der Leitung angeben")
+        return tr("Griff: Neue Position angeben (loslassen oder klicken)")
+
+    def snap_ignored_ids(self) -> set[str]:
+        return {self._entity.id}
 
     def base_point(self) -> Point | None:
         return self._origin
