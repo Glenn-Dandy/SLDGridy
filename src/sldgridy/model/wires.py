@@ -576,3 +576,54 @@ def new_contacts(
                 if _touches(q, f) and not was_touching(other.id, index, fid):
                     add(q)
     return found
+
+
+def _crossing(a: Point, b: Point, c: Point, d: Point) -> Point | None:
+    """Crossing point of a horizontal and a vertical segment (either order), or None."""
+    if abs(a.y - b.y) <= EPS and abs(c.x - d.x) <= EPS:
+        p = Point(c.x, a.y)
+    elif abs(a.x - b.x) <= EPS and abs(c.y - d.y) <= EPS:
+        p = Point(a.x, c.y)
+    else:
+        return None
+    return p if on_segment(p, a, b) and on_segment(p, c, d) else None
+
+
+def follow_marks(all_entities: Iterable[Entity], changed: Iterable[Entity]) -> list[JunctionMark]:
+    """Connection marks set on a crossing of two wires (or a wire and a bus bar) move to
+    where these two still cross after some of them changed, so the connection holds
+    like a docked one. Marks that already moved, or whose crossing is gone, stay."""
+    entities = list(all_entities)
+    changed_list = list(changed)
+    new_by_id = {e.id: e for e in changed_list}
+    if not any(isinstance(e, Wire | Busbar) for e in changed_list):
+        return []
+    original = {e.id: e for e in entities}
+    final = dict(original)
+    final.update(new_by_id)
+    result: list[JunctionMark] = []
+    for mark in entities:
+        if not isinstance(mark, JunctionMark) or not mark.connected or mark.id in new_by_id:
+            continue
+        p = mark.position
+        # The bodies that meet at the mark, as they were.
+        bodies = [
+            e.id
+            for e in entities
+            if isinstance(e, Wire | Busbar) and any(on_segment(p, a, b) for a, b in _segments_of(e))
+        ]
+        if len(bodies) < 2 or not any(i in new_by_id for i in bodies):
+            continue
+        candidates: list[Point] = []
+        for i, first in enumerate(bodies):
+            for second in bodies[i + 1 :]:
+                for a, b in _segments_of(final[first]):
+                    for c, d in _segments_of(final[second]):
+                        q = _crossing(a, b, c, d)
+                        if q is not None:
+                            candidates.append(q)
+        if not candidates or any(same(q, p) for q in candidates):
+            continue
+        target = min(candidates, key=lambda q: distance(q, p))
+        result.append(replace(mark, position=target))
+    return result

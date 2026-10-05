@@ -287,3 +287,20 @@ def test_drag_segment_grip_with_the_mouse(window, qapp):
     assert moved.points[0] == Point(0, 40) and moved.points[-1] == Point(60, 10)
     assert Point(40, 40) in moved.points and Point(40, 10) in moved.points
     assert window.tools.active is None
+
+
+def test_moving_a_wire_keeps_a_connection_set_on_a_crossing(window):
+    from sldgridy.model.entities import JunctionMark
+
+    ms = window.document.model_space
+    ms.add(Wire(id="v", points=(Point(20, 0), Point(20, 80))))
+    ms.add(Wire(id="h", points=(Point(0, 40), Point(60, 40))))
+    ms.add(JunctionMark(id="m", position=Point(20, 40), connected=True))
+    window.act_osnap.setChecked(False)
+    window._sync.item("v").setSelected(True)
+    window.act_move.trigger()
+    click(window, 20, 10)
+    click(window, 30, 10)
+    assert ms.get("m").position == Point(30, 40)
+    window.act_undo.trigger()
+    assert ms.get("m").position == Point(20, 40)

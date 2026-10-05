@@ -496,3 +496,22 @@ def test_branch_follows_moved_wire_unless_separated():
     stretched = replace(main, points=(Point(0, 0), Point(0, 110)))
     result = {e.id: e for e in follow_wires([main, tail], [main], [stretched])}
     assert result["tail"].points == (Point(0, 110), Point(0, 130))
+
+
+def test_connection_mark_on_a_crossing_stays_on_the_crossing():
+    from sldgridy.model.entities import JunctionMark
+    from sldgridy.model.wires import follow_marks
+
+    v = W("v", (0, 0), (0, 60))
+    h = W("h", (-30, 30), (30, 30))
+    mark = JunctionMark(id="m", position=Point(0, 30), connected=True)
+    entities = [v, h, mark]
+    (moved,) = follow_marks(entities, [v.translated(10, 0)])
+    assert moved.position == Point(10, 30)
+    (moved,) = follow_marks(entities, [h.translated(0, 10)])
+    assert moved.position == Point(0, 40)
+    # Moved away so far that they no longer cross: the mark stays.
+    assert follow_marks(entities, [v.translated(100, 0)]) == []
+    # A separation mark is not a connection and stays where it is.
+    cut = JunctionMark(id="m", position=Point(0, 30), connected=False)
+    assert follow_marks([v, h, cut], [v.translated(10, 0)]) == []

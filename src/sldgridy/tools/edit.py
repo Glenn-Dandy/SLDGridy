@@ -8,7 +8,7 @@ from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesComman
 from sldgridy.model.entities import Entity, JunctionMark, new_id
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_kinds, grip_points, move_grip
-from sldgridy.model.wires import follow_connections, follow_wires, new_contacts
+from sldgridy.model.wires import follow_connections, follow_marks, follow_wires, new_contacts
 from sldgridy.tools.base import Tool, tr
 
 MAX_FOLLOW_DEPTH = 20  # wires pulled along by wires, at most this deep
@@ -43,6 +43,8 @@ def with_followers(
         taken |= fresh.keys()
         step_old = [by_id[i] for i in fresh if i in by_id]
         step_new = list(fresh.values())
+    # Connection marks on crossings stay on the crossing of the same two wires.
+    result += [m for m in follow_marks(entities, result) if m.id not in taken]
     if separate:
         follower_ids = {e.id for e in result} - {e.id for e in new}
         result += [
