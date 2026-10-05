@@ -105,7 +105,7 @@ class Canvas(QGraphicsView):
         super().__init__(parent)
         self._initial_view: Callable[[], None] | None = None
         self._layer: QPixmap | None = None
-        # Switched by View > Display > Fast display (on by default via the settings).
+        # Switched by Settings > Fast display (off until the user switches it on).
         self.layer_cache_enabled = False
         self._layer_key_value: tuple = ()
         self._rendering_layer = False

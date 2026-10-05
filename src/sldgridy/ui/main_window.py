@@ -1304,7 +1304,7 @@ class MainWindow(QMainWindow):
             )
             chosen |= {m for m in SnapMode if m.value not in known_set}
             self.canvas.osnap_modes = frozenset(chosen)
-        self.act_layer_cache.setChecked(settings.value("view/layer_cache", True, type=bool))
+        self.act_layer_cache.setChecked(settings.value("view/layer_cache", False, type=bool))
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:

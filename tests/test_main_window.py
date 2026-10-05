@@ -115,13 +115,13 @@ def test_mouse_side_buttons_undo_and_redo(window):
         assert "x" in ms
 
 
-def test_layer_cache_is_on_by_default_and_can_be_switched_off(window):
-    assert window.act_layer_cache.isChecked()
-    assert window.canvas.layer_cache_enabled
-    cached = window.canvas.viewport().grab()
-    window.act_layer_cache.setChecked(False)
+def test_layer_cache_is_off_on_first_start_and_can_be_switched_on(window):
+    assert not window.act_layer_cache.isChecked()
     assert not window.canvas.layer_cache_enabled
     plain = window.canvas.viewport().grab()
+    window.act_layer_cache.setChecked(True)
+    assert window.canvas.layer_cache_enabled
+    cached = window.canvas.viewport().grab()
     assert cached.size() == plain.size()
 
 
