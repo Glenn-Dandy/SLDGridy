@@ -58,6 +58,10 @@ def issue_url(title_prefix: str, label: str) -> str:
     )
 
 
+def installed_as_snap() -> bool:
+    return bool(os.environ.get("SNAP")) and "sldgridy" in os.environ.get("SNAP_NAME", "")
+
+
 class _UpdateWorker(QObject):
     finished = pyqtSignal(object)
 
@@ -144,6 +148,11 @@ class AboutDialog(QDialog):
         self.btn_release = QPushButton(self.tr("Release öffnen"))
         self.btn_download.hide()
         self.btn_release.hide()
+        if installed_as_snap():
+            # The Snap Store updates the snap; a .deb download would be wrong here.
+            self.btn_update.hide()
+            self.lbl_update.setText(self.tr("Updates kommen automatisch über den Snap Store."))
+            self.lbl_update.show()
         update_row = QWidget()
         ul = QVBoxLayout(update_row)
         ul.setContentsMargins(10, 0, 10, 6)

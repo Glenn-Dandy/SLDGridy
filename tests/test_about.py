@@ -80,3 +80,13 @@ def test_about_rows_are_never_squeezed(qapp):
         for upper, lower in zip(rows, rows[1:], strict=False):
             assert lower.y() >= upper.y() + upper.height(), (upper.text(), lower.text())
     d.close()
+
+
+def test_snap_shows_store_updates_instead_of_check(qapp, monkeypatch):
+    from sldgridy.ui.about_dialog import AboutDialog
+
+    monkeypatch.setenv("SNAP", "/snap/sldgridy/1")
+    monkeypatch.setenv("SNAP_NAME", "sldgridy")
+    d = AboutDialog()
+    assert d.btn_update.isHidden()
+    assert "Snap Store" in d.lbl_update.text()
