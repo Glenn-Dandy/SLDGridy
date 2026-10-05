@@ -8,4 +8,5 @@ export LD_LIBRARY_PATH="$libdir:$libdir/blas:$libdir/lapack${LD_LIBRARY_PATH:+:$
 export QT_PLUGIN_PATH="$libdir/qt6/plugins"
 export PYTHONPATH="$SNAP/usr/share/sldgridy:$SNAP/usr/lib/python3/dist-packages"
 export PYTHONDONTWRITEBYTECODE=1
-exec "$SNAP/usr/bin/python3" -m sldgridy "$@"
+# Python 3.12 comes from the core24 base, which is the root file system of the snap.
+exec /usr/bin/python3 -m sldgridy "$@"

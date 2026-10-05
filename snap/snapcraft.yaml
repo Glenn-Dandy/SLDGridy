@@ -53,12 +53,10 @@ parts:
       - libqt6svg6
       - qt6-wayland
       - qt6-qpa-plugins
-      - libxcb-cursor0
       - libxcb-icccm4
       - libxcb-image0
       - libxcb-keysyms1
       - libxcb-render-util0
-      - libxcb-xinerama0
       - libxkbcommon-x11-0
       - fonts-dejavu-core
     override-build: |
