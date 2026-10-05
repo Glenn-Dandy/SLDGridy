@@ -1,0 +1,26 @@
+name: Tests
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ubuntu packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pyqt6 python3-pyqt6.qtsvg python3-pytest fonts-dejavu-core
+          pipx install ruff==0.16.10
+      - name: Lint
+        run: |
+          ruff check src tests
+          ruff format --check src tests
+      - name: Tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+          PYTHONPATH: src:tests
+        run: python3 -m pytest -q -p no:cacheprovider
