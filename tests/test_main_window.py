@@ -115,12 +115,20 @@ def test_mouse_side_buttons_undo_and_redo(window):
         assert "x" in ms
 
 
-def test_layer_cache_is_optional_and_off_by_default(window):
-    assert not window.act_layer_cache.isChecked()
-    assert not window.canvas.layer_cache_enabled
-    plain = window.canvas.viewport().grab()
-    window.act_layer_cache.setChecked(True)
+def test_layer_cache_is_on_by_default_and_can_be_switched_off(window):
+    assert window.act_layer_cache.isChecked()
     assert window.canvas.layer_cache_enabled
     cached = window.canvas.viewport().grab()
-    assert cached.size() == plain.size()
     window.act_layer_cache.setChecked(False)
+    assert not window.canvas.layer_cache_enabled
+    plain = window.canvas.viewport().grab()
+    assert cached.size() == plain.size()
+
+
+def test_display_settings_share_one_submenu(window):
+    display = [a.menu() for a in window.view_menu.actions() if a.menu() is not None]
+    display = [m for m in display if m.title().replace("&", "") == "Darstellung"][0]
+    titles = [a.text().replace("&", "") for a in display.actions()]
+    assert "Schnelle Darstellung (Zwischenspeicher)" in titles
+    assert "Sprache / Language" in titles
+    assert "Fenstersystem" in titles

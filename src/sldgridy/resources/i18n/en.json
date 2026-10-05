@@ -603,5 +603,6 @@
  "Wayland": "Wayland",
  "X11 (XWayland)": "X11 (XWayland)",
  "Aktuell: {name}": "Current: {name}",
- "Das Fenstersystem wird beim nächsten Start von SLDGridy umgestellt.": "The window system changes the next time SLDGridy starts."
+ "Das Fenstersystem wird beim nächsten Start von SLDGridy umgestellt.": "The window system changes the next time SLDGridy starts.",
+ "&Darstellung": "&Display"
 }

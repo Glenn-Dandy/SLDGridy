@@ -12,7 +12,7 @@
 
 CAD-style editor for single-line electrical diagrams on Linux: photovoltaic systems, transformer stations and low-voltage distribution. Drawing in real millimetres with model space and sheet layouts, grid and object snap, layers, blocks with attributes and connection points, a symbol library to DIN EN 60617, and printing up to A0.
 
-The user interface is available in **English and German** (View > Sprache / Language).
+The user interface is available in **English and German** (View > Display > Sprache / Language); the same submenu holds “Fast display” and the window system (Wayland or X11).
 
 License: GPL-3.0-or-later. Target system: Ubuntu 24.04 LTS and 26.04 LTS (X11 and Wayland).
 
@@ -130,7 +130,7 @@ GPL-3.0-or-later, see [LICENSE](LICENSE). © Glenn-Dandy
 
 Einpolige Übersichtsschaltpläne (Single-Line-Diagramme) für Photovoltaikanlagen, Transformatorstationen und Niederspannungsverteilungen unter Linux, gezeichnet wie in einem CAD-Programm: maßhaltig in Millimetern, mit Modell und Zeichnungsrahmen, Raster und Objektfang, Ebenen, Blöcken mit Attributen und Anschlusspunkten, einer Symbolbibliothek nach DIN EN 60617 und Drucken bis A0.
 
-Die Oberfläche gibt es auf **Deutsch und Englisch** (Ansicht > Sprache / Language).
+Die Oberfläche gibt es auf **Deutsch und Englisch** (Ansicht > Darstellung > Sprache / Language); im selben Untermenü stehen „Schnelle Darstellung“ und das Fenstersystem (Wayland oder X11).
 
 Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 LTS und 26.04 LTS (X11 und Wayland).
 

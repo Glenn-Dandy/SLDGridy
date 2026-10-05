@@ -103,7 +103,7 @@ class Canvas(QGraphicsView):
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
         self._layer: QPixmap | None = None
-        # Off by default: on some Wayland setups (mixed screen scaling) it flickered.
+        # Switched by View > Display > Fast display (on by default via the settings).
         self.layer_cache_enabled = False
         self._layer_key_value: tuple = ()
         self._rendering_layer = False

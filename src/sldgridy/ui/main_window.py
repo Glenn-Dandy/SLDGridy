@@ -484,11 +484,14 @@ class MainWindow(QMainWindow):
         m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
         m.addAction(self.act_otrack)
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
-        m.addAction(self.act_layer_cache)
         m.addSeparator()
         self.docks_menu = m.addMenu(self.tr("&Fenster"))
+        # Program-wide display settings in one place.
+        display_menu = m.addMenu(self.tr("&Darstellung"))
+        display_menu.addAction(self.act_layer_cache)
+        display_menu.addSeparator()
         # Deliberately bilingual: findable whatever language is active.
-        language_menu = m.addMenu("Sprache / Language")
+        language_menu = display_menu.addMenu("Sprache / Language")
         group = QActionGroup(self)
         for code, label in i18n.LANGUAGES.items():
             action = language_menu.addAction(label)
@@ -497,7 +500,7 @@ class MainWindow(QMainWindow):
             action.setData(code)
             group.addAction(action)
         group.triggered.connect(self._choose_language)
-        platform_menu = m.addMenu(self.tr("Fenster&system"))
+        platform_menu = display_menu.addMenu(self.tr("Fenster&system"))
         group = QActionGroup(self)
         current = str(QSettings().value(platform_choice.SETTINGS_KEY, platform_choice.AUTO))
         for code, label in (
@@ -1230,7 +1233,7 @@ class MainWindow(QMainWindow):
             )
             chosen |= {m for m in SnapMode if m.value not in known_set}
             self.canvas.osnap_modes = frozenset(chosen)
-        self.act_layer_cache.setChecked(settings.value("view/layer_cache", False, type=bool))
+        self.act_layer_cache.setChecked(settings.value("view/layer_cache", True, type=bool))
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:
