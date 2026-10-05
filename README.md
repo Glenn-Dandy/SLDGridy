@@ -2,6 +2,7 @@
 
 [![Release](https://img.shields.io/github/v/release/Glenn-Dandy/SLDGridy)](https://github.com/Glenn-Dandy/SLDGridy/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+[![Snap Store](https://img.shields.io/badge/Snap%20Store-sldgridy-82BEA0?logo=snapcraft)](https://snapcraft.io/sldgridy)
 [![Support](https://img.shields.io/badge/♥-Support%20the%20project-c62828)](https://paypal.me/GlennDandy)
 
 **[English](#english) · [Deutsch](#deutsch)**
@@ -18,13 +19,21 @@ License: GPL-3.0-or-later. Target system: Ubuntu 24.04 LTS and 26.04 LTS (X11 an
 
 ### Installation
 
-Download `sldgridy_<version>_all.deb` from the [releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) and install it:
+**Snap Store** (Ubuntu App Center, automatic updates):
+
+```bash
+sudo snap install sldgridy
+```
+
+Or as **.deb package**: download `sldgridy_<version>_all.deb` from the [releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) and install it:
 
 ```bash
 sudo apt install ./sldgridy_<version>_all.deb
 ```
 
 SLDGridy then appears in the application menu and `.sldg` files open with a double click. Remove it with `sudo apt remove sldgridy`.
+
+The snap keeps its own settings and symbols under `~/snap/sldgridy/`; open `.sldg` files from within the program (the snap cannot register the double click).
 
 ### Quick start
 
@@ -136,13 +145,21 @@ Lizenz: GPL-3.0-or-later. Zielsystem: Ubuntu 24.04 LTS und 26.04 LTS (X11 und Wa
 
 ### Installation
 
-Das Paket `sldgridy_<version>_all.deb` aus den [Releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) herunterladen und installieren:
+**Snap Store** (Ubuntu App Center, automatische Updates):
+
+```bash
+sudo snap install sldgridy
+```
+
+Oder als **.deb-Paket**: `sldgridy_<version>_all.deb` aus den [Releases](https://github.com/Glenn-Dandy/SLDGridy/releases/latest) herunterladen und installieren:
 
 ```bash
 sudo apt install ./sldgridy_<version>_all.deb
 ```
 
 Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich per Doppelklick. Deinstallation mit `sudo apt remove sldgridy`.
+
+Das Snap hat eigene Einstellungen und Symbole unter `~/snap/sldgridy/`; `.sldg`-Dateien öffnet man dort aus dem Programm heraus (den Doppelklick kann ein Snap nicht zuordnen).
 
 ### Kurzanleitung
 
