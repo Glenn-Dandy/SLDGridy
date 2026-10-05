@@ -1,12 +1,14 @@
 """Application entry point."""
 
 import faulthandler
+import os
 import sys
 from pathlib import Path
 
+from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import QApplication
 
-from sldgridy import __version__, i18n
+from sldgridy import __version__, i18n, platform_choice
 from sldgridy.fileio.paths import cache_dir
 from sldgridy.ui.main_window import APP_NAME, MainWindow
 
@@ -41,8 +43,19 @@ def enable_crash_log() -> None:
 _crash_log: list = []
 
 
+def select_platform() -> None:
+    """Set QT_QPA_PLATFORM from the user's choice before Qt starts."""
+    setting = str(
+        QSettings("sldgridy", "sldgridy").value(platform_choice.SETTINGS_KEY, platform_choice.AUTO)
+    )
+    chosen = platform_choice.choose_platform(os.environ, setting)
+    if chosen:
+        os.environ["QT_QPA_PLATFORM"] = chosen
+
+
 def main(argv: list[str] | None = None) -> int:
     enable_crash_log()
+    select_platform()
     app = create_application(sys.argv if argv is None else argv)
     window = MainWindow()
     window.show()

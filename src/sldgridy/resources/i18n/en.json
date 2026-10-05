@@ -596,5 +596,12 @@
  "Zeichnung als Bild zwischenspeichern: Mausbewegungen bei großen Plänen deutlich flüssiger. Bei Darstellungsfehlern ausschalten.": "Keep the drawing as a cached image: mouse moves are much smoother in large plans. Switch off if the display looks wrong.",
  "Abschnitt verschieben: neue Lage angeben (loslassen oder klicken)": "Shift segment: specify new position (release or click)",
  "Beschriftung verschieben: Stelle auf der Leitung angeben": "Move label: specify the spot on the wire",
- "Griff: Neue Position angeben (loslassen oder klicken)": "Grip: specify new position (release or click)"
+ "Griff: Neue Position angeben (loslassen oder klicken)": "Grip: specify new position (release or click)",
+ "Fenster&system": "Window &system",
+ "Fenstersystem": "Window system",
+ "Automatisch (empfohlen)": "Automatic (recommended)",
+ "Wayland": "Wayland",
+ "X11 (XWayland)": "X11 (XWayland)",
+ "Aktuell: {name}": "Current: {name}",
+ "Das Fenstersystem wird beim nächsten Start von SLDGridy umgestellt.": "The window system changes the next time SLDGridy starts."
 }

@@ -36,7 +36,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from sldgridy import i18n, project
+from sldgridy import i18n, platform_choice, project
 from sldgridy.commands.entities import RemoveEntitiesCommand, ReplaceEntitiesCommand
 from sldgridy.fileio.files import DRAWING_SUFFIX, load_document, save_document
 from sldgridy.fileio.json_format import FileFormatError
@@ -497,6 +497,25 @@ class MainWindow(QMainWindow):
             action.setData(code)
             group.addAction(action)
         group.triggered.connect(self._choose_language)
+        platform_menu = m.addMenu(self.tr("Fenster&system"))
+        group = QActionGroup(self)
+        current = str(QSettings().value(platform_choice.SETTINGS_KEY, platform_choice.AUTO))
+        for code, label in (
+            (platform_choice.AUTO, self.tr("Automatisch (empfohlen)")),
+            (platform_choice.WAYLAND, self.tr("Wayland")),
+            (platform_choice.X11, self.tr("X11 (XWayland)")),
+        ):
+            action = platform_menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(code == current)
+            action.setData(code)
+            group.addAction(action)
+        group.triggered.connect(self._choose_platform)
+        platform_menu.addSeparator()
+        info = platform_menu.addAction(
+            self.tr("Aktuell: {name}").format(name=QApplication.platformName())
+        )
+        info.setEnabled(False)
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
@@ -1011,6 +1030,14 @@ class MainWindow(QMainWindow):
     def _on_command_cancel(self) -> None:
         self.tools.cancel()
         self.canvas.setFocus()
+
+    def _choose_platform(self, action) -> None:
+        QSettings().setValue(platform_choice.SETTINGS_KEY, action.data())
+        QMessageBox.information(
+            self,
+            self.tr("Fenstersystem"),
+            self.tr("Das Fenstersystem wird beim nächsten Start von SLDGridy umgestellt."),
+        )
 
     def _choose_language(self, action) -> None:
         code = action.data()
