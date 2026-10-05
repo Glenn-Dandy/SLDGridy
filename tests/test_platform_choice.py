@@ -8,11 +8,8 @@ GNOME_WAYLAND = {
 }
 
 
-def test_auto_uses_x11_on_gnome_wayland():
-    assert choose_platform(GNOME_WAYLAND, AUTO) == "xcb;wayland"
-
-
-def test_auto_leaves_other_desktops_alone():
+def test_auto_keeps_qts_own_choice():
+    assert choose_platform(GNOME_WAYLAND, AUTO) is None
     kde = dict(GNOME_WAYLAND, XDG_CURRENT_DESKTOP="KDE")
     assert choose_platform(kde, AUTO) is None
     x11 = {"XDG_SESSION_TYPE": "x11", "XDG_CURRENT_DESKTOP": "GNOME", "DISPLAY": ":0"}

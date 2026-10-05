@@ -1,8 +1,8 @@
 """Which Qt platform (window system) to use, decided before the application starts.
 
-Qt 6.4 on GNOME Wayland has to draw its own window frames with an old decoration
-plugin; dialogs look dated and flicker when moved. Through XWayland GNOME draws the
-frames itself. ``auto`` therefore picks X11 on GNOME Wayland sessions.
+``auto`` keeps Qt's own choice (Wayland in a Wayland session). X11 through XWayland
+can be chosen explicitly; on GNOME it attaches dialogs to the main window, so moving
+a dialog moves (and unmaximizes) the main window, which is why it is not the default.
 """
 
 from collections.abc import Mapping
@@ -25,8 +25,4 @@ def choose_platform(env: Mapping[str, str], setting: str) -> str | None:
         return "wayland" if env.get("WAYLAND_DISPLAY") else None
     if setting == X11:
         return "xcb;wayland" if has_x else None
-    gnome_wayland = (
-        env.get("XDG_SESSION_TYPE") == "wayland"
-        and "GNOME" in env.get("XDG_CURRENT_DESKTOP", "").upper()
-    )
-    return "xcb;wayland" if gnome_wayland and has_x else None
+    return None
