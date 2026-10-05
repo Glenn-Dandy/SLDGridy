@@ -80,6 +80,7 @@ COORD_INPUT_CHARS = set("0123456789@.,;-")
 
 # Area shown by "zoom extents" when the drawing is empty (A3 landscape).
 EMPTY_EXTENTS = QRectF(0.0, 0.0, 420.0, 297.0)
+INITIAL_VIEW_MS = 2000  # how long the opening view follows window size changes
 
 
 class Canvas(QGraphicsView):
@@ -102,6 +103,7 @@ class Canvas(QGraphicsView):
 
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
+        self._initial_view: Callable[[], None] | None = None
         self._layer: QPixmap | None = None
         # Switched by View > Display > Fast display (on by default via the settings).
         self.layer_cache_enabled = False
@@ -556,9 +558,48 @@ class Canvas(QGraphicsView):
         self.center_on_point(rect.center())
         self.zoom_changed.emit(self.zoom())
 
+    def extents(self) -> QRectF:
+        """Bounding box of what is visible (hidden layers do not count)."""
+        rect = QRectF()
+        for item in self.scene().items():
+            if item.isVisible() and item.parentItem() is None:
+                rect = rect.united(item.sceneBoundingRect())
+        return rect
+
     def zoom_extents(self) -> None:
-        rect = self.scene().itemsBoundingRect()
+        rect = self.extents()
         self.fit_rect(rect if not rect.isEmpty() else EMPTY_EXTENTS)
+
+    def fit_rect_top_left(self, rect: QRectF, margin_px: float = 12.0) -> None:
+        """Like ``fit_rect`` but with the rectangle's top left corner in the view's top
+        left corner (instead of centred)."""
+        self.fit_rect(rect, margin=0.0)
+        vw, vh = self.viewport().width(), self.viewport().height()
+        zoom = min((vw - 2 * margin_px) / rect.width(), (vh - 2 * margin_px) / rect.height())
+        self._set_scale(min(max(zoom / self.px_per_mm(), MIN_ZOOM), MAX_ZOOM))
+        corner = self.map_from_scene_f(rect.topLeft())
+        self._scroll_by(corner - QPointF(margin_px, margin_px))
+        self.zoom_changed.emit(self.zoom())
+
+    def set_view(self, zoom: float, center: QPointF) -> None:
+        self._set_scale(min(max(zoom, MIN_ZOOM), MAX_ZOOM))
+        self.center_on_point(center)
+        self.zoom_changed.emit(self.zoom())
+
+    def set_initial_view(self, apply: Callable[[], None]) -> None:
+        """Show a view now and again whenever the window size still settles (maximizing,
+        restoring the layout), until the user zooms, pans, clicks or types."""
+        self._initial_view = apply
+        apply()
+        QTimer.singleShot(INITIAL_VIEW_MS, self._end_initial_view)
+
+    def _end_initial_view(self) -> None:
+        self._initial_view = None
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        if self._initial_view is not None:
+            self._initial_view()
 
     def _scroll_by(self, delta: QPointF) -> None:
         h, v = self.horizontalScrollBar(), self.verticalScrollBar()
@@ -574,6 +615,7 @@ class Canvas(QGraphicsView):
         self.viewport().update()
 
     def wheelEvent(self, event: QWheelEvent) -> None:
+        self._initial_view = None
         steps = event.angleDelta().y() / 120.0
         if steps:
             factor = WHEEL_ZOOM_STEP**steps
@@ -583,6 +625,7 @@ class Canvas(QGraphicsView):
         event.accept()
 
     def mousePressEvent(self, event) -> None:
+        self._initial_view = None
         pos = event.position()
         button = event.button()
         shift = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
@@ -757,6 +800,7 @@ class Canvas(QGraphicsView):
         super().leaveEvent(event)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
+        self._initial_view = None
         key = event.key()
         controller = self.controller
         text = event.text()

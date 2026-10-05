@@ -604,5 +604,9 @@
  "X11 (XWayland)": "X11 (XWayland)",
  "Aktuell: {name}": "Current: {name}",
  "Das Fenstersystem wird beim nächsten Start von SLDGridy umgestellt.": "The window system changes the next time SLDGridy starts.",
- "&Darstellung": "&Display"
+ "&Darstellung": "&Display",
+ "Beim Öffnen &zeigen": "Show when &opening",
+ "Ganze Zeichnung (Zoom Grenzen)": "Whole drawing (zoom extents)",
+ "Letzte Ansicht dieser Datei": "Last view of this file",
+ "Blatt 1 ab Nullpunkt": "Sheet 1 from the origin"
 }

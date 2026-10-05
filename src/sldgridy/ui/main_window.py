@@ -1,11 +1,12 @@
 """Main application window."""
 
+import hashlib
 from collections.abc import Mapping
 from dataclasses import replace
 from functools import partial
 from pathlib import Path
 
-from PyQt6.QtCore import QEvent, QPointF, QSettings, Qt
+from PyQt6.QtCore import QEvent, QPointF, QRectF, QSettings, Qt
 from PyQt6.QtGui import (
     QAction,
     QActionGroup,
@@ -90,7 +91,7 @@ from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
 from sldgridy.ui.styles import mm_label
 from sldgridy.ui.text_dialog import TextDialog
-from sldgridy.view.canvas import BACKGROUND_COLOR, Canvas
+from sldgridy.view.canvas import BACKGROUND_COLOR, EMPTY_EXTENTS, Canvas
 from sldgridy.view.display import title_labels
 from sldgridy.view.items import EntityItem
 from sldgridy.view.junctions import JunctionItem
@@ -98,6 +99,11 @@ from sldgridy.view.render import Style
 from sldgridy.view.scene_sync import SceneSync
 
 APP_NAME = "SLDGridy"
+
+
+OPEN_VIEW_KEY = "view/on_open"
+OPEN_EXTENTS, OPEN_LAST, OPEN_ORIGIN = "extents", "last", "origin"
+LAST_VIEW_GROUP = "last_views"
 
 
 class MainWindow(QMainWindow):
@@ -519,6 +525,20 @@ class MainWindow(QMainWindow):
             self.tr("Aktuell: {name}").format(name=QApplication.platformName())
         )
         info.setEnabled(False)
+        open_menu = display_menu.addMenu(self.tr("Beim Öffnen &zeigen"))
+        group = QActionGroup(self)
+        current = str(QSettings().value(OPEN_VIEW_KEY, OPEN_EXTENTS))
+        for code, label in (
+            (OPEN_EXTENTS, self.tr("Ganze Zeichnung (Zoom Grenzen)")),
+            (OPEN_LAST, self.tr("Letzte Ansicht dieser Datei")),
+            (OPEN_ORIGIN, self.tr("Blatt 1 ab Nullpunkt")),
+        ):
+            action = open_menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(code == current)
+            action.setData(code)
+            group.addAction(action)
+        group.triggered.connect(self._choose_open_view)
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
@@ -706,6 +726,7 @@ class MainWindow(QMainWindow):
     # -- document -----------------------------------------------------------
 
     def _set_document(self, document: Document, path: Path | None) -> None:
+        self._remember_view()
         self.tools.cancel()
         self.blocks.close_editor(save=False, ask=False)
         self.autosave.discard()
@@ -730,7 +751,55 @@ class MainWindow(QMainWindow):
         self.properties_dock.refresh()
         self.library_dock.refresh_document()
         self._update_title()
+        self.canvas.set_initial_view(self._opening_view)
+
+    # -- view when a drawing is opened ----------------------------------------
+
+    def _view_key(self) -> str | None:
+        if self.file_path is None:
+            return None
+        digest = hashlib.sha1(str(self.file_path.resolve()).encode("utf-8")).hexdigest()
+        return f"{LAST_VIEW_GROUP}/{digest}"
+
+    def _model_view_state(self) -> tuple[float, QPointF]:
+        if self.space is self.model_view or self.model_view.view is None:
+            center = self.canvas.map_to_scene_f(QPointF(self.canvas.viewport().rect().center()))
+            return self.canvas.zoom(), center
+        transform, center = self.model_view.view
+        return transform.m11() / self.canvas.px_per_mm(), center
+
+    def _remember_view(self) -> None:
+        """Store zoom and centre of the model for the open file (for "last view")."""
+        key = self._view_key()
+        if key is None or not hasattr(self, "model_view"):
+            return
+        zoom, center = self._model_view_state()
+        QSettings().setValue(key, [zoom, center.x(), center.y()])
+
+    def _opening_view(self) -> None:
+        mode = str(QSettings().value(OPEN_VIEW_KEY, OPEN_EXTENTS))
+        if mode == OPEN_LAST and (key := self._view_key()) is not None:
+            stored = QSettings().value(key)
+            try:
+                zoom, x, y = (float(v) for v in stored)
+            except (TypeError, ValueError):
+                pass
+            else:
+                self.canvas.set_view(zoom, QPointF(x, y))
+                return
+        if mode == OPEN_ORIGIN:
+            sheet = self.document.sheets[0] if self.document.sheets else None
+            viewports = sheet.viewports() if sheet else []
+            if viewports:
+                a, b = viewports[0].model_rect()
+                self.canvas.fit_rect_top_left(QRectF(a.x, a.y, b.x - a.x, b.y - a.y))
+                return
+            self.canvas.fit_rect_top_left(EMPTY_EXTENTS)
+            return
         self.canvas.zoom_extents()
+
+    def _choose_open_view(self, action) -> None:
+        QSettings().setValue(OPEN_VIEW_KEY, action.data())
 
     def _update_title(self) -> None:
         name = self.file_path.name if self.file_path else self.tr("Unbenannt")
@@ -1260,7 +1329,7 @@ class MainWindow(QMainWindow):
         super().showEvent(event)
         if not getattr(self, "_initial_view_done", False):
             self._initial_view_done = True
-            self.canvas.zoom_extents()
+            self.canvas.set_initial_view(self._opening_view)
 
     def eventFilter(self, watched, event) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress and isinstance(watched, QWidget):
@@ -1279,6 +1348,7 @@ class MainWindow(QMainWindow):
             event.ignore()
             return
         self.tools.cancel()
+        self._remember_view()
         self.autosave.discard()
         self._save_settings()
         # Qt 6.10 still routes events through application filters while a window is

@@ -132,3 +132,67 @@ def test_display_settings_share_one_submenu(window):
     assert "Schnelle Darstellung (Zwischenspeicher)" in titles
     assert "Sprache / Language" in titles
     assert "Fenstersystem" in titles
+
+
+def test_opening_view_modes(window, tmp_path, qapp):
+    from PyQt6.QtCore import QPointF, QSettings
+
+    from sldgridy.fileio.files import save_document
+    from sldgridy.model.entities import Line
+    from sldgridy.ui.main_window import OPEN_EXTENTS, OPEN_LAST, OPEN_ORIGIN, OPEN_VIEW_KEY
+
+    doc = Document.new("Blatt 1")
+    doc.model_space.add(Line(id="far", p1=Point(1000, 1000), p2=Point(1100, 1050)))
+    path = tmp_path / "ansicht.sldg"
+    save_document(doc, path)
+    canvas = window.canvas
+
+    def center():
+        return canvas.map_to_scene_f(QPointF(canvas.viewport().rect().center()))
+
+    QSettings().setValue(OPEN_VIEW_KEY, OPEN_EXTENTS)
+    assert window.open_path(path)
+    c = center()
+    assert 950 < c.x() < 1150 and 950 < c.y() < 1100  # the line is in the middle
+
+    # Last view: zoom and centre come back after closing and reopening.
+    QSettings().setValue(OPEN_VIEW_KEY, OPEN_LAST)
+    canvas.set_view(2.0, QPointF(300, 200))
+    window._set_document(Document.new("Blatt 1"), None)
+    assert window.open_path(path)
+    assert canvas.zoom() == pytest.approx(2.0)
+    assert center().x() == pytest.approx(300, abs=1) and center().y() == pytest.approx(200, abs=1)
+
+    # Sheet 1 from the origin: the first sheet's area, top left at 0,0.
+    QSettings().setValue(OPEN_VIEW_KEY, OPEN_ORIGIN)
+    assert window.open_path(path)
+    origin = canvas.map_from_scene_f(QPointF(0, 0))  # 0,0 sits in the top left corner
+    assert origin.x() == pytest.approx(12, abs=1) and origin.y() == pytest.approx(12, abs=1)
+
+
+def test_opening_view_follows_window_size_until_the_user_acts(window, tmp_path, qapp):
+    from PyQt6.QtCore import QPointF, QSettings
+
+    from sldgridy.fileio.files import save_document
+    from sldgridy.model.entities import Line
+    from sldgridy.ui.main_window import OPEN_EXTENTS, OPEN_VIEW_KEY
+
+    doc = Document.new("Blatt 1")
+    doc.model_space.add(Line(id="l", p1=Point(500, 500), p2=Point(700, 600)))
+    path = tmp_path / "gross.sldg"
+    save_document(doc, path)
+    QSettings().setValue(OPEN_VIEW_KEY, OPEN_EXTENTS)
+    window.resize(700, 500)
+    qapp.processEvents()
+    assert window.open_path(path)
+    window.resize(1400, 1000)  # e.g. the window gets maximized afterwards
+    qapp.processEvents()
+    canvas = window.canvas
+    c = canvas.map_to_scene_f(QPointF(canvas.viewport().rect().center()))
+    assert c.x() == pytest.approx(600, abs=5) and c.y() == pytest.approx(550, abs=5)
+    # Once the user zooms, a later resize keeps the user's view.
+    QTest.keyClick(canvas, Qt.Key.Key_Shift)
+    canvas.set_view(3.0, QPointF(0, 0))
+    window.resize(1200, 900)
+    qapp.processEvents()
+    assert canvas.zoom() == pytest.approx(3.0)
