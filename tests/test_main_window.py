@@ -202,3 +202,25 @@ def test_opening_view_follows_window_size_until_the_user_acts(window, tmp_path, 
     window.resize(1200, 900)
     qapp.processEvents()
     assert canvas.zoom() == pytest.approx(3.0)
+
+
+def test_help_menu_starts_with_readme(window):
+    from sldgridy.ui.readme_dialog import ReadmeDialog, readme_markdown
+
+    help_menu = [a.menu() for a in window.menuBar().actions() if a.text() == "&Hilfe"][0]
+    first = [a for a in help_menu.actions() if not a.isSeparator()][0]
+    assert first is window.act_readme
+    text = readme_markdown()
+    assert "SLDGridy" in text and "[![" not in text  # no remote badges offline
+    assert "application/x-sldgridy" in text  # snap double-click setup is documented
+    dialog = ReadmeDialog(window)
+    assert "Installation" in dialog.browser.toPlainText()
+
+
+def test_readme_links_jump_to_headings(window):
+    from sldgridy.ui.readme_dialog import ReadmeDialog
+
+    dialog = ReadmeDialog(window)
+    assert dialog.jump_to_heading("deutsch")
+    assert dialog.browser.textCursor().block().text() == "Deutsch"
+    assert not dialog.jump_to_heading("gibt-es-nicht")

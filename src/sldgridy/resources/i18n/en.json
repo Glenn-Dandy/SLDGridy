@@ -609,5 +609,8 @@
  "Blatt 1 ab Nullpunkt": "Sheet 1 from the origin",
  "Schnelle Darstellung": "Fast display",
  "&Einstellungen": "&Settings",
- "Updates kommen automatisch über den Snap Store.": "Updates come automatically from the Snap Store."
+ "Updates kommen automatisch über den Snap Store.": "Updates come automatically from the Snap Store.",
+ "&README": "&README",
+ "README": "README",
+ "Die Anleitung liegt unter https://github.com/Glenn-Dandy/SLDGridy": "The user guide is at https://github.com/Glenn-Dandy/SLDGridy"
 }

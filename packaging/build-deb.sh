@@ -40,6 +40,8 @@ install -D -m 0644 "$ROOT/packaging/$PKG.xml" "$STAGE/usr/share/mime/packages/$P
 install -D -m 0644 "$ROOT/src/$PKG/resources/icons/$PKG.svg" \
     "$STAGE/usr/share/icons/hicolor/scalable/apps/$PKG.svg"
 install -D -m 0644 "$ROOT/packaging/copyright" "$STAGE/usr/share/doc/$PKG/copyright"
+# Help > README shows the user guide offline.
+install -D -m 0644 "$ROOT/README.md" "$STAGE/usr/share/$PKG/$PKG/resources/README.md"
 mkdir -p "$STAGE/usr/share/man/man1"
 gzip -9n -c "$ROOT/packaging/$PKG.1" > "$STAGE/usr/share/man/man1/$PKG.1.gz"
 

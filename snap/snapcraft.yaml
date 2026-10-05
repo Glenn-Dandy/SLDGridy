@@ -77,5 +77,10 @@ parts:
       install -D -m 0644 src/sldgridy/resources/icons/sldgridy.svg \
         "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/scalable/apps/sldgridy.svg"
       install -D -m 0755 snap/local/sldgridy-launch "$CRAFT_PART_INSTALL/bin/sldgridy-launch"
+      # Help > README inside the program, and the file type for the double-click setup
+      # described there (a snap cannot register it itself).
+      install -D -m 0644 README.md "$share/sldgridy/resources/README.md"
+      install -D -m 0644 packaging/sldgridy.xml \
+        "$CRAFT_PART_INSTALL/usr/share/mime/packages/sldgridy.xml"
       version="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/sldgridy/__init__.py)"
       craftctl set version="$version"

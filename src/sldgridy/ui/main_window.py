@@ -443,6 +443,7 @@ class MainWindow(QMainWindow):
         self.blocks.create_actions()
         self.sheets.create_actions()
         self.act_about = self._action(self.tr("Über {app}").format(app=APP_NAME), self._show_about)
+        self.act_readme = self._action(self.tr("&README"), self._show_readme)
         self.act_support = self._action(
             self.tr("♥ Projekt &unterstützen"), lambda: open_url(project.SUPPORT_URL)
         )
@@ -544,6 +545,8 @@ class MainWindow(QMainWindow):
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
+        m.addAction(self.act_readme)
+        m.addSeparator()
         m.addActions([self.act_report_bug, self.act_star, self.act_support])
         m.addSeparator()
         m.addAction(self.act_about)
@@ -1104,6 +1107,11 @@ class MainWindow(QMainWindow):
     def _on_command_cancel(self) -> None:
         self.tools.cancel()
         self.canvas.setFocus()
+
+    def _show_readme(self) -> None:
+        from sldgridy.ui.readme_dialog import ReadmeDialog
+
+        ReadmeDialog(self).exec()
 
     def _choose_platform(self, action) -> None:
         QSettings().setValue(platform_choice.SETTINGS_KEY, action.data())

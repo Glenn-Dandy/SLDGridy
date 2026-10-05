@@ -33,7 +33,20 @@ sudo apt install ./sldgridy_<version>_all.deb
 
 SLDGridy then appears in the application menu and `.sldg` files open with a double click. Remove it with `sudo apt remove sldgridy`.
 
-The snap keeps its own settings and symbols under `~/snap/sldgridy/`; open `.sldg` files from within the program (the snap cannot register the double click).
+The snap keeps its own settings and symbols under `~/snap/sldgridy/`.
+
+#### Double-click on .sldg files (snap)
+
+A snap cannot register its file type with the system. Without this step the file manager treats `.sldg` drawings as plain text; then do **not** choose “always open with SLDGridy”, as that would apply to all text files. Run once (no sudo needed):
+
+```bash
+mkdir -p ~/.local/share/mime/packages
+cp /snap/sldgridy/current/usr/share/mime/packages/sldgridy.xml ~/.local/share/mime/packages/
+update-mime-database ~/.local/share/mime
+xdg-mime default sldgridy_sldgridy.desktop application/x-sldgridy
+```
+
+After that a double click opens `.sldg` files in SLDGridy. The `.deb` package does this by itself.
 
 ### Quick start
 
@@ -159,7 +172,20 @@ sudo apt install ./sldgridy_<version>_all.deb
 
 Danach steht „SLDGridy“ im Anwendungsmenü, und `.sldg`-Dateien öffnen sich per Doppelklick. Deinstallation mit `sudo apt remove sldgridy`.
 
-Das Snap hat eigene Einstellungen und Symbole unter `~/snap/sldgridy/`; `.sldg`-Dateien öffnet man dort aus dem Programm heraus (den Doppelklick kann ein Snap nicht zuordnen).
+Das Snap hat eigene Einstellungen und Symbole unter `~/snap/sldgridy/`.
+
+#### Doppelklick auf .sldg-Dateien (Snap)
+
+Ein Snap kann seinen Dateityp nicht selbst beim System anmelden. Ohne diesen Schritt hält der Dateimanager `.sldg`-Zeichnungen für Text; dann **nicht** „immer mit SLDGridy öffnen“ wählen, das gälte sonst für alle Textdateien. Einmal ausführen (ohne sudo):
+
+```bash
+mkdir -p ~/.local/share/mime/packages
+cp /snap/sldgridy/current/usr/share/mime/packages/sldgridy.xml ~/.local/share/mime/packages/
+update-mime-database ~/.local/share/mime
+xdg-mime default sldgridy_sldgridy.desktop application/x-sldgridy
+```
+
+Danach öffnet ein Doppelklick `.sldg`-Dateien in SLDGridy. Das `.deb`-Paket erledigt das selbst.
 
 ### Kurzanleitung
 
