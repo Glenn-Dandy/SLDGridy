@@ -1,8 +1,8 @@
 name: Release packages
 
 # Publishing a GitHub release builds the packages:
-#   pre-release vX.Y.Z-devN -> .deb attached, snap to the "edge" channel
-#   release vX.Y.Z          -> .deb attached, snap to "stable"
+#   pre-release vX.Y.Z-devN -> .deb attached (no snap)
+#   release vX.Y.Z          -> .deb attached, snap published to "stable"
 on:
   release:
     types: [published]
@@ -34,6 +34,8 @@ jobs:
         run: gh release upload "${{ github.event.release.tag_name }}" dist/*.deb --clobber
 
   snap:
+    # Only real releases go to the Snap Store, and straight to stable.
+    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-24.04
     needs: deb
     steps:
@@ -47,4 +49,4 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: ${{ steps.build.outputs.snap }}
-          release: ${{ github.event.release.prerelease && 'edge' || 'stable' }}
+          release: stable
