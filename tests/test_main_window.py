@@ -125,13 +125,19 @@ def test_layer_cache_is_on_by_default_and_can_be_switched_off(window):
     assert cached.size() == plain.size()
 
 
-def test_display_settings_share_one_submenu(window):
-    display = [a.menu() for a in window.view_menu.actions() if a.menu() is not None]
-    display = [m for m in display if m.title().replace("&", "") == "Darstellung"][0]
-    titles = [a.text().replace("&", "") for a in display.actions()]
-    assert "Schnelle Darstellung (Zwischenspeicher)" in titles
-    assert "Sprache / Language" in titles
-    assert "Fenstersystem" in titles
+def test_program_settings_have_their_own_menu(window):
+    titles = [a.text().replace("&", "") for a in window.menuBar().actions()]
+    assert titles[:3] == ["Datei", "Bearbeiten", "Einstellungen"]
+    items = [a.text().replace("&", "") for a in window.settings_menu.actions()]
+    for wanted in (
+        "Schnelle Darstellung",
+        "Sprache / Language",
+        "Fenstersystem",
+        "Beim Öffnen zeigen",
+    ):
+        assert wanted in items
+    view = [a.text().replace("&", "") for a in window.view_menu.actions()]
+    assert "Schnelle Darstellung" not in view
 
 
 def test_opening_view_modes(window, tmp_path, qapp):

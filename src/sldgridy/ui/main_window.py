@@ -407,9 +407,7 @@ class MainWindow(QMainWindow):
         self.act_otrack.setCheckable(True)
         self.act_otrack.setChecked(self.canvas.otrack_enabled)
         self.act_otrack.toggled.connect(self.canvas.set_otrack_enabled)
-        self.act_layer_cache = self._action(
-            self.tr("Schnelle Darstellung (Zwischenspeicher)"), lambda: None
-        )
+        self.act_layer_cache = self._action(self.tr("Schnelle Darstellung"), lambda: None)
         self.act_layer_cache.setCheckable(True)
         self.act_layer_cache.setToolTip(
             self.tr(
@@ -474,28 +472,13 @@ class MainWindow(QMainWindow):
         m.addSeparator()
         m.addActions([self.act_select_all, self.act_delete])
 
-        m = bar.addMenu(self.tr("&Zeichnen"))
-        m.addActions(self.draw_actions)
-        self.draw_menu = m
-
-        m = bar.addMenu(self.tr("Ä&ndern"))
-        m.addActions(self.modify_actions)
-
-        self.blocks.create_menu(bar)
-        self.sheets.create_menu(bar)
-
-        m = bar.addMenu(self.tr("&Ansicht"))
-        m.addActions([self.act_zoom_in, self.act_zoom_out, self.act_zoom_extents])
-        m.addSeparator()
-        m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
-        m.addAction(self.act_otrack)
+        # Program settings (kept between sessions) in one menu.
+        m = bar.addMenu(self.tr("&Einstellungen"))
+        display_menu = m
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
         m.addSeparator()
-        self.docks_menu = m.addMenu(self.tr("&Fenster"))
-        # Program-wide display settings in one place.
-        display_menu = m.addMenu(self.tr("&Darstellung"))
-        display_menu.addAction(self.act_layer_cache)
-        display_menu.addSeparator()
+        m.addAction(self.act_layer_cache)
+        m.addSeparator()
         # Deliberately bilingual: findable whatever language is active.
         language_menu = display_menu.addMenu("Sprache / Language")
         group = QActionGroup(self)
@@ -539,6 +522,25 @@ class MainWindow(QMainWindow):
             action.setData(code)
             group.addAction(action)
         group.triggered.connect(self._choose_open_view)
+        self.settings_menu = m
+
+        m = bar.addMenu(self.tr("&Zeichnen"))
+        m.addActions(self.draw_actions)
+        self.draw_menu = m
+
+        m = bar.addMenu(self.tr("Ä&ndern"))
+        m.addActions(self.modify_actions)
+
+        self.blocks.create_menu(bar)
+        self.sheets.create_menu(bar)
+
+        m = bar.addMenu(self.tr("&Ansicht"))
+        m.addActions([self.act_zoom_in, self.act_zoom_out, self.act_zoom_extents])
+        m.addSeparator()
+        m.addActions([self.act_grid, self.act_snap, self.act_ortho, self.act_osnap])
+        m.addAction(self.act_otrack)
+        m.addSeparator()
+        self.docks_menu = m.addMenu(self.tr("&Fenster"))
         self.view_menu = m
 
         m = bar.addMenu(self.tr("&Hilfe"))
