@@ -89,6 +89,12 @@ Modify commands without a selection first ask for objects: select them and press
 
 **Typed coordinates:** during a drawing command just start typing; input goes to the **Command** line: `120,45` absolute, `@25,0` relative to the last point, `30` length towards the cursor (ortho only). With a decimal comma separate the values with a semicolon: `12,5;7,5`.
 
+### Dimensions and scaled drawings
+
+- **Typed values at the cursor:** while drawing, the length sits on the line and the angle at its start. Just type a number for the length, **Tab** switches to the angle, **Enter** sets the point. A typed value stays fixed while the mouse decides the other one. Rectangles take width and height, the first point X and Y. Typing `@` still opens the command line. Switch off under Settings > Dimension input at the cursor.
+- **Draw > Dimension:** pick two points, then where the dimension line goes; horizontal or vertical follows the side you drag to. **Dimension aligned** measures the true distance. Value text, text height and direction can be changed in the Properties dock (an empty text shows the measured value).
+- Scaled drawings (e.g. a roof plan at 1:50 on a sheet): line widths always apply on paper, and a new dimension inside a viewport gets a value that is 2.5 mm high on the sheet.
+
 ### Blocks, libraries and DXF import
 
 - **Block > Create block** (Ctrl+B): select objects (or select them when asked and press Enter), name the block; the block editor opens right away to add connection points and attributes (the base point jumps to the first connection point until you set it yourself), and **Save and close** creates the block. Untick the editor option in the dialog to just click a base point instead. **Block > Edit block** (block editor with yellow bar), **Modify > Explode**.
@@ -227,6 +233,12 @@ Danach öffnet ein Doppelklick `.sldg`-Dateien in SLDGridy. Das `.deb`-Paket erl
 **Objektfangspur (Hilfslinien):** Während eines Befehls den Cursor kurz auf einem Fangpunkt (z. B. Anschlusspunkt) ruhen lassen, bis ein grünes + erscheint. Bewegt man sich danach waagerecht oder senkrecht davon weg, zeigt eine gepunktete Linie die Flucht, und der Punkt rastet darauf ein, im Raster. Zwei vorgemerkte Punkte ergeben den Kreuzungspunkt ihrer Fluchten.
 
 **Koordinaten eingeben:** Während eines Zeichenbefehls einfach lostippen, die Eingabe landet in der Zeile **Befehl**: `120,45` absolut, `@25,0` relativ zum letzten Punkt, `30` Länge in Cursorrichtung (nur bei Ortho). Mit Dezimalkomma die Werte mit Semikolon trennen: `12,5;7,5`.
+
+### Bemaßung und Maßstabszeichnungen
+
+- **Maßeingabe am Fadenkreuz:** Beim Zeichnen steht die Länge auf der Linie und der Winkel an ihrem Anfang. Einfach eine Zahl tippen setzt die Länge, **Tab** wechselt zum Winkel, **Enter** setzt den Punkt. Ein getippter Wert bleibt fest, die Maus bestimmt nur noch den anderen. Beim Rechteck gelten Breite und Höhe, beim ersten Punkt X und Y. Mit `@` geht es weiter in die Befehlszeile. Abschaltbar unter Einstellungen > Maßeingabe am Fadenkreuz.
+- **Zeichnen > Bemaßen:** zwei Punkte anklicken, dann die Lage der Maßlinie; waagerecht oder senkrecht ergibt sich aus der Richtung, in die man zieht. **Bemaßen ausgerichtet** misst den tatsächlichen Abstand. Maßtext, Texthöhe und Richtung im Eigenschaften-Dock (leerer Maßtext zeigt den gemessenen Wert).
+- Maßstabszeichnungen (z. B. Dachplan 1:50 auf einem Blatt): Linienbreiten gelten immer auf dem Papier, und eine neue Bemaßung im Bereich eines Ansichtsfensters bekommt eine Maßzahl, die auf dem Blatt 2,5 mm hoch ist.
 
 ### Ebenen und Eigenschaften
 

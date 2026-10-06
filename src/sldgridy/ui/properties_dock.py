@@ -26,6 +26,7 @@ from sldgridy.model.entities import (
     TEXT_HEIGHTS,
     Arc,
     Circle,
+    Dimension,
     Entity,
     Line,
     Polyline,
@@ -56,6 +57,7 @@ def type_names() -> dict[type, str]:
         Circle: tr("Kreis"),
         Arc: tr("Bogen"),
         Text: tr("Text"),
+        Dimension: tr("Bemaßung"),
     }
 
 

@@ -20,6 +20,7 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDoubleSpinBox,
     QFileDialog,
     QFormLayout,
     QGraphicsScene,
@@ -44,12 +45,14 @@ from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.i18n import ui_locale
 from sldgridy.model.blocks import BlockDefinition, BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
+from sldgridy.model.dimensions import dimension_geometry, format_value, measured, scale_at
 from sldgridy.model.document import Document
 from sldgridy.model.entities import (
     TEXT_HEIGHTS,
     BlockReference,
     Busbar,
     ConnectionPoint,
+    Dimension,
     Entity,
     Text,
     Wire,
@@ -65,6 +68,7 @@ from sldgridy.tools.draw import (
     ArcTool,
     BusbarTool,
     CircleTool,
+    DimensionTool,
     LineTool,
     PolylineTool,
     RectangleTool,
@@ -357,6 +361,13 @@ class MainWindow(QMainWindow):
         self.act_wire = self._tool_action(self.tr("Lei&tung"), WireTool)
         self.act_wire.setShortcut(QKeySequence("Ctrl+W"))
         self.act_busbar = self._tool_action(self.tr("&Sammelschiene"), BusbarTool)
+        self.act_dimension = self._tool_action(self.tr("Be&maßen"), DimensionTool)
+        self.act_dimension.setToolTip(
+            self.tr("Waagerecht oder senkrecht, je nachdem wohin die Maßlinie gezogen wird")
+        )
+        self.act_dimension_aligned = self._tool_action(
+            self.tr("Bemaßen &ausgerichtet"), lambda ctx: DimensionTool(ctx, aligned=True)
+        )
         self.draw_actions = [
             self.act_wire,
             self.act_busbar,
@@ -366,6 +377,7 @@ class MainWindow(QMainWindow):
             self.act_circle,
             self.act_arc,
             self.act_text,
+            self.act_dimension,
         ]
 
         self.act_move = self._tool_action(self.tr("&Verschieben"), MoveTool)
@@ -537,6 +549,7 @@ class MainWindow(QMainWindow):
 
         m = bar.addMenu(self.tr("&Zeichnen"))
         m.addActions(self.draw_actions)
+        m.addAction(self.act_dimension_aligned)
         self.draw_menu = m
 
         m = bar.addMenu(self.tr("Ä&ndern"))
@@ -583,6 +596,7 @@ class MainWindow(QMainWindow):
             {Wire: self.tr("Leitung"), Busbar: self.tr("Sammelschiene")}
         )
         self.properties_dock.extra_editors.append(self._wire_label_editor)
+        self.properties_dock.extra_editors.append(self._dimension_editor)
         self.library_dock.insert_requested.connect(self.blocks.insert_from_source)
         self.library_dock.edit_requested.connect(self.blocks.edit_block_info)
         self.library_dock.editor_requested.connect(self.blocks.open_library_editor)
@@ -677,11 +691,22 @@ class MainWindow(QMainWindow):
         if isinstance(entity, Wire):
             label = label_text(entity)
             return [entity, label] if label is not None else [entity]
+        if isinstance(entity, Dimension):
+            return dimension_geometry(entity, self.canvas.decimal_comma)
         if isinstance(entity, BlockReference):
             try:
-                return expand(entity, blocks if blocks is not None else self.document.blocks)
+                parts = expand(entity, blocks if blocks is not None else self.document.blocks)
             except BlockError:
                 return []
+            return [
+                q
+                for p in parts
+                for q in (
+                    dimension_geometry(p, self.canvas.decimal_comma)
+                    if isinstance(p, Dimension)
+                    else [p]
+                )
+            ]
         return [entity]
 
     def _decompose(self, entity: Entity) -> list[Entity]:
@@ -1184,6 +1209,55 @@ class MainWindow(QMainWindow):
             return
         changed = replace(entity, text=content, height=height)
         self.push(ReplaceEntitiesCommand(self.container, [changed], self.tr("Text ändern")))
+
+    def _dimension_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
+        dims = [e for e in entities if isinstance(e, Dimension)]
+        if len(dims) != 1 or len(entities) != 1:
+            return
+        dim = dims[0]
+        box = QGroupBox(self.tr("Bemaßung"))
+        form = QFormLayout(box)
+        text = QLineEdit(dim.text)
+        text.setPlaceholderText(
+            self.tr("gemessen: {value}").format(
+                value=format_value(measured(dim), self.canvas.decimal_comma)
+            )
+        )
+        text.setToolTip(self.tr("Leer lassen für den gemessenen Wert"))
+        height = QDoubleSpinBox()
+        height.setRange(0.1, 100000.0)
+        height.setDecimals(2)
+        height.setSuffix(" mm")
+        height.setValue(dim.height)
+        height.setKeyboardTracking(False)
+        paper = scale_at(self.document.sheets, dim.p1) * dim.height
+        height.setToolTip(
+            self.tr("Texthöhe im Modell; auf dem Blatt etwa {paper} mm").format(
+                paper=format_value(paper, self.canvas.decimal_comma)
+            )
+        )
+        orientation = QComboBox()
+        for code, label in (
+            ("horizontal", self.tr("waagerecht")),
+            ("vertical", self.tr("senkrecht")),
+            ("aligned", self.tr("ausgerichtet")),
+        ):
+            orientation.addItem(label, code)
+        orientation.setCurrentIndex(max(orientation.findData(dim.orientation), 0))
+        form.addRow(self.tr("Maßtext:"), text)
+        form.addRow(self.tr("Texthöhe:"), height)
+        form.addRow(self.tr("Richtung:"), orientation)
+        layout.addWidget(box)
+
+        def apply(**changes) -> None:
+            current = self.container.get(dim.id)
+            new = replace(current, **changes)
+            if new != current:
+                self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Bemaßung ändern")))
+
+        text.editingFinished.connect(lambda: apply(text=text.text().strip()))
+        height.valueChanged.connect(lambda v: apply(height=float(v)))
+        orientation.activated.connect(lambda _i: apply(orientation=orientation.currentData()))
 
     def _wire_label_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
         wires = [e for e in entities if isinstance(e, Wire)]

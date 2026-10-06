@@ -191,3 +191,29 @@ def test_monochrome_turns_colours_black(qapp):
     x = round((20 + 100) / 25.4 * 20)
     assert color.pixelColor(x, y).red() > 200
     assert mono.pixelColor(x, y).red() < 60
+
+
+def test_line_widths_in_a_viewport_are_paper_widths(qapp, monkeypatch):
+    from dataclasses import replace
+
+    from PyQt6.QtGui import QImage, QPainter
+
+    from sldgridy.model.document import Document
+    from sldgridy.model.entities import Line
+    from sldgridy.model.geometry import Point
+    from sldgridy.view import display
+
+    doc = Document.new("Blatt 1")
+    doc.model_space.add(Line(id="l", p1=Point(0, 0), p2=Point(1000, 0), lineweight=0.5))
+    sheet = doc.sheets[0]
+    vp = replace(sheet.viewports()[0], scale=0.02)  # 1:50
+    seen = []
+    monkeypatch.setattr(
+        display, "paint_entity", lambda painter, e, style, *a: seen.append(style.lineweight)
+    )
+    image = QImage(100, 100, QImage.Format.Format_ARGB32)
+    painter = QPainter(image)
+    display.paint_viewport(painter, doc, vp, 0, display.OutputOptions(helpers=False))
+    painter.end()
+    # 0.5 mm on paper is 25 mm in the model at 1:50.
+    assert seen == [pytest.approx(25.0)]

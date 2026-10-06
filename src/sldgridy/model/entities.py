@@ -347,6 +347,35 @@ class Viewport(Entity):
         )
 
 
+DIMENSION_ORIENTATIONS = ("horizontal", "vertical", "aligned")
+
+
+@dataclass(frozen=True, kw_only=True)
+class Dimension(Entity):
+    """Linear dimension between ``p1`` and ``p2``; the dimension line passes through
+    ``position``. ``orientation`` measures the horizontal or vertical distance, or the
+    true distance ("aligned"). ``text`` replaces the measured value when not empty."""
+
+    p1: Point
+    p2: Point
+    position: Point
+    orientation: str = "aligned"
+    text: str = ""
+    height: float = 2.5
+
+    def _mapped(self, fn, quarters):
+        orientation = self.orientation
+        if quarters % 2 and orientation != "aligned":
+            orientation = "vertical" if orientation == "horizontal" else "horizontal"
+        return replace(
+            self,
+            p1=fn(self.p1),
+            p2=fn(self.p2),
+            position=fn(self.position),
+            orientation=orientation,
+        )
+
+
 @dataclass(frozen=True, kw_only=True)
 class JunctionMark(Entity):
     """Manual override of the automatic connection dot at ``position``.

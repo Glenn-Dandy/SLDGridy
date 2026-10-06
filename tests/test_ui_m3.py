@@ -157,7 +157,7 @@ def test_properties_dock_changes_selection(window):
         window.document.model_space.add(e)
     window.act_select_all.trigger()
     dock = window.properties_dock
-    assert "6 Objekte" in dock.lbl_selection.text()
+    assert f"{len(sample_entities())} Objekte" in dock.lbl_selection.text()
     dock.cmb_weight.setCurrentIndex(dock.cmb_weight.findData(0.7))
     dock.cmb_weight.activated.emit(dock.cmb_weight.currentIndex())
     assert all(e.lineweight == 0.7 for e in window.document.model_space)
@@ -305,3 +305,47 @@ def test_switching_tools_switches_the_fields_without_error(window):
     click(window, 0, 0)
     window.canvas.viewport().repaint()  # painted before the next mouse move
     assert window.canvas.dynamic.mode == "size"
+
+
+def test_dimension_tool_horizontal_and_aligned(window):
+    from sldgridy.model.dimensions import dimension_geometry, measured
+    from sldgridy.model.entities import Dimension
+    from sldgridy.model.grips import grip_points, move_grip
+
+    window.act_osnap.setChecked(False)
+    window.act_dimension.trigger()
+    click(window, 10, 40)
+    click(window, 60, 50)
+    click(window, 35, 20)  # dragged above: horizontal
+    (d,) = [e for e in window.document.model_space if isinstance(e, Dimension)]
+    assert d.orientation == "horizontal" and measured(d) == pytest.approx(50)
+    texts = [p.text for p in dimension_geometry(d) if hasattr(p, "text")]
+    assert texts == ["50"]
+    window.tools.cancel()
+    window.act_dimension_aligned.trigger()
+    click(window, 0, 0)
+    click(window, 30, 40)
+    click(window, -10, 10)
+    aligned = [e for e in window.document.model_space if isinstance(e, Dimension)][-1]
+    assert aligned.orientation == "aligned" and measured(aligned) == pytest.approx(50)
+    # Grips: the measured points and the dimension line position.
+    assert len(grip_points(d)) == 3
+    assert move_grip(d, 2, Point(35, 70)).position == Point(35, 70)
+    window.act_undo.trigger()
+    window.act_undo.trigger()
+    assert not [e for e in window.document.model_space if isinstance(e, Dimension)]
+
+
+def test_dimension_properties_in_the_dock(window):
+    from PyQt6.QtWidgets import QLineEdit
+
+    from sldgridy.model.entities import Dimension
+
+    ms = window.document.model_space
+    ms.add(Dimension(id="d", p1=Point(0, 0), p2=Point(40, 0), position=Point(20, -10)))
+    window._sync.item("d").setSelected(True)
+    dock = window.properties_dock
+    edit = [e for e in dock.widget().findChildren(QLineEdit) if "40" in e.placeholderText()][0]
+    edit.setText("ca. 40")
+    edit.editingFinished.emit()
+    assert ms.get("d").text == "ca. 40"

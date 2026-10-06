@@ -3,11 +3,13 @@
 from dataclasses import replace
 
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
+from sldgridy.model.dimensions import PAPER_TEXT_HEIGHT, auto_orientation, default_height
 from sldgridy.model.entities import (
     DEFAULT_BUSBAR_WEIGHT,
     Arc,
     Busbar,
     Circle,
+    Dimension,
     Entity,
     Line,
     Polyline,
@@ -19,6 +21,8 @@ from sldgridy.model.entities import (
 from sldgridy.model.geometry import Point, angle_deg, distance, ortho
 from sldgridy.model.wires import elbow, simplify
 from sldgridy.tools.base import PREVIEW_ID, Tool, tr
+
+DIMENSION_LINEWEIGHT = 0.18  # thin lines for dimensions (ISO 128)
 
 
 class _DrawTool(Tool):
@@ -365,3 +369,74 @@ class ExtendTool(_DrawTool):
         if self.cursor is None or self.cursor == self._points[-1]:
             return []
         return [self._result(self._extend(self._points, self.cursor))]
+
+
+class DimensionTool(_DrawTool):
+    """Linear dimension: two measured points, then where the dimension line goes.
+
+    ``aligned`` False picks horizontal or vertical from the side the line is dragged
+    to; True measures the true distance along the line between the points.
+    """
+
+    def __init__(self, ctx, aligned: bool = False) -> None:
+        super().__init__(ctx)
+        self._aligned = aligned
+        self._points: list[Point] = []
+
+    def prompt(self) -> str:
+        if not self._points:
+            return tr("Bemaßen: Ersten Punkt angeben")
+        if len(self._points) == 1:
+            return tr("Bemaßen: Zweiten Punkt angeben")
+        return tr("Bemaßen: Lage der Maßlinie angeben")
+
+    def _make(self, position: Point, entity_id: str) -> Dimension | None:
+        p1, p2 = self._points
+        if p1 == p2:
+            return None
+        orientation = "aligned" if self._aligned else auto_orientation(p1, p2, position)
+        return Dimension(
+            id=entity_id,
+            layer=self.ctx.current_layer,
+            lineweight=DIMENSION_LINEWEIGHT,
+            p1=p1,
+            p2=p2,
+            position=position,
+            orientation=orientation,
+            height=self._height(p1),
+        )
+
+    def _height(self, p: Point) -> float:
+        """2.5 mm on paper: in the model, scaled by the viewport that shows the point."""
+        document = getattr(self.ctx, "document", None)
+        if document is None or self.ctx.container is not document.model_space:
+            return PAPER_TEXT_HEIGHT
+        return default_height(document.sheets, p)
+
+    def pick(self, p: Point) -> None:
+        if len(self._points) < 2:
+            if not self._points or p != self._points[0]:
+                self._points.append(p)
+            return
+        dimension = self._make(p, new_id())
+        if dimension is not None:
+            self._add(dimension, tr("Bemaßen"))
+        self._points = []
+
+    def base_point(self) -> Point | None:
+        # Typed length for the second point; the dimension line is placed freely.
+        return self._points[0] if len(self._points) == 1 else None
+
+    def preview(self) -> list[Entity]:
+        if self.cursor is None:
+            return []
+        if len(self._points) == 1:
+            return [
+                Line(
+                    id=PREVIEW_ID, layer=self.ctx.current_layer, p1=self._points[0], p2=self.cursor
+                )
+            ]
+        if len(self._points) == 2:
+            d = self._make(self.cursor, PREVIEW_ID)
+            return [d] if d is not None else []
+        return []

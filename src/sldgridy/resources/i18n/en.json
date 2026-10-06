@@ -614,5 +614,22 @@
  "README": "README",
  "Die Anleitung liegt unter https://github.com/Glenn-Dandy/SLDGridy": "The user guide is at https://github.com/Glenn-Dandy/SLDGridy",
  "Maßeingabe am Fadenkreuz": "Dimension input at the cursor",
- "Beim Zeichnen Länge und Winkel (bzw. X/Y, Breite/Höhe) direkt am Fadenkreuz eintippen; Tab wechselt das Feld, Enter setzt den Punkt.": "While drawing, type length and angle (or X/Y, width/height) right at the cursor; Tab switches the field, Enter sets the point."
+ "Beim Zeichnen Länge und Winkel (bzw. X/Y, Breite/Höhe) direkt am Fadenkreuz eintippen; Tab wechselt das Feld, Enter setzt den Punkt.": "While drawing, type length and angle (or X/Y, width/height) right at the cursor; Tab switches the field, Enter sets the point.",
+ "Be&maßen": "&Dimension",
+ "Bemaßen &ausgerichtet": "Dimension &aligned",
+ "Waagerecht oder senkrecht, je nachdem wohin die Maßlinie gezogen wird": "Horizontal or vertical, depending on where the dimension line is dragged",
+ "Bemaßen: Ersten Punkt angeben": "Dimension: specify first point",
+ "Bemaßen: Zweiten Punkt angeben": "Dimension: specify second point",
+ "Bemaßen: Lage der Maßlinie angeben": "Dimension: specify position of the dimension line",
+ "Bemaßen": "Dimension",
+ "Bemaßung": "Dimension",
+ "gemessen: {value}": "measured: {value}",
+ "Leer lassen für den gemessenen Wert": "Leave empty for the measured value",
+ "Texthöhe im Modell; auf dem Blatt etwa {paper} mm": "Text height in the model; about {paper} mm on the sheet",
+ "waagerecht": "horizontal",
+ "senkrecht": "vertical",
+ "ausgerichtet": "aligned",
+ "Maßtext:": "Dimension text:",
+ "Richtung:": "Direction:",
+ "Bemaßung ändern": "Change dimension"
 }

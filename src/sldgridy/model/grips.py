@@ -9,6 +9,7 @@ from sldgridy.model.entities import (
     Busbar,
     Circle,
     ConnectionPoint,
+    Dimension,
     Entity,
     JunctionMark,
     Line,
@@ -28,6 +29,8 @@ def grip_points(e: Entity) -> list[Point]:
             return [e.p1, e.p2]
         case Wire():
             return [p for _, p in _wire_grips(e)]
+        case Dimension():
+            return [e.p1, e.p2, e.position]
         case BlockReference():
             return [e.insert]
         case AttributeDefinition() | ConnectionPoint() | JunctionMark():
@@ -86,6 +89,10 @@ def move_grip(e: Entity, index: int, p: Point) -> Entity | None:
                 return new if len(new.points) >= 2 else None
             new = drag_end(e, 0 if index == 0 else -1, p)
             return new if len(new.points) >= 2 else None
+        case Dimension():
+            # The measured points, or (third grip) the position of the dimension line.
+            field = ("p1", "p2", "position")[index]
+            return replace(e, **{field: p})
         case Polyline():
             pts = list(e.points)
             pts[index] = p

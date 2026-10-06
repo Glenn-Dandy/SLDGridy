@@ -39,11 +39,11 @@ def test_scene_follows_container(setup):
     _, scene, container, _ = setup
     for e in sample_entities():
         container.add(e)
-    assert len(entity_items(scene)) == 6
+    assert len(entity_items(scene)) == len(sample_entities())
     container.replace(container.get("l1").translated(0, 100))
     assert scene.items(QPointF(5, 100))  # moved line is hit at its new place
     container.remove("l1")
-    assert len(entity_items(scene)) == 5
+    assert len(entity_items(scene)) == len(sample_entities()) - 1
 
 
 def test_z_order_follows_container_order(setup):

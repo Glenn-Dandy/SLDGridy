@@ -8,12 +8,14 @@ from sldgridy.model.blocks import BlockDefinition
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document, ModelSpace, SheetLayout
 from sldgridy.model.entities import (
+    DIMENSION_ORIENTATIONS,
     Arc,
     AttributeDefinition,
     BlockReference,
     Busbar,
     Circle,
     ConnectionPoint,
+    Dimension,
     Entity,
     JunctionMark,
     Line,
@@ -88,6 +90,7 @@ _TYPE_NAMES: dict[type, str] = {
     Busbar: "busbar",
     Viewport: "viewport",
     JunctionMark: "junction",
+    Dimension: "dimension",
 }
 
 
@@ -100,6 +103,11 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
     match e:
         case Line() | Rectangle() | Busbar():
             d["p1"], d["p2"] = _pt(e.p1), _pt(e.p2)
+        case Dimension():
+            d["p1"], d["p2"], d["position"] = _pt(e.p1), _pt(e.p2), _pt(e.position)
+            d["orientation"], d["height"] = e.orientation, e.height
+            if e.text:
+                d["text"] = e.text
         case Wire():
             d["points"] = [_pt(p) for p in e.points]
             if e.label:
@@ -178,6 +186,17 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 scale=scale,
                 locked=bool(d.get("locked", False)),
                 print_border=bool(d.get("print_border", False)),
+                **common,
+            )
+        case "dimension":
+            orientation = str(d.get("orientation", "aligned"))
+            return Dimension(
+                p1=_to_pt(d["p1"]),
+                p2=_to_pt(d["p2"]),
+                position=_to_pt(d["position"]),
+                orientation=orientation if orientation in DIMENSION_ORIENTATIONS else "aligned",
+                text=str(d.get("text", "")),
+                height=float(d.get("height", 2.5)),
                 **common,
             )
         case "busbar":

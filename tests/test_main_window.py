@@ -82,7 +82,7 @@ def test_delete_and_select_all(window):
     window.act_delete.trigger()
     assert len(window.document.model_space) == 0
     window.act_undo.trigger()
-    assert len(window.document.model_space) == 6
+    assert len(window.document.model_space) == len(sample_entities())
 
 
 def test_save_and_open_roundtrip(window, tmp_path):
@@ -98,7 +98,9 @@ def test_save_and_open_roundtrip(window, tmp_path):
     assert document_to_dict(window.document) == document_to_dict(load_document(path))
     from sldgridy.view.items import EntityItem
 
-    assert len([i for i in window.scene.items() if isinstance(i, EntityItem)]) == 6
+    assert len([i for i in window.scene.items() if isinstance(i, EntityItem)]) == len(
+        sample_entities()
+    )
 
 
 def test_mouse_side_buttons_undo_and_redo(window):
