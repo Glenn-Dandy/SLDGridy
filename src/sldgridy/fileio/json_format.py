@@ -344,6 +344,7 @@ def _layer_to_dict(layer: Layer) -> dict[str, Any]:
         "visible": layer.visible,
         "locked": layer.locked,
         "printable": layer.printable,
+        "workspace": layer.workspace,
     }
 
 
@@ -356,6 +357,8 @@ def _layer_from_dict(d: dict[str, Any]) -> Layer:
         visible=bool(d.get("visible", True)),
         locked=bool(d.get("locked", False)),
         printable=bool(d.get("printable", True)),
+        # Layers from before workspaces belong to the circuit diagram, layer 0 to all.
+        workspace=str(d.get("workspace", "" if str(d["name"]) == "0" else "sld")),
     )
 
 

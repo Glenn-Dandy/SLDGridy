@@ -1490,6 +1490,13 @@ class MainWindow(QMainWindow):
         for action in (self.act_wire, self.act_busbar):
             action.setVisible(sld)
         self.library_dock.set_workspace(self.workspace)
+        # Each workspace has its own layers; the current one must belong to it.
+        if self.document.has_layer(self.current_layer) and not self.document.layer(
+            self.current_layer
+        ).in_workspace(self.workspace):
+            self.set_current_layer(DEFAULT_LAYER)
+        self.layers_dock.rebuild()
+        self.properties_dock.refresh()
         self.workspace_box.setCurrentIndex(max(self.workspace_box.findData(self.workspace), 0))
         self.message(
             self.tr("Arbeitsbereich: {name}").format(name=self.workspace_box.currentText())

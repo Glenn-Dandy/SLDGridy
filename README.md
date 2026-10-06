@@ -91,7 +91,7 @@ Modify commands without a selection first ask for objects: select them and press
 
 ### Dimensions and scaled drawings
 
-- **Workspace** (first box in the toolbar): *Circuit diagram (SLD)* or *Drawing*. It only changes tools and grid, not the drawing: *Drawing* hides wire and bus bar and uses a 100 mm grid with 10 mm snap. Grid settings are remembered per workspace.
+- **Workspace** (first box in the toolbar): *Circuit diagram (SLD)* or *Drawing*. It only changes tools and grid, not the drawing: *Drawing* hides wire and bus bar and the circuit diagram libraries. Each workspace has its own layers (layer 0 is shared) and remembers its grid. Rest on the GRID or SNAP button (or use its arrow) to type grid and snap spacing.
 - **Typed values at the cursor:** while drawing, the length sits on the line and the angle at its start. Just type a number for the length, **Tab** switches to the angle, **Enter** sets the point. A typed value stays fixed while the mouse decides the other one. Rectangles take width and height, the first point X and Y. Typing `@` still opens the command line. Switch off under Settings > Dimension input at the cursor.
 - **Draw > Dimension:** pick two points, then where the dimension line goes; horizontal or vertical follows the side you drag to. **Dimension aligned** measures the true distance. Value text, text height and direction can be changed in the Properties dock (an empty text shows the measured value).
 - Scaled drawings (e.g. a roof plan at 1:50 on a sheet): line widths always apply on paper, and a new dimension inside a viewport gets a value that is 2.5 mm high on the sheet.
@@ -237,7 +237,7 @@ Danach öffnet ein Doppelklick `.sldg`-Dateien in SLDGridy. Das `.deb`-Paket erl
 
 ### Bemaßung und Maßstabszeichnungen
 
-- **Arbeitsbereich** (erstes Auswahlfeld in der Werkzeugleiste): *Schaltplan (SLD)* oder *Zeichnung*. Er ändert nur Werkzeuge und Raster, nicht die Zeichnung: *Zeichnung* blendet Leitung und Sammelschiene aus und nutzt ein 100-mm-Raster mit 10-mm-Fang. Rastereinstellungen werden je Arbeitsbereich gemerkt.
+- **Arbeitsbereich** (erstes Auswahlfeld in der Werkzeugleiste): *Schaltplan (SLD)* oder *Zeichnung*. Er ändert nur Werkzeuge und Raster, nicht die Zeichnung: *Zeichnung* blendet Leitung, Sammelschiene und die Schaltplan-Bibliotheken aus. Jeder Arbeitsbereich hat eigene Ebenen (Ebene 0 gilt für beide) und merkt sich sein Raster. Verweilen auf dem Knopf RASTER oder FANG (oder sein Pfeil) öffnet ein Feld zum direkten Eintragen von Raster und Fang.
 - **Maßeingabe am Fadenkreuz:** Beim Zeichnen steht die Länge auf der Linie und der Winkel an ihrem Anfang. Einfach eine Zahl tippen setzt die Länge, **Tab** wechselt zum Winkel, **Enter** setzt den Punkt. Ein getippter Wert bleibt fest, die Maus bestimmt nur noch den anderen. Beim Rechteck gelten Breite und Höhe, beim ersten Punkt X und Y. Mit `@` geht es weiter in die Befehlszeile. Abschaltbar unter Einstellungen > Maßeingabe am Fadenkreuz.
 - **Zeichnen > Bemaßen:** zwei Punkte anklicken, dann die Lage der Maßlinie; waagerecht oder senkrecht ergibt sich aus der Richtung, in die man zieht. **Bemaßen ausgerichtet** misst den tatsächlichen Abstand. Maßtext, Texthöhe und Richtung im Eigenschaften-Dock (leerer Maßtext zeigt den gemessenen Wert).
 - Maßstabszeichnungen (z. B. Dachplan 1:50 auf einem Blatt): Linienbreiten gelten immer auf dem Papier, und eine neue Bemaßung im Bereich eines Ansichtsfensters bekommt eine Maßzahl, die auf dem Blatt 2,5 mm hoch ist.

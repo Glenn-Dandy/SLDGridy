@@ -47,6 +47,7 @@ class LayersDock(QDockWidget):
         super().__init__(self.tr("Ebenen"), parent)
         self.setObjectName("dock_layers")
         self._host = host
+        self._rows: list[Layer] = []
         self._updating = False
 
         self.table = QTableWidget(0, 8)
@@ -99,10 +100,19 @@ class LayersDock(QDockWidget):
         item.setCheckState(Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked)
         return item
 
+    def _workspace(self) -> str:
+        return getattr(self._host, "workspace", "")
+
     def rebuild(self) -> None:
         self._updating = True
         try:
-            layers = self._host.document.layers
+            # Only the layers of the current workspace (plus layer 0) are listed.
+            layers = [
+                layer
+                for layer in self._host.document.layers
+                if layer.in_workspace(self._workspace())
+            ]
+            self._rows = layers
             self.table.setRowCount(len(layers))
             for row, layer in enumerate(layers):
                 self._fill_row(row, layer)
@@ -174,7 +184,7 @@ class LayersDock(QDockWidget):
         if self._updating:
             return
         row, col = item.row(), item.column()
-        layer = self._host.document.layers[row]
+        layer = self._rows[row]
         checked = item.checkState() == Qt.CheckState.Checked
         if col == COL_VISIBLE:
             self._change(layer.name, visible=checked)
@@ -200,12 +210,11 @@ class LayersDock(QDockWidget):
 
     def _selected_name(self) -> str | None:
         row = self.table.currentRow()
-        layers = self._host.document.layers
-        return layers[row].name if 0 <= row < len(layers) else None
+        return self._rows[row].name if 0 <= row < len(self._rows) else None
 
     def _on_double_click(self, row: int, col: int) -> None:
         if col != COL_NAME:
-            self._host.set_current_layer(self._host.document.layers[row].name)
+            self._host.set_current_layer(self._rows[row].name)
 
     def _set_selected_current(self) -> None:
         name = self._selected_name()
@@ -217,9 +226,9 @@ class LayersDock(QDockWidget):
         n = 1
         while doc.has_layer(self.tr("Ebene {n}").format(n=n)):
             n += 1
-        layer = Layer(self.tr("Ebene {n}").format(n=n))
+        layer = Layer(self.tr("Ebene {n}").format(n=n), workspace=self._workspace())
         self._host.push(AddLayerCommand(doc, layer, self.tr("Ebene anlegen")))
-        self.table.selectRow(len(doc.layers) - 1)
+        self.table.selectRow(len(self._rows) - 1)
 
     def delete_selected(self) -> None:
         name = self._selected_name()

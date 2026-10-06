@@ -200,8 +200,10 @@ class PropertiesDock(QDockWidget):
 
     def _fill_layer(self, value: object) -> None:
         self.cmb_layer.clear()
+        workspace = getattr(self._host, "workspace", "")
         for layer in self._host.document.layers:
-            self.cmb_layer.addItem(color_icon(layer.color), layer.name, layer.name)
+            if layer.in_workspace(workspace) or layer.name == value:
+                self.cmb_layer.addItem(color_icon(layer.color), layer.name, layer.name)
         self._select(self.cmb_layer, value)
 
     def _fill_color(self, value: object) -> None:

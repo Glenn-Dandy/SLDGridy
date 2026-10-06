@@ -259,3 +259,26 @@ def test_grid_and_snap_typed_in_the_status_bar_menu(window):
     window.canvas.set_snap_spacing(2.5)
     menu.sync()
     assert menu.snap_spin.value() == 2.5
+
+
+def test_layers_are_separate_per_workspace(window):
+    from sldgridy.model.layers import Layer
+    from sldgridy.ui.main_window import WORKSPACE_DRAWING, WORKSPACE_SLD
+
+    doc = window.document
+    doc.insert_layer(len(doc.layers), Layer("Kabel", workspace=WORKSPACE_SLD))
+    doc.insert_layer(len(doc.layers), Layer("Dachfläche", workspace=WORKSPACE_DRAWING))
+    window.set_current_layer("Kabel")
+
+    def listed():
+        dock = window.layers_dock
+        return [dock.table.item(r, 1).text() for r in range(dock.table.rowCount())]
+
+    window.layers_dock.rebuild()
+    assert listed() == ["0", "Kabel"]
+    window.set_workspace(WORKSPACE_DRAWING)
+    assert listed() == ["0", "Dachfläche"]
+    assert window.current_layer == "0"  # "Kabel" is not a drawing layer
+    window.layers_dock.add_layer()
+    new = doc.layers[-1]
+    assert new.workspace == WORKSPACE_DRAWING and new.name in listed()

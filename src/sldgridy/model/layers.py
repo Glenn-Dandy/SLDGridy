@@ -18,3 +18,8 @@ class Layer:
     visible: bool = True
     locked: bool = False
     printable: bool = True
+    # Workspace the layer belongs to ("sld", "drawing"); empty: every workspace (layer 0).
+    workspace: str = ""
+
+    def in_workspace(self, workspace: str) -> bool:
+        return not self.workspace or not workspace or self.workspace == workspace

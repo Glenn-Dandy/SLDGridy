@@ -154,3 +154,15 @@ def test_wire_label_position_roundtrip():
         d = entity_to_dict(wire)
         assert ("label_pos" in d) == (pos != "auto")
         assert entity_from_dict(json.loads(json.dumps(d))) == wire
+
+
+def test_layer_workspace_roundtrip_and_old_files():
+    from sldgridy.fileio.json_format import _layer_from_dict, _layer_to_dict
+    from sldgridy.model.layers import Layer
+
+    for workspace in ("", "sld", "drawing"):
+        layer = Layer("X", workspace=workspace)
+        assert _layer_from_dict(_layer_to_dict(layer)) == layer
+    # Before workspaces: every layer but 0 belonged to the circuit diagram.
+    assert _layer_from_dict({"name": "Kabel"}).workspace == "sld"
+    assert _layer_from_dict({"name": "0"}).workspace == ""
