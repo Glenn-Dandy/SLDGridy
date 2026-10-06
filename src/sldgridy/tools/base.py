@@ -36,6 +36,10 @@ class ToolContext(Protocol):
 
     def message(self, text: str) -> None: ...
 
+    def ask_choice(self, key: str, options: list[str]) -> int | None:
+        """Index of the chosen option (None: cancelled); ``key`` remembers the last one."""
+        ...
+
 
 class Tool:
     """State machine fed with already snapped points."""

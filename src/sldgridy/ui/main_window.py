@@ -12,6 +12,7 @@ from PyQt6.QtGui import (
     QActionGroup,
     QCloseEvent,
     QColor,
+    QCursor,
     QKeySequence,
     QUndoCommand,
     QUndoGroup,
@@ -324,6 +325,21 @@ class MainWindow(QMainWindow):
 
     def message(self, text: str) -> None:
         self.statusBar().showMessage(text, 5000)
+
+    def ask_choice(self, key: str, options: list[str]) -> int | None:
+        """Small menu at the mouse; the last choice for ``key`` is preselected."""
+        settings = QSettings()
+        last = settings.value(f"choice/{key}", 0, type=int)
+        menu = QMenu(self)
+        actions = [menu.addAction(text) for text in options]
+        if 0 <= last < len(actions):
+            menu.setActiveAction(actions[last])
+        chosen = menu.exec(QCursor.pos())
+        if chosen not in actions:
+            return None
+        index = actions.index(chosen)
+        settings.setValue(f"choice/{key}", index)
+        return index
 
     # -- setup --------------------------------------------------------------
 

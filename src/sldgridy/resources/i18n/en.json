@@ -666,5 +666,8 @@
  "Bei eingetippter Länge (oder ohne Rasterfang) rasten Richtungen in diesen Schritten ein; 0 schaltet aus": "With a typed length (or without grid snap) directions snap in these steps; 0 switches off",
  "Bemaßen &parallel": "Dimension &parallel",
  "parallel": "parallel",
- "Parallel zur Strecke zwischen den Punkten, misst die wahre Länge": "Parallel to the line between the points, measures the true length"
+ "Parallel zur Strecke zwischen den Punkten, misst die wahre Länge": "Parallel to the line between the points, measures the true length",
+ "Original &ersetzen": "&Replace original",
+ "&Kopie, Original bleibt": "Keep original, &copy",
+ "Spiegeln (Kopie)": "Mirror (copy)"
 }

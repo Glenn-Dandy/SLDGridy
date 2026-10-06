@@ -38,6 +38,11 @@ class FakeContext:
     def message(self, text):
         self.messages.append(text)
 
+    choice_answer = 0
+
+    def ask_choice(self, key, options):
+        return self.choice_answer
+
 
 @pytest.fixture
 def ctx():
@@ -187,6 +192,30 @@ def test_mirror_tool_horizontal_axis(ctx, tools):
     tools.pick(Point(10, 20))  # horizontal axis y = 20
     line = ctx.container.get("l1")
     assert (line.p1, line.p2) == (Point(0, 40), Point(10, 40))
+
+
+def test_mirror_tool_can_keep_the_original(ctx, tools):
+    select_samples(ctx)
+    count = len(ctx.container)
+    ctx.choice_answer = 1  # copy, original stays
+    tools.start(MirrorTool)
+    tools.pick(Point(0, 20))
+    tools.pick(Point(10, 20))
+    line = ctx.container.get("l1")
+    assert (line.p1, line.p2) == (Point(0, 0), Point(10, 0))
+    assert len(ctx.container) == count + 2  # l1 and c1 were selected
+    mirrored = [e for e in ctx.container if e.id != "l1" and getattr(e, "p1", None) == Point(0, 40)]
+    assert mirrored and tools.active is None
+
+
+def test_mirror_tool_cancelled_choice_keeps_asking(ctx, tools):
+    select_samples(ctx)
+    ctx.choice_answer = None
+    tools.start(MirrorTool)
+    tools.pick(Point(0, 20))
+    tools.pick(Point(10, 20))
+    assert ctx.container.get("l1").p1 == Point(0, 0)
+    assert tools.active is not None
 
 
 def test_paste_tool_places_new_entities(ctx, tools):

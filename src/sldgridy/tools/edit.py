@@ -283,13 +283,21 @@ class MirrorTool(_SelectionTool):
         if p == self._base:
             return
         horizontal = self._horizontal(p)
-        mirrored = with_followers(
-            self.ctx,
-            self._entities,
-            [e.mirrored(self._base, horizontal) for e in self._entities],
-            separate=True,
+        mirrored = [e.mirrored(self._base, horizontal) for e in self._entities]
+        ask = getattr(self.ctx, "ask_choice", None)
+        choice = (
+            ask("mirror", [tr("Original &ersetzen"), tr("&Kopie, Original bleibt")])
+            if ask is not None
+            else 0
         )
-        self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, mirrored, tr("Spiegeln")))
+        if choice is None:
+            return  # still asks for the axis direction
+        if choice == 1:
+            copies = [e.with_new_id() for e in mirrored]
+            self.ctx.push(AddEntitiesCommand(self.ctx.container, copies, tr("Spiegeln (Kopie)")))
+        else:
+            mirrored = with_followers(self.ctx, self._entities, mirrored, separate=True)
+            self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, mirrored, tr("Spiegeln")))
         self.done = True
 
     def preview(self) -> list[Entity]:
