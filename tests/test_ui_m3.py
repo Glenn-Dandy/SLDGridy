@@ -475,3 +475,77 @@ def test_angle_dimension_snaps_onto_sloped_leg(window):
     assert d.p2 == Point(30, -50)
     assert measured(d) == pytest.approx(59.036243)
     window.act_undo.trigger()
+
+
+def test_dimension_dock_edits_several_dimensions(window):
+    from PyQt6.QtWidgets import QComboBox, QDoubleSpinBox, QGroupBox, QLineEdit
+
+    from sldgridy.model.entities import Dimension
+
+    ms = window.document.model_space
+    ms.add(Dimension(id="a", p1=Point(0, 0), p2=Point(40, 0), position=Point(20, -10)))
+    ms.add(
+        Dimension(
+            id="b",
+            p1=Point(0, 20),
+            p2=Point(30, 20),
+            position=Point(15, 30),
+            orientation="horizontal",
+            height=5.0,
+            text="x",
+        )
+    )
+    for i in ("a", "b"):
+        window._sync.item(i).setSelected(True)
+    dock = window.properties_dock.widget()
+    box = [b for b in dock.findChildren(QGroupBox) if b.title().startswith("Bemaßung")][-1]
+    assert box.title() == "Bemaßung (2)"
+    (text,) = box.findChildren(QLineEdit, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    assert text.text() == "" and text.placeholderText() == "*verschieden*"
+    (height,) = box.findChildren(QDoubleSpinBox)
+    assert height.text() == "*verschieden*"
+    (orientation,) = box.findChildren(QComboBox)
+    assert orientation.currentText() == "*verschieden*"
+    # Leaving the text field unchanged keeps both texts.
+    text.editingFinished.emit()
+    assert (ms.get("a").text, ms.get("b").text) == ("", "x")
+    height.setValue(3.5)
+    assert ms.get("a").height == ms.get("b").height == 3.5
+    box = [b for b in dock.findChildren(QGroupBox) if b.title().startswith("Bemaßung")][-1]
+    (text,) = box.findChildren(QLineEdit, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    text.setText("ca.")
+    text.editingFinished.emit()
+    assert ms.get("a").text == ms.get("b").text == "ca."
+    box = [b for b in dock.findChildren(QGroupBox) if b.title().startswith("Bemaßung")][-1]
+    (orientation,) = box.findChildren(QComboBox)
+    orientation.setCurrentIndex(orientation.findData("aligned"))
+    orientation.activated.emit(orientation.currentIndex())
+    assert ms.get("a").orientation == ms.get("b").orientation == "aligned"
+    # All of it in single undo steps per field.
+    window.act_undo.trigger()
+    assert ms.get("b").orientation == "horizontal"
+
+
+def test_wire_label_dock_edits_several_wires(window):
+    from PyQt6.QtWidgets import QComboBox, QGroupBox, QLineEdit
+
+    from sldgridy.model.entities import Wire
+
+    ms = window.document.model_space
+    ms.add(Wire(id="w1", points=(Point(0, 0), Point(40, 0)), label="NYY-J 5x16"))
+    ms.add(Wire(id="w2", points=(Point(0, 20), Point(40, 20)), label_height=5.0))
+    for i in ("w1", "w2"):
+        window._sync.item(i).setSelected(True)
+    dock = window.properties_dock.widget()
+    (box,) = [b for b in dock.findChildren(QGroupBox) if b.title() == "Beschriftung (2)"]
+    edit = box.findChildren(QLineEdit, options=Qt.FindChildOption.FindDirectChildrenOnly)[0]
+    assert edit.placeholderText() == "*verschieden*"
+    combos = box.findChildren(QComboBox, options=Qt.FindChildOption.FindDirectChildrenOnly)
+    height = combos[-1]
+    assert height.currentText() == "*verschieden*"
+    edit.returnPressed.emit()  # unchanged: both labels stay
+    assert (ms.get("w1").label, ms.get("w2").label) == ("NYY-J 5x16", "")
+    height.setCurrentIndex(height.findData(3.5))
+    height.activated.emit(height.currentIndex())
+    assert ms.get("w1").label_height == ms.get("w2").label_height == 3.5
+    assert ms.get("w1").label == "NYY-J 5x16"

@@ -177,6 +177,7 @@ class PropertiesDock(QDockWidget):
         while self.extra_area.count():
             item = self.extra_area.takeAt(0)
             if item.widget():
+                item.widget().hide()  # gone at once, not only after the deferred delete
                 item.widget().deleteLater()
         if has:
             for editor in self.extra_editors:

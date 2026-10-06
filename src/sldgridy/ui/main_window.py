@@ -103,7 +103,7 @@ from sldgridy.ui.print_dialog import PrintDialog
 from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
-from sldgridy.ui.styles import mm_label
+from sldgridy.ui.styles import MIXED, mm_label
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import BACKGROUND_COLOR, EMPTY_EXTENTS, Canvas
 from sldgridy.view.display import title_labels
@@ -1356,91 +1356,168 @@ class MainWindow(QMainWindow):
         changed = replace(entity, text=content, height=height)
         self.push(ReplaceEntitiesCommand(self.container, [changed], self.tr("Text ändern")))
 
+    def _common(self, values: list) -> object:
+        """The shared value, or MIXED when the selected objects differ."""
+        return values[0] if all(v == values[0] for v in values) else MIXED
+
+    def _apply_to_all(self, ids: list[str], change, label: str) -> None:
+        """One undo step changing every still existing object in ``ids``."""
+        changed = []
+        for entity_id in ids:
+            if entity_id not in self.container:
+                continue
+            current = self.container.get(entity_id)
+            new = change(current)
+            if new is not None and new != current:
+                changed.append(new)
+        if changed:
+            self.push(ReplaceEntitiesCommand(self.container, changed, label))
+
+    def _mixed_combo(self, combo: QComboBox, value: object) -> None:
+        if value == MIXED:
+            combo.insertItem(0, self.tr("*verschieden*"), MIXED)
+            combo.setCurrentIndex(0)
+        else:
+            combo.setCurrentIndex(max(combo.findData(value), 0))
+
+    def _mixed_line_edit(self, edit: QLineEdit, value: object, placeholder: str = "") -> None:
+        if value == MIXED:
+            edit.setPlaceholderText(self.tr("*verschieden*"))
+            edit.setToolTip(self.tr("Die markierten Objekte haben verschiedene Werte"))
+        else:
+            edit.setText(str(value))
+            edit.setPlaceholderText(placeholder)
+
     def _dimension_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
+        """Value text, text height and direction of every selected dimension; fields
+        whose values differ show *verschieden*, a new value applies to all."""
         dims = [e for e in entities if isinstance(e, Dimension)]
-        if len(dims) != 1 or len(entities) != 1:
+        if not dims:
             return
-        dim = dims[0]
-        box = QGroupBox(self.tr("Bemaßung"))
-        form = QFormLayout(box)
-        text = QLineEdit(dim.text)
-        text.setPlaceholderText(
-            self.tr("gemessen: {value}").format(value=measured_text(dim, self.canvas.decimal_comma))
+        ids = [d.id for d in dims]
+        label = self.tr("Bemaßung ändern")
+        box = QGroupBox(
+            self.tr("Bemaßung") if len(dims) == 1 else self.tr("Bemaßung ({n})").format(n=len(dims))
         )
-        text.setToolTip(self.tr("Leer lassen für den gemessenen Wert"))
+        form = QFormLayout(box)
+        text = QLineEdit()
+        values = {measured_text(d, self.canvas.decimal_comma) for d in dims}
+        measured_hint = (
+            self.tr("gemessen: {value}").format(value=next(iter(values)))
+            if len(values) == 1
+            else self.tr("gemessen (je Maß)")
+        )
+        self._mixed_line_edit(text, self._common([d.text for d in dims]), measured_hint)
+        if not text.toolTip():
+            text.setToolTip(self.tr("Leer lassen für den gemessenen Wert"))
         height = QDoubleSpinBox()
-        height.setRange(0.1, 100000.0)
         height.setDecimals(2)
         height.setSuffix(" mm")
-        height.setValue(dim.height)
         height.setKeyboardTracking(False)
-        paper = scale_at(self.document.sheets, dim.p1) * dim.height
-        height.setToolTip(
-            self.tr("Texthöhe im Modell; auf dem Blatt etwa {paper} mm").format(
-                paper=format_value(paper, self.canvas.decimal_comma)
+        common_height = self._common([d.height for d in dims])
+        if common_height == MIXED:
+            # The minimum shows as *verschieden* until a real value is entered.
+            height.setRange(0.0, 100000.0)
+            height.setSpecialValueText(self.tr("*verschieden*"))
+            height.setValue(0.0)
+        else:
+            height.setRange(0.1, 100000.0)
+            height.setValue(float(common_height))
+            paper = scale_at(self.document.sheets, dims[0].p1) * float(common_height)
+            height.setToolTip(
+                self.tr("Texthöhe im Modell; auf dem Blatt etwa {paper} mm").format(
+                    paper=format_value(paper, self.canvas.decimal_comma)
+                )
             )
-        )
+        linear = [d for d in dims if d.orientation != "angular"]
         orientation = QComboBox()
-        for code, label in (
+        for code, name in (
             ("horizontal", self.tr("waagerecht")),
             ("vertical", self.tr("senkrecht")),
             ("aligned", self.tr("parallel")),
         ):
-            orientation.addItem(label, code)
-        orientation.setCurrentIndex(max(orientation.findData(dim.orientation), 0))
+            orientation.addItem(name, code)
+        if linear:
+            self._mixed_combo(orientation, self._common([d.orientation for d in linear]))
         form.addRow(self.tr("Maßtext:"), text)
         form.addRow(self.tr("Texthöhe:"), height)
-        if dim.orientation != "angular":
+        if linear:
             form.addRow(self.tr("Richtung:"), orientation)
         else:
             orientation.hide()
         layout.addWidget(box)
 
-        def apply(**changes) -> None:
-            current = self.container.get(dim.id)
-            new = replace(current, **changes)
-            if new != current:
-                self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Bemaßung ändern")))
+        shown_text = text.text()
 
-        text.editingFinished.connect(lambda: apply(text=text.text().strip()))
-        height.valueChanged.connect(lambda v: apply(height=float(v)))
-        orientation.activated.connect(lambda _i: apply(orientation=orientation.currentData()))
+        def set_text() -> None:
+            # Leaving the field unchanged keeps differing texts.
+            if text.isModified() or text.text() != shown_text:
+                value = text.text().strip()
+                self._apply_to_all(ids, lambda d: replace(d, text=value), label)
+
+        def set_height(value: float) -> None:
+            if value > 0:
+                self._apply_to_all(ids, lambda d: replace(d, height=float(value)), label)
+
+        def set_orientation() -> None:
+            code = orientation.currentData()
+            if code != MIXED:
+                self._apply_to_all(
+                    ids,
+                    lambda d: replace(d, orientation=code) if d.orientation != "angular" else None,
+                    label,
+                )
+
+        text.editingFinished.connect(set_text)
+        height.valueChanged.connect(set_height)
+        orientation.activated.connect(lambda _i: set_orientation())
 
     def _wire_label_editor(self, entities: list[Entity], layout: QVBoxLayout) -> None:
+        """Label of every selected wire; differing fields show *verschieden*, a new
+        value applies to all selected wires."""
         wires = [e for e in entities if isinstance(e, Wire)]
-        if len(wires) != 1 or len(entities) != 1:
+        if not wires:
             return
-        wire = wires[0]
-        box = QGroupBox(self.tr("Beschriftung"))
+        ids = [w.id for w in wires]
+        label = self.tr("Beschriftung")
+        box = QGroupBox(
+            self.tr("Beschriftung")
+            if len(wires) == 1
+            else self.tr("Beschriftung ({n})").format(n=len(wires))
+        )
         form = QFormLayout(box)
-        edit = QLineEdit(wire.label)
-        edit.setPlaceholderText(self.tr("z. B. NYY-J 5x16"))
+        edit = QLineEdit()
+        self._mixed_line_edit(
+            edit, self._common([w.label for w in wires]), self.tr("z. B. NYY-J 5x16")
+        )
         side = QComboBox()
         side.addItem(self.tr("oben / links"), 1)
         side.addItem(self.tr("unten / rechts"), -1)
-        side.setCurrentIndex(0 if wire.label_side > 0 else 1)
+        self._mixed_combo(side, self._common([1 if w.label_side > 0 else -1 for w in wires]))
         align = QComboBox()
         align.addItem(self.tr("links"), "left")
         align.addItem(self.tr("mitte"), "center")
         align.addItem(self.tr("rechts"), "right")
-        align.setCurrentIndex(max(align.findData(wire.label_align), 0))
+        self._mixed_combo(align, self._common([w.label_align for w in wires]))
         align.setToolTip(self.tr("Entlang der Leitung in Leserichtung (senkrecht: unten = links)"))
         position = QComboBox()
         position.addItem(self.tr("automatisch (längster Abschnitt)"), "auto")
         position.addItem(self.tr("Anfang"), "start")
         position.addItem(self.tr("Ende"), "end")
         position.addItem(self.tr("frei (Griff auf der Leitung ziehen)"), "free")
-        position.setCurrentIndex(max(position.findData(wire.label_pos), 0))
+        common_pos = self._common([w.label_pos for w in wires])
+        self._mixed_combo(position, common_pos)
         position.setToolTip(
             self.tr("Frei: den Griff an der Beschriftung entlang der Leitung ziehen")
         )
-        align.setEnabled(wire.label_pos in ("auto", "free"))
+        align.setEnabled(common_pos in ("auto", "free", MIXED))
         height = QComboBox()
         for h in TEXT_HEIGHTS:
             height.addItem(mm_label(h), h)
-        if height.findData(wire.label_height) < 0:
-            height.addItem(mm_label(wire.label_height), wire.label_height)
-        height.setCurrentIndex(height.findData(wire.label_height))
+        common_height = self._common([w.label_height for w in wires])
+        if common_height != MIXED and height.findData(common_height) < 0:
+            height.addItem(mm_label(common_height), common_height)
+        self._mixed_combo(height, common_height)
         apply = QPushButton(self.tr("Beschriftung übernehmen"))
         form.addRow(self.tr("Text:"), edit)
         form.addRow(self.tr("Lage:"), side)
@@ -1450,30 +1527,35 @@ class MainWindow(QMainWindow):
         form.addRow(apply)
         layout.addWidget(box)
 
-        def on_apply() -> None:
-            current = self.container.get(wire.id)
-            new = replace(
-                current,
-                label=edit.text(),
-                label_side=int(side.currentData()),
-                label_align=str(align.currentData()),
-                label_height=float(height.currentData()),
-                label_pos=str(position.currentData()),
-            )
-            if new.label_pos == "free" and current.label_pos != "free":
-                # Start where the label is now, then the grip moves it along the wire.
-                anchor = label_anchor(current)[0]
-                new = replace(new, label_at=round(project_on_path(current.points, anchor), 3))
-            if new != current:
-                self.push(ReplaceEntitiesCommand(self.container, [new], self.tr("Beschriftung")))
+        shown_label = edit.text()
 
-        apply.clicked.connect(on_apply)
+        def set_text() -> None:
+            if edit.isModified() or edit.text() != shown_label or len(wires) == 1:
+                value = edit.text()
+                self._apply_to_all(ids, lambda w: replace(w, label=value), label)
+
+        def set_choice(combo: QComboBox, field: str, kind) -> None:
+            value = combo.currentData()
+            if value == MIXED:
+                return
+
+            def change(w: Wire) -> Wire:
+                new = replace(w, **{field: kind(value)})
+                if field == "label_pos" and value == "free" and w.label_pos != "free":
+                    # Start where the label is now, then the grip moves it along the wire.
+                    anchor = label_anchor(w)[0]
+                    new = replace(new, label_at=round(project_on_path(w.points, anchor), 3))
+                return new
+
+            self._apply_to_all(ids, change, label)
+
+        apply.clicked.connect(set_text)
+        edit.returnPressed.connect(set_text)
         # Choices take effect at once, like the other property fields.
-        side.activated.connect(lambda _i: on_apply())
-        align.activated.connect(lambda _i: on_apply())
-        position.activated.connect(lambda _i: on_apply())
-        height.activated.connect(lambda _i: on_apply())
-        edit.returnPressed.connect(on_apply)
+        side.activated.connect(lambda _i: set_choice(side, "label_side", int))
+        align.activated.connect(lambda _i: set_choice(align, "label_align", str))
+        position.activated.connect(lambda _i: set_choice(position, "label_pos", str))
+        height.activated.connect(lambda _i: set_choice(height, "label_height", float))
 
     def _edit_grid_settings(self) -> None:
         dialog = GridDialog(self.canvas.grid_spacing(), self.canvas.snap_spacing, self)
