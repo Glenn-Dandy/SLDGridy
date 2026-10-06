@@ -374,6 +374,10 @@ class MainWindow(QMainWindow):
         self.act_dimension_aligned = self._tool_action(
             self.tr("Bemaßen &ausgerichtet"), lambda ctx: DimensionTool(ctx, aligned=True)
         )
+        self.act_module_field = self._action(self.tr("&Modulfeld …"), self.module_field)
+        self.act_module_field.setToolTip(
+            self.tr("Dachfläche automatisch mit PV-Modulen belegen (Arbeitsbereich Zeichnung)")
+        )
         self.draw_actions = [
             self.act_wire,
             self.act_busbar,
@@ -384,6 +388,7 @@ class MainWindow(QMainWindow):
             self.act_arc,
             self.act_text,
             self.act_dimension,
+            self.act_module_field,
         ]
 
         self.act_move = self._tool_action(self.tr("&Verschieben"), MoveTool)
@@ -1181,6 +1186,17 @@ class MainWindow(QMainWindow):
         self.tools.cancel()
         self.canvas.setFocus()
 
+    def module_field(self) -> None:
+        from sldgridy.tools.pv import ModuleFieldTool
+        from sldgridy.ui.pv_dialog import ModuleFieldDialog, save_spec, saved_spec
+
+        dialog = ModuleFieldDialog(saved_spec(), self)
+        if dialog.exec() != ModuleFieldDialog.DialogCode.Accepted:
+            return
+        spec = dialog.spec()
+        save_spec(spec)
+        self.start_tool(lambda ctx: ModuleFieldTool(ctx, spec))
+
     def _show_readme(self) -> None:
         from sldgridy.ui.readme_dialog import ReadmeDialog
 
@@ -1489,6 +1505,7 @@ class MainWindow(QMainWindow):
         sld = self.workspace == WORKSPACE_SLD
         for action in (self.act_wire, self.act_busbar):
             action.setVisible(sld)
+        self.act_module_field.setVisible(not sld)
         self.library_dock.set_workspace(self.workspace)
         # Each workspace has its own layers; the current one must belong to it.
         if self.document.has_layer(self.current_layer) and not self.document.layer(

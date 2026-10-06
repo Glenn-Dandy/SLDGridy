@@ -282,3 +282,28 @@ def test_layers_are_separate_per_workspace(window):
     window.layers_dock.add_layer()
     new = doc.layers[-1]
     assert new.workspace == WORKSPACE_DRAWING and new.name in listed()
+
+
+def test_module_field_fills_a_roof_with_a_chimney(window):
+    from sldgridy.model.entities import BlockReference, Rectangle
+    from sldgridy.tools.pv import ModuleFieldTool, ModuleSpec
+    from sldgridy.ui.main_window import WORKSPACE_DRAWING
+
+    window.set_workspace(WORKSPACE_DRAWING)
+    assert window.act_module_field.isVisible() and not window.act_wire.isVisible()
+    ms = window.document.model_space
+    ms.add(Rectangle(id="roof", p1=Point(0, 0), p2=Point(8000, 5000)))
+    spec = ModuleSpec(power=445)
+    window.start_tool(lambda ctx: ModuleFieldTool(ctx, spec))
+    window.tools.pick(Point(4000, 2500))
+    modules = [e for e in ms if isinstance(e, BlockReference)]
+    assert len(modules) == 12
+    assert spec.block_name in window.document.blocks
+    assert "12" in window.statusBar().currentMessage()
+    window.act_undo.trigger()  # one step removes modules and the module block
+    assert not [e for e in ms if isinstance(e, BlockReference)]
+    assert spec.block_name not in window.document.blocks
+    ms.add(Rectangle(id="chimney", p1=Point(3800, 1800), p2=Point(4400, 2400)))
+    window.start_tool(lambda ctx: ModuleFieldTool(ctx, spec))
+    window.tools.pick(Point(1000, 1000))
+    assert 0 < len([e for e in ms if isinstance(e, BlockReference)]) < 12
