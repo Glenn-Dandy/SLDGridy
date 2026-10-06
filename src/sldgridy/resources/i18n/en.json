@@ -615,7 +615,6 @@
  "Maßeingabe am Fadenkreuz": "Dimension input at the cursor",
  "Beim Zeichnen Länge und Winkel (bzw. X/Y, Breite/Höhe) direkt am Fadenkreuz eintippen; Tab wechselt das Feld, Enter setzt den Punkt.": "While drawing, type length and angle (or X/Y, width/height) right at the cursor; Tab switches the field, Enter sets the point.",
  "Be&maßen": "&Dimension",
- "Bemaßen &ausgerichtet": "Dimension &aligned",
  "Waagerecht oder senkrecht, je nachdem wohin die Maßlinie gezogen wird": "Horizontal or vertical, depending on where the dimension line is dragged",
  "Bemaßen: Ersten Punkt angeben": "Dimension: specify first point",
  "Bemaßen: Zweiten Punkt angeben": "Dimension: specify second point",
@@ -627,7 +626,6 @@
  "Texthöhe im Modell; auf dem Blatt etwa {paper} mm": "Text height in the model; about {paper} mm on the sheet",
  "waagerecht": "horizontal",
  "senkrecht": "vertical",
- "ausgerichtet": "aligned",
  "Maßtext:": "Dimension text:",
  "Richtung:": "Direction:",
  "Bemaßung ändern": "Change dimension",
@@ -665,5 +663,8 @@
  "Drehen um einen beliebigen Winkel; Pfeil: auch 90°-Schritte": "Rotate by any angle; arrow: also 90° steps",
  "aus": "off",
  "Winkelfang:": "Angle snap:",
- "Bei eingetippter Länge (oder ohne Rasterfang) rasten Richtungen in diesen Schritten ein; 0 schaltet aus": "With a typed length (or without grid snap) directions snap in these steps; 0 switches off"
+ "Bei eingetippter Länge (oder ohne Rasterfang) rasten Richtungen in diesen Schritten ein; 0 schaltet aus": "With a typed length (or without grid snap) directions snap in these steps; 0 switches off",
+ "Bemaßen &parallel": "Dimension &parallel",
+ "parallel": "parallel",
+ "Parallel zur Strecke zwischen den Punkten, misst die wahre Länge": "Parallel to the line between the points, measures the true length"
 }

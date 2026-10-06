@@ -413,3 +413,27 @@ def test_first_digit_after_a_click_is_kept(window):
     click(window, 0, 0)  # no mouse move afterwards
     QTest.keyClicks(window.canvas, "40")
     assert window.canvas.dynamic.texts.get("length") == "40"
+
+
+def test_dimension_button_offers_parallel(window):
+    button = window.btn_dimension
+    assert button.menu().actions() == [window.act_dimension, window.act_dimension_aligned]
+    assert window.act_dimension_aligned in window.draw_menu.actions()
+    window.act_osnap.setChecked(False)
+    window.act_dimension_aligned.trigger()  # as chosen from the drop-down
+    button.menu().triggered.emit(window.act_dimension_aligned)
+    assert button.defaultAction() is window.act_dimension_aligned
+    window.tools.cancel()
+    button.click()  # repeats the last variant
+    click(window, 0, 0)
+    click(window, 30, 40)
+    click(window, 10, -10)
+    from sldgridy.model.dimensions import dimension_geometry
+    from sldgridy.model.entities import Dimension
+
+    (d,) = [e for e in window.document.model_space if isinstance(e, Dimension)]
+    assert d.orientation == "aligned"
+    line = next(p for p in dimension_geometry(d) if p.id.endswith(":line"))
+    # Parallel to the measured line 0,0 to 30,40.
+    assert (line.p2.x - line.p1.x) * 40 == pytest.approx((line.p2.y - line.p1.y) * 30)
+    window.act_undo.trigger()

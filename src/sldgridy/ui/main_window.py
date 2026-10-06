@@ -379,7 +379,10 @@ class MainWindow(QMainWindow):
             self.tr("Waagerecht oder senkrecht, je nachdem wohin die Maßlinie gezogen wird")
         )
         self.act_dimension_aligned = self._tool_action(
-            self.tr("Bemaßen &ausgerichtet"), lambda ctx: DimensionTool(ctx, aligned=True)
+            self.tr("Bemaßen &parallel"), lambda ctx: DimensionTool(ctx, aligned=True)
+        )
+        self.act_dimension_aligned.setToolTip(
+            self.tr("Parallel zur Strecke zwischen den Punkten, misst die wahre Länge")
         )
         self.act_module_field = self._action(self.tr("&Modulfeld …"), self.module_field)
         self.act_module_field.setToolTip(
@@ -395,6 +398,7 @@ class MainWindow(QMainWindow):
             self.act_arc,
             self.act_text,
             self.act_dimension,
+            self.act_dimension_aligned,
             self.act_module_field,
         ]
 
@@ -571,7 +575,6 @@ class MainWindow(QMainWindow):
 
         m = bar.addMenu(self.tr("&Zeichnen"))
         m.addActions(self.draw_actions)
-        m.addAction(self.act_dimension_aligned)
         self.draw_menu = m
 
         m = bar.addMenu(self.tr("Ä&ndern"))
@@ -623,10 +626,13 @@ class MainWindow(QMainWindow):
             bar.setObjectName(f"toolbar_{name}")
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
             for action in actions:
-                if action is self.act_rotate_free:
+                if action in (self.act_rotate_free, self.act_dimension_aligned):
                     continue
                 if action is self.act_rotate:
                     bar.addWidget(self._rotate_button())
+                    continue
+                if action is self.act_dimension:
+                    bar.addWidget(self._dimension_button())
                     continue
                 bar.addAction(action)
             self.addToolBar(bar)
@@ -643,6 +649,21 @@ class MainWindow(QMainWindow):
         button.clicked.connect(self.act_rotate_free.trigger)
         button.setToolTip(self.tr("Drehen um einen beliebigen Winkel; Pfeil: auch 90°-Schritte"))
         self.btn_rotate = button
+        return button
+
+    def _dimension_button(self) -> QToolButton:
+        """ "Bemaßen" with a drop-down: horizontal/vertical or parallel; the click
+        repeats the variant chosen last."""
+        menu = QMenu(self)
+        menu.addActions([self.act_dimension, self.act_dimension_aligned])
+        button = QToolButton()
+        button.setMenu(menu)
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        button.setDefaultAction(self.act_dimension)
+        button.setText(self.tr("Bemaßen"))
+        menu.triggered.connect(button.setDefaultAction)
+        self.btn_dimension = button
         return button
 
     def _create_docks(self) -> None:
@@ -1327,7 +1348,7 @@ class MainWindow(QMainWindow):
         for code, label in (
             ("horizontal", self.tr("waagerecht")),
             ("vertical", self.tr("senkrecht")),
-            ("aligned", self.tr("ausgerichtet")),
+            ("aligned", self.tr("parallel")),
         ):
             orientation.addItem(label, code)
         orientation.setCurrentIndex(max(orientation.findData(dim.orientation), 0))
