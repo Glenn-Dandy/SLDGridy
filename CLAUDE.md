@@ -94,7 +94,7 @@ Die Zeichnung besteht aus zwei getrennten Bereichen, umschaltbar über Reiter am
 - Eigenschaften-Dock: Lage des Ausschnitts als Modellkoordinate der linken oberen Ecke (X/Y-Felder, wirken sofort) und Knopf „Links oben auf 0,0“; ändert nur `center`, gesperrte Ansichtsfenster sind dort ausgegraut.
 - Ein neuer Zeichnungsrahmen erhält ein Ansichtsfenster, das die Zeichenfläche innerhalb des Rahmens füllt; das Schriftfeld liegt deckend darüber.
 - Doppelklick in ein Ansichtsfenster aktiviert es, dann lässt sich der Ausschnitt verschieben und zoomen. Modellobjekte werden dort nicht bearbeitet, das geschieht nur im Reiter „Modell“.
-- Linienbreiten gelten auf dem Papier (ISO 128) und bleiben in jedem Maßstab gleich breit (`paint_entities(weight_factor=1/scale)`, auch Verbindungspunkte); Texthöhen sind Modellmaße und skalieren mit dem Maßstab. Bis 1.1.x skalierten auch die Linienbreiten; bei 1:1 ist das gleich.
+- Linienbreiten gelten auf dem Papier (ISO 128) und bleiben in jedem Maßstab gleich breit (`paint_entities(weight_factor=1/scale)`, auch Verbindungspunkte); Texthöhen sind Modellmaße und skalieren mit dem Maßstab. Texthöhen-Felder sind `styles.HeightCombo` (editierbar, Vorschläge TEXT_HEIGHTS, beliebiger Wert per `parse_mm`, Signal `value_chosen` nur bei neuem gültigem Wert, ungültige Eingabe springt zurück; `set_height(MIXED)` zeigt *verschieden*): Textdialog, Eigenschaften-Dock, Leitungsbeschriftung, Attributdefinition. Bis 1.1.x skalierten auch die Linienbreiten; bei 1:1 ist das gleich.
 
 Umsetzung (M6):
 

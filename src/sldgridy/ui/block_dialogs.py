@@ -20,8 +20,8 @@ from PyQt6.QtWidgets import (
 
 from sldgridy.i18n import library_text
 from sldgridy.model.blocks import BlockDefinition
-from sldgridy.model.entities import TEXT_HEIGHTS, AttributeDefinition
-from sldgridy.ui.styles import mm_label
+from sldgridy.model.entities import AttributeDefinition
+from sldgridy.ui.styles import HeightCombo
 from sldgridy.view.thumbnails import block_icon
 
 
@@ -244,11 +244,8 @@ class AttributeDefinitionDialog(QDialog):
         self.tag = QLineEdit(current.tag if current else "")
         self.prompt = QLineEdit(current.prompt if current else "")
         self.default = QLineEdit(current.default if current else "")
-        self.height = QComboBox()
-        for h in TEXT_HEIGHTS:
-            self.height.addItem(mm_label(h), h)
-        wanted = current.height if current else 2.5
-        self.height.setCurrentIndex(max(self.height.findData(wanted), 0))
+        self.height = HeightCombo()
+        self.height.set_height(current.height if current else 2.5)
         self.halign = QComboBox()
         for key, label in (
             ("left", self.tr("links")),
@@ -287,7 +284,7 @@ class AttributeDefinitionDialog(QDialog):
             "tag": self.tag.text().strip().upper(),
             "prompt": self.prompt.text().strip(),
             "default": self.default.text(),
-            "height": float(self.height.currentData()),
+            "height": self.height.height() or 2.5,
             "halign": self.halign.currentData(),
             "visible": self.visible.isChecked(),
         }

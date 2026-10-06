@@ -1,7 +1,6 @@
 """Dialog for entering or editing a text entity."""
 
 from PyQt6.QtWidgets import (
-    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -9,8 +8,8 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
 )
 
-from sldgridy.model.entities import DEFAULT_TEXT_HEIGHT, TEXT_HEIGHTS
-from sldgridy.ui.styles import mm_label
+from sldgridy.model.entities import DEFAULT_TEXT_HEIGHT
+from sldgridy.ui.styles import HeightCombo
 
 
 class TextDialog(QDialog):
@@ -20,12 +19,8 @@ class TextDialog(QDialog):
 
         self.edit = QPlainTextEdit(text)
         self.edit.setPlaceholderText(self.tr("Mehrere Zeilen mit Enter trennen"))
-        self.height_box = QComboBox()
-        for h in TEXT_HEIGHTS:
-            self.height_box.addItem(mm_label(h), h)
-        wanted = DEFAULT_TEXT_HEIGHT if height is None else height
-        index = self.height_box.findData(wanted)
-        self.height_box.setCurrentIndex(index if index >= 0 else 0)
+        self.height_box = HeightCombo()
+        self.height_box.set_height(DEFAULT_TEXT_HEIGHT if height is None else height)
 
         form = QFormLayout()
         form.addRow(self.tr("Texthöhe:"), self.height_box)
@@ -47,4 +42,4 @@ class TextDialog(QDialog):
         return self.edit.toPlainText()
 
     def text_height(self) -> float:
-        return float(self.height_box.currentData())
+        return self.height_box.height() or DEFAULT_TEXT_HEIGHT

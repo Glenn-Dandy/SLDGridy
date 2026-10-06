@@ -49,7 +49,6 @@ from sldgridy.model.container import EntityContainer
 from sldgridy.model.dimensions import dimension_geometry, format_value, measured_text, scale_at
 from sldgridy.model.document import Document
 from sldgridy.model.entities import (
-    TEXT_HEIGHTS,
     BlockReference,
     Busbar,
     ConnectionPoint,
@@ -103,7 +102,7 @@ from sldgridy.ui.print_dialog import PrintDialog
 from sldgridy.ui.properties_dock import PropertiesDock
 from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
-from sldgridy.ui.styles import MIXED, mm_label
+from sldgridy.ui.styles import MIXED, HeightCombo
 from sldgridy.ui.text_dialog import TextDialog
 from sldgridy.view.canvas import BACKGROUND_COLOR, EMPTY_EXTENTS, Canvas
 from sldgridy.view.display import title_labels
@@ -1511,13 +1510,8 @@ class MainWindow(QMainWindow):
             self.tr("Frei: den Griff an der Beschriftung entlang der Leitung ziehen")
         )
         align.setEnabled(common_pos in ("auto", "free", MIXED))
-        height = QComboBox()
-        for h in TEXT_HEIGHTS:
-            height.addItem(mm_label(h), h)
-        common_height = self._common([w.label_height for w in wires])
-        if common_height != MIXED and height.findData(common_height) < 0:
-            height.addItem(mm_label(common_height), common_height)
-        self._mixed_combo(height, common_height)
+        height = HeightCombo()
+        height.set_height(self._common([w.label_height for w in wires]))
         apply = QPushButton(self.tr("Beschriftung übernehmen"))
         form.addRow(self.tr("Text:"), edit)
         form.addRow(self.tr("Lage:"), side)
@@ -1555,7 +1549,9 @@ class MainWindow(QMainWindow):
         side.activated.connect(lambda _i: set_choice(side, "label_side", int))
         align.activated.connect(lambda _i: set_choice(align, "label_align", str))
         position.activated.connect(lambda _i: set_choice(position, "label_pos", str))
-        height.activated.connect(lambda _i: set_choice(height, "label_height", float))
+        height.value_chosen.connect(
+            lambda v: self._apply_to_all(ids, lambda w: replace(w, label_height=v), label)
+        )
 
     def _edit_grid_settings(self) -> None:
         dialog = GridDialog(self.canvas.grid_spacing(), self.canvas.snap_spacing, self)

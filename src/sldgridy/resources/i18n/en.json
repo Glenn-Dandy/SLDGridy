@@ -682,5 +682,6 @@
  "Bemaßung ({n})": "Dimension ({n})",
  "gemessen (je Maß)": "measured (each)",
  "Die markierten Objekte haben verschiedene Werte": "The selected objects have different values",
- "Beschriftung ({n})": "Label ({n})"
+ "Beschriftung ({n})": "Label ({n})",
+ "Auswählen oder eine beliebige Höhe in mm eintragen": "Pick one or type any height in mm"
 }

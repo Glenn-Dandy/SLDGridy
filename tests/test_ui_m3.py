@@ -527,9 +527,10 @@ def test_dimension_dock_edits_several_dimensions(window):
 
 
 def test_wire_label_dock_edits_several_wires(window):
-    from PyQt6.QtWidgets import QComboBox, QGroupBox, QLineEdit
+    from PyQt6.QtWidgets import QGroupBox, QLineEdit
 
     from sldgridy.model.entities import Wire
+    from sldgridy.ui.styles import HeightCombo
 
     ms = window.document.model_space
     ms.add(Wire(id="w1", points=(Point(0, 0), Point(40, 0)), label="NYY-J 5x16"))
@@ -540,12 +541,29 @@ def test_wire_label_dock_edits_several_wires(window):
     (box,) = [b for b in dock.findChildren(QGroupBox) if b.title() == "Beschriftung (2)"]
     edit = box.findChildren(QLineEdit, options=Qt.FindChildOption.FindDirectChildrenOnly)[0]
     assert edit.placeholderText() == "*verschieden*"
-    combos = box.findChildren(QComboBox, options=Qt.FindChildOption.FindDirectChildrenOnly)
-    height = combos[-1]
-    assert height.currentText() == "*verschieden*"
+    (height,) = box.findChildren(HeightCombo)
+    assert height.currentText() == "" and height.lineEdit().placeholderText() == "*verschieden*"
     edit.returnPressed.emit()  # unchanged: both labels stay
     assert (ms.get("w1").label, ms.get("w2").label) == ("NYY-J 5x16", "")
-    height.setCurrentIndex(height.findData(3.5))
-    height.activated.emit(height.currentIndex())
-    assert ms.get("w1").label_height == ms.get("w2").label_height == 3.5
+    height.setEditText("12,5")  # any height, not only the listed ones
+    height.lineEdit().editingFinished.emit()
+    assert ms.get("w1").label_height == ms.get("w2").label_height == 12.5
     assert ms.get("w1").label == "NYY-J 5x16"
+
+
+def test_text_height_can_be_typed_freely(window):
+    from sldgridy.model.entities import Text
+    from sldgridy.ui.styles import parse_mm
+
+    assert parse_mm("125") == 125 and parse_mm("3,5 mm") == 3.5 and parse_mm("0") is None
+    ms = window.document.model_space
+    ms.add(Text(id="t", position=Point(0, 0), text="Dach", height=2.5))
+    window._sync.item("t").setSelected(True)
+    box = window.properties_dock.cmb_height
+    box.setEditText("125")
+    box.lineEdit().editingFinished.emit()
+    assert ms.get("t").height == 125
+    assert box.currentText() == "125 mm"
+    box.setEditText("abc")  # not a number: back to the old value, nothing changes
+    box.lineEdit().editingFinished.emit()
+    assert ms.get("t").height == 125 and box.currentText() == "125 mm"

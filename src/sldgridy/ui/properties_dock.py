@@ -23,7 +23,6 @@ from sldgridy.commands.entities import ReplaceEntitiesCommand
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.document import Document
 from sldgridy.model.entities import (
-    TEXT_HEIGHTS,
     Arc,
     Circle,
     Dimension,
@@ -37,10 +36,10 @@ from sldgridy.ui.styles import (
     BY_LAYER,
     MIXED,
     OTHER_COLOR,
+    HeightCombo,
     color_icon,
     linetype_names,
     lineweight_items,
-    mm_label,
     standard_colors,
 )
 
@@ -96,9 +95,7 @@ class PropertiesDock(QDockWidget):
         self.txt_text = QPlainTextEdit()
         self.txt_text.setMaximumHeight(90)
         self.btn_apply_text = QPushButton(self.tr("Text übernehmen"))
-        self.cmb_height = QComboBox()
-        for h in TEXT_HEIGHTS:
-            self.cmb_height.addItem(mm_label(h), h)
+        self.cmb_height = HeightCombo()
 
         self.cmb_layer.activated.connect(lambda _i: self._apply_combo(self.cmb_layer, "layer"))
         self.cmb_color.activated.connect(self._on_color)
@@ -106,7 +103,7 @@ class PropertiesDock(QDockWidget):
             lambda _i: self._apply_combo(self.cmb_weight, "lineweight")
         )
         self.cmb_type.activated.connect(lambda _i: self._apply_combo(self.cmb_type, "linetype"))
-        self.cmb_height.activated.connect(lambda _i: self._apply_combo(self.cmb_height, "height"))
+        self.cmb_height.value_chosen.connect(self._apply_height)
         self.btn_apply_text.clicked.connect(self._apply_text)
 
         self.form = QFormLayout()
@@ -173,7 +170,7 @@ class PropertiesDock(QDockWidget):
         if all_text:
             if len(texts) == 1:
                 self.txt_text.setPlainText(texts[0].text)
-            self._fill_simple(self.cmb_height, _common([t.height for t in texts]))
+            self.cmb_height.set_height(_common([t.height for t in texts]))
         while self.extra_area.count():
             item = self.extra_area.takeAt(0)
             if item.widget():
@@ -253,6 +250,12 @@ class PropertiesDock(QDockWidget):
             new = [replace(e, height=value) if isinstance(e, Text) else e for e in self._entities]
         else:
             new = [replace(e, **{field: value}) for e in self._entities]
+        self._push(new, self.tr("Eigenschaften ändern"))
+
+    def _apply_height(self, value: float) -> None:
+        if self._updating:
+            return
+        new = [replace(e, height=value) if isinstance(e, Text) else e for e in self._entities]
         self._push(new, self.tr("Eigenschaften ändern"))
 
     def _on_color(self, _index: int) -> None:
