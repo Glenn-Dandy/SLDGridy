@@ -190,3 +190,63 @@ def find_snap(
         if pool:
             return min(pool, key=lambda h: (round(distance(h.point, cursor), 9), _RANK[h.mode]))
     return None
+
+
+def _circle_segment(center: Point, r: float, a: Point, b: Point) -> list[Point]:
+    dx, dy = b.x - a.x, b.y - a.y
+    fx, fy = a.x - center.x, a.y - center.y
+    qa = dx * dx + dy * dy
+    if qa <= 1e-12:
+        return []
+    qb = 2 * (fx * dx + fy * dy)
+    qc = fx * fx + fy * fy - r * r
+    disc = qb * qb - 4 * qa * qc
+    if disc < 0:
+        return []
+    root = math.sqrt(disc)
+    hits = []
+    for t in ((-qb - root) / (2 * qa), (-qb + root) / (2 * qa)):
+        if -1e-9 <= t <= 1 + 1e-9:
+            hits.append(Point(a.x + t * dx, a.y + t * dy))
+    return hits
+
+
+def _circle_circle(c1: Point, r1: float, c2: Point, r2: float) -> list[Point]:
+    d = math.hypot(c2.x - c1.x, c2.y - c1.y)
+    if d <= 1e-12 or d > r1 + r2 or d < abs(r1 - r2):
+        return []
+    a = (r1 * r1 - r2 * r2 + d * d) / (2 * d)
+    h = math.sqrt(max(r1 * r1 - a * a, 0.0))
+    mx, my = c1.x + a * (c2.x - c1.x) / d, c1.y + a * (c2.y - c1.y) / d
+    ox, oy = h * (c2.y - c1.y) / d, h * (c2.x - c1.x) / d
+    return [Point(mx + ox, my - oy), Point(mx - ox, my + oy)]
+
+
+def circle_hits(center: Point, radius: float, entities: Iterable[Entity]) -> list[Point]:
+    """Where a circle (e.g. a line of fixed length turning around its start) crosses
+    the given entities' edges: lines, polylines, rectangles, wires, bus bars, circles."""
+    hits: list[Point] = []
+    for e in entities:
+        if isinstance(e, Circle):
+            hits += _circle_circle(center, radius, e.center, e.radius)
+            continue
+        for a, b in _edges_of(e):
+            hits += _circle_segment(center, radius, a, b)
+    return hits
+
+
+def _edges_of(e: Entity) -> list[tuple[Point, Point]]:
+    if isinstance(e, Line | Busbar):
+        return [(e.p1, e.p2)]
+    if isinstance(e, Rectangle):
+        c = [e.p1, Point(e.p2.x, e.p1.y), e.p2, Point(e.p1.x, e.p2.y)]
+        return [(c[i], c[(i + 1) % 4]) for i in range(4)]
+    if isinstance(e, Polyline):
+        pts = list(e.points)
+        edges = list(zip(pts, pts[1:], strict=False))
+        if e.closed and len(pts) > 2:
+            edges.append((pts[-1], pts[0]))
+        return edges
+    if isinstance(e, Wire):
+        return list(zip(e.points, e.points[1:], strict=False))
+    return []

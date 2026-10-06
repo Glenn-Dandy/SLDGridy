@@ -31,6 +31,8 @@ class GridMenu(QMenu):
         get_spacing: Callable[[], tuple[float, float]],
         set_grid: Callable[[float], None],
         set_snap: Callable[[float], None],
+        get_angle: Callable[[], float] | None = None,
+        set_angle: Callable[[float], None] | None = None,
     ) -> None:
         super().__init__(tr("Raster und Fang"), parent)
         self._get = get_spacing
@@ -45,6 +47,25 @@ class GridMenu(QMenu):
         self.snap_spin = _spin(snap)
         form.addRow(tr("Raster:"), self.grid_spin)
         form.addRow(tr("Fang:"), self.snap_spin)
+        self._get_angle = get_angle
+        self.angle_spin: QDoubleSpinBox | None = None
+        if get_angle is not None and set_angle is not None:
+            spin = QDoubleSpinBox()
+            spin.setRange(0.0, 90.0)
+            spin.setDecimals(1)
+            spin.setSuffix("°")
+            spin.setSpecialValueText(tr("aus"))
+            spin.setKeyboardTracking(False)
+            spin.setValue(get_angle())
+            spin.setToolTip(
+                tr(
+                    "Bei eingetippter Länge (oder ohne Rasterfang) rasten Richtungen "
+                    "in diesen Schritten ein; 0 schaltet aus"
+                )
+            )
+            spin.valueChanged.connect(set_angle)
+            form.addRow(tr("Winkelfang:"), spin)
+            self.angle_spin = spin
         widget_action = QWidgetAction(self)
         widget_action.setDefaultWidget(box)
         self.addAction(widget_action)
@@ -54,7 +75,10 @@ class GridMenu(QMenu):
 
     def sync(self) -> None:
         grid, snap = self._get()
-        for spin, value in ((self.grid_spin, grid), (self.snap_spin, snap)):
+        pairs = [(self.grid_spin, grid), (self.snap_spin, snap)]
+        if self.angle_spin is not None and self._get_angle is not None:
+            pairs.append((self.angle_spin, self._get_angle()))
+        for spin, value in pairs:
             spin.blockSignals(True)
             spin.setValue(value)
             spin.blockSignals(False)

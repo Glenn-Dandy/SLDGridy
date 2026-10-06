@@ -157,6 +157,12 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
     return d
 
 
+def _angle(value: Any) -> int | float:
+    """Degrees; whole numbers stay int (as written before free rotation existed)."""
+    f = float(value)
+    return int(f) if f.is_integer() else f
+
+
 def entity_from_dict(d: dict[str, Any]) -> Entity:
     common = {
         "id": str(d["id"]),
@@ -237,7 +243,7 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 position=_to_pt(d["position"]),
                 text=str(d["text"]),
                 height=float(d["height"]),
-                rotation=int(d.get("rotation", 0)),
+                rotation=_angle(d.get("rotation", 0)),
                 halign=str(d.get("halign", "left")),
                 valign=str(d.get("valign", "baseline")),
                 **common,
@@ -249,7 +255,7 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
                 default=str(d.get("default", "")),
                 position=_to_pt(d["position"]),
                 height=float(d.get("height", 2.5)),
-                rotation=int(d.get("rotation", 0)),
+                rotation=_angle(d.get("rotation", 0)),
                 visible=bool(d.get("visible", True)),
                 halign=str(d.get("halign", "left")),
                 valign=str(d.get("valign", "middle")),
@@ -259,7 +265,7 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
             return ConnectionPoint(
                 name=str(d["name"]),
                 position=_to_pt(d["position"]),
-                direction=int(d.get("direction", 0)) % 360,
+                direction=_angle(d.get("direction", 0)) % 360,
                 **common,
             )
         case "block_ref":

@@ -134,7 +134,7 @@ class Text(Entity):
     position: Point
     text: str
     height: float = DEFAULT_TEXT_HEIGHT
-    rotation: int = 0
+    rotation: float = 0
     halign: str = "left"
     valign: str = "baseline"
 
@@ -153,7 +153,7 @@ class AttributeDefinition(Entity):
     default: str = ""
     position: Point
     height: float = 2.5
-    rotation: int = 0
+    rotation: float = 0
     visible: bool = True
     halign: str = "left"
     valign: str = "middle"
@@ -189,7 +189,7 @@ class ConnectionPoint(Entity):
 
     name: str
     position: Point
-    direction: int = 0
+    direction: float = 0
 
     def _mapped(self, fn, quarters):
         return replace(

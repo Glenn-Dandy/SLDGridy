@@ -658,5 +658,12 @@
  "Keine geschlossene Fläche an dieser Stelle": "No closed area at this point",
  "Auf dieser Fläche hat kein Modul Platz": "No module fits on this area",
  "Modul anlegen": "Create module",
- "{n} Module, {kwp} kWp": "{n} modules, {kwp} kWp"
+ "{n} Module, {kwp} kWp": "{n} modules, {kwp} kWp",
+ "Drehen (&beliebiger Winkel)": "Rotate (&any angle)",
+ "Drehen: Winkel angeben (Richtung zeigen oder Winkel eintippen)": "Rotate: specify angle (point the direction or type the angle)",
+ "{n} Objekte (Blöcke, Leitungen, Sammelschienen) drehen nur in 90°-Schritten": "{n} objects (blocks, wires, bus bars) only rotate in 90° steps",
+ "Drehen um einen beliebigen Winkel; Pfeil: auch 90°-Schritte": "Rotate by any angle; arrow: also 90° steps",
+ "aus": "off",
+ "Winkelfang:": "Angle snap:",
+ "Bei eingetippter Länge (oder ohne Rasterfang) rasten Richtungen in diesen Schritten ein; 0 schaltet aus": "With a typed length (or without grid snap) directions snap in these steps; 0 switches off"
 }

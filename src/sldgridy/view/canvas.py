@@ -1,6 +1,7 @@
 """Drawing canvas: a QGraphicsView working in millimetres."""
 
 import json
+import math
 from collections.abc import Callable
 
 from PyQt6.QtCore import QEvent, QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
@@ -18,12 +19,12 @@ from PyQt6.QtGui import (
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
 from sldgridy.model.entities import Entity
-from sldgridy.model.geometry import Point, ortho, snap_to_grid
+from sldgridy.model.geometry import Point, distance, ortho, snap_to_grid
 from sldgridy.model.grips import grip_kinds, grip_points
-from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, find_snap
+from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, circle_hits, find_snap
 from sldgridy.model.tracking import TrackLine, toggle_acquired, track
 from sldgridy.tools.controller import ToolController
-from sldgridy.tools.dynamic_input import DynamicInput
+from sldgridy.tools.dynamic_input import DynamicInput, angle_of
 from sldgridy.tools.edit import GripEditTool, MoveTool
 from sldgridy.view.grid import grid_lines, visible_grid_step
 from sldgridy.view.items import SELECTION_COLOR, EntityItem, StyleResolver
@@ -109,6 +110,9 @@ class Canvas(QGraphicsView):
         self.dynamic = DynamicInput()
         self.dynamic_enabled = True
         self.decimal_comma = True
+        # Directions snap to multiples of this angle near the cursor (0: off).
+        self.polar_increment = 15.0
+        self._polar_ray: tuple[Point, float] | None = None
         self._layer: QPixmap | None = None
         # Switched by Settings > Fast display (off until the user switches it on).
         self.layer_cache_enabled = False
@@ -448,6 +452,7 @@ class Canvas(QGraphicsView):
                     # Typed values win; the mouse only decides the remaining ones.
                     fixed = self.dynamic.constrain(mode[1], mpt(self._cursor_scene))
                     self._cursor_scene = qpt(fixed)
+            self._polar_snap(mode)
         self._watch_hover()
         self.cursor_moved.emit(self._cursor_scene)
         if self.controller:
@@ -814,6 +819,74 @@ class Canvas(QGraphicsView):
 
     # -- typed values at the cursor -------------------------------------------
 
+    def _polar_snap(self, mode: tuple[str, Point | None] | None) -> None:
+        """With a base point: a typed length snaps onto edges it can reach (the end
+        runs on a circle), otherwise the direction snaps to angle steps."""
+        self._polar_ray = None
+        anchor = self.controller.base_point() if self.controller else None
+        if anchor is None or self._cursor_scene is None or self.ortho_enabled:
+            return
+        polar = mode is not None and mode[0] == "polar"
+        length = self.dynamic.value("length") if polar else None
+        if polar and self.dynamic.value("angle") is not None:
+            return
+        point = mpt(self._cursor_scene)
+        aperture = SNAP_APERTURE_PX / self.transform().m11()
+        if length is not None:
+            # The object snap point is not on the circle; only crossings count here.
+            self._snap_hit = None
+            if self.osnap_enabled and length > 0:
+                tool = self.controller.active
+                ignored = tool.snap_ignored_ids() if tool is not None else set()
+                near = [
+                    e
+                    for e in self._visible_entities_near(self._cursor_scene, aperture)
+                    if e.id not in ignored
+                ]
+                parts = [
+                    q
+                    for e in near
+                    for q in (self.snap_decompose(e) if self.snap_decompose else [e])
+                ]
+                hits = circle_hits(anchor, length, parts)
+                if hits:
+                    best = min(hits, key=lambda q: distance(q, point))
+                    if distance(best, point) <= aperture:
+                        self._cursor_scene = qpt(best)
+                        self._snap_hit = SnapHit(best, SnapMode.INTERSECTION)
+                        return
+        elif self._snap_hit is not None:
+            return
+        if self.polar_increment <= 0:
+            return
+        if length is None and self.snap_enabled:
+            # A grid point is exact already; steps only help a typed length or free input.
+            return
+        d = length if length is not None else distance(anchor, point)
+        if d <= 1e-9:
+            return
+        a = angle_of(anchor, point)
+        snapped = round(a / self.polar_increment) * self.polar_increment
+        r = math.radians(snapped)
+        candidate = Point(anchor.x + d * math.cos(r), anchor.y - d * math.sin(r))
+        if distance(candidate, point) <= aperture:
+            self._cursor_scene = qpt(candidate)
+            self._polar_ray = (anchor, snapped % 360)
+
+    def _draw_polar_ray(self, painter: QPainter) -> None:
+        if self._polar_ray is None:
+            return
+        anchor, angle = self._polar_ray
+        r = math.radians(angle)
+        reach = 4000.0 / self.transform().m11()
+        end = QPointF(anchor.x + reach * math.cos(r), anchor.y - reach * math.sin(r))
+        pen = QPen(TRACK_COLOR, 0, Qt.PenStyle.DotLine)
+        pen.setCosmetic(True)
+        painter.save()
+        painter.setPen(pen)
+        painter.drawLine(qpt(anchor), end)
+        painter.restore()
+
     def _dynamic_mode(self) -> tuple[str, Point | None] | None:
         if not self.dynamic_enabled or self.controller is None:
             return None
@@ -831,6 +904,7 @@ class Canvas(QGraphicsView):
             and event.key() == Qt.Key.Key_Tab
             and self._dynamic_mode() is not None
         ):
+            self.dynamic.set_mode(self._dynamic_mode()[0])
             self.dynamic.next_field()
             self.viewport().update()
             return True
@@ -841,6 +915,9 @@ class Canvas(QGraphicsView):
         mode = self._dynamic_mode()
         if mode is None or event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             return False
+        # The fields follow the tool (X/Y before the first point, then length/angle)
+        # before the key is used; otherwise the first digit after a click got lost.
+        self.dynamic.set_mode(mode[0])
         key, text = event.key(), event.text()
         if key == Qt.Key.Key_Backspace and self.dynamic.has_input():
             self.dynamic.backspace()
@@ -976,6 +1053,7 @@ class Canvas(QGraphicsView):
         self._draw_rubber_band(painter)
         self._draw_tracking(painter)
         self._draw_snap_marker(painter)
+        self._draw_polar_ray(painter)
         self._draw_crosshair(painter)
         self._draw_dynamic_input(painter)
 

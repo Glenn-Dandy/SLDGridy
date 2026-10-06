@@ -349,3 +349,67 @@ def test_dimension_properties_in_the_dock(window):
     edit.setText("ca. 40")
     edit.editingFinished.emit()
     assert ms.get("d").text == "ca. 40"
+
+
+def test_rotate_by_typed_angle_with_the_dropdown_tool(window):
+    from sldgridy.model.entities import Line as LineEntity
+
+    window.act_osnap.setChecked(False)
+    ms = window.document.model_space
+    ms.add(LineEntity(id="l", p1=Point(10, 10), p2=Point(50, 10)))
+    window._sync.item("l").setSelected(True)
+    window.act_rotate_free.trigger()
+    window.canvas.setFocus()
+    click(window, 10, 10)  # pivot
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 40, 20))
+    QTest.keyClick(window.canvas, Qt.Key.Key_Tab)
+    QTest.keyClicks(window.canvas, "30")
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    line = ms.get("l")
+    assert line.p1 == Point(10, 10)
+    assert line.p2.x == pytest.approx(10 + 40 * 0.8660254) and line.p2.y == pytest.approx(-10)
+    menu_texts = [a.text() for a in window.btn_rotate.menu().actions()]
+    assert len(menu_texts) == 2  # any angle and 90° steps
+
+
+def test_typed_length_snaps_onto_an_edge(window):
+    from sldgridy.model.entities import Line as LineEntity
+
+    ms = window.document.model_space
+    ms.add(LineEntity(id="eave", p1=Point(-100, -30), p2=Point(100, -30)))
+    window.act_osnap.setChecked(True)
+    window.act_line.trigger()
+    window.canvas.setFocus()
+    click(window, 0, 0)
+    QTest.keyClicks(window.canvas, "50")
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 39.5, -30.8))
+    assert window.canvas._snap_hit is not None  # crossing of the 50 mm circle and the edge
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    new = [e for e in ms if isinstance(e, LineEntity) and e.id != "eave"][0]
+    assert new.p2.x == pytest.approx(40) and new.p2.y == pytest.approx(-30)
+
+
+def test_typed_length_snaps_to_angle_steps(window):
+    from sldgridy.model.entities import Line as LineEntity
+
+    window.act_osnap.setChecked(False)
+    window.canvas.polar_increment = 15.0
+    window.act_line.trigger()
+    window.canvas.setFocus()
+    click(window, 0, 0)
+    QTest.keyClicks(window.canvas, "40")
+    # Mouse a little off the 45° direction.
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 29, -27))
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    (line,) = [e for e in window.document.model_space if isinstance(e, LineEntity)]
+    assert line.p2.x == pytest.approx(40 * 0.70710678, abs=1e-6)
+    assert line.p2.y == pytest.approx(-40 * 0.70710678, abs=1e-6)
+
+
+def test_first_digit_after_a_click_is_kept(window):
+    window.act_osnap.setChecked(False)
+    window.act_line.trigger()
+    window.canvas.setFocus()
+    click(window, 0, 0)  # no mouse move afterwards
+    QTest.keyClicks(window.canvas, "40")
+    assert window.canvas.dynamic.texts.get("length") == "40"

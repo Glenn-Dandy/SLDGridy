@@ -8,8 +8,10 @@ from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesComman
 from sldgridy.model.entities import Entity, JunctionMark, new_id
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_kinds, grip_points, move_grip
+from sldgridy.model.rotate import quarter_turns, rotate_entity
 from sldgridy.model.wires import follow_connections, follow_marks, follow_wires, new_contacts
 from sldgridy.tools.base import Tool, tr
+from sldgridy.tools.dynamic_input import angle_of
 
 MAX_FOLLOW_DEPTH = 20  # wires pulled along by wires, at most this deep
 
@@ -200,6 +202,62 @@ class RotateTool(_SelectionTool):
         return with_followers(
             self.ctx, self._entities, [e.rotated(self._base, k) for e in self._entities]
         )
+
+
+class RotateFreeTool(_SelectionTool):
+    """Rotate by any angle: pivot, then the direction (or a typed angle) from 0° (right).
+
+    Block references, wires and bus bars only turn in quarter steps; at other angles
+    they stay where they are.
+    """
+
+    @property
+    def name(self) -> str:
+        return tr("Drehen")
+
+    def _point_prompt(self) -> str:
+        if self._base is None:
+            return tr("Drehen: Drehpunkt angeben")
+        return tr("Drehen: Winkel angeben (Richtung zeigen oder Winkel eintippen)")
+
+    def _angle(self, p: Point | None) -> float:
+        if self._base is None or p is None or p == self._base:
+            return 0.0
+        return round(angle_of(self._base, p), 6)
+
+    def _turned(self, angle: float) -> tuple[list[Entity], list[Entity], int]:
+        old, new, skipped = [], [], 0
+        for e in self._entities:
+            turned = rotate_entity(e, self._base, angle)
+            if turned is None:
+                skipped += 1
+            else:
+                old.append(e)
+                new.append(turned)
+        return old, new, skipped
+
+    def pick(self, p: Point) -> None:
+        if self._base is None:
+            self._base = p
+            return
+        angle = self._angle(p)
+        old, new, skipped = self._turned(angle)
+        if angle and new:
+            if quarter_turns(angle) is not None:
+                new = with_followers(self.ctx, old, new, separate=True)
+            self.ctx.push(ReplaceEntitiesCommand(self.ctx.container, new, tr("Drehen")))
+        if angle and skipped:
+            self.ctx.message(
+                tr(
+                    "{n} Objekte (Blöcke, Leitungen, Sammelschienen) drehen nur in 90°-Schritten"
+                ).format(n=skipped)
+            )
+        self.done = True
+
+    def preview(self) -> list[Entity]:
+        if self._base is None:
+            return []
+        return self._turned(self._angle(self.cursor))[1]
 
 
 class MirrorTool(_SelectionTool):

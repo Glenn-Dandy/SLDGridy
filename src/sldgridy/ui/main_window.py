@@ -75,7 +75,14 @@ from sldgridy.tools.draw import (
     TextTool,
     WireTool,
 )
-from sldgridy.tools.edit import CopyTool, MirrorTool, MoveTool, PasteTool, RotateTool
+from sldgridy.tools.edit import (
+    CopyTool,
+    MirrorTool,
+    MoveTool,
+    PasteTool,
+    RotateFreeTool,
+    RotateTool,
+)
 from sldgridy.ui import clipboard
 from sldgridy.ui.about_dialog import AboutDialog, app_icon, issue_url, open_url
 from sldgridy.ui.autosave import AutoSaver, orphaned_backups, remove_backup
@@ -394,11 +401,15 @@ class MainWindow(QMainWindow):
         self.act_move = self._tool_action(self.tr("&Verschieben"), MoveTool)
         self.act_copy = self._tool_action(self.tr("&Kopieren"), CopyTool)
         self.act_rotate = self._tool_action(self.tr("&Drehen 90°"), RotateTool)
+        self.act_rotate_free = self._tool_action(
+            self.tr("Drehen (&beliebiger Winkel)"), RotateFreeTool
+        )
         self.act_mirror = self._tool_action(self.tr("S&piegeln"), MirrorTool)
         self.act_explode = self._action(self.tr("&Auflösen"), self.blocks.explode_selection)
         self.modify_actions = [
             self.act_move,
             self.act_copy,
+            self.act_rotate_free,
             self.act_rotate,
             self.act_mirror,
             self.act_explode,
@@ -611,8 +622,28 @@ class MainWindow(QMainWindow):
             bar = QToolBar(title, self)
             bar.setObjectName(f"toolbar_{name}")
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
-            bar.addActions(actions)
+            for action in actions:
+                if action is self.act_rotate_free:
+                    continue
+                if action is self.act_rotate:
+                    bar.addWidget(self._rotate_button())
+                    continue
+                bar.addAction(action)
             self.addToolBar(bar)
+
+    def _rotate_button(self) -> QToolButton:
+        """ "Drehen" with a drop-down: any angle (the click) or 90° steps."""
+        menu = QMenu(self)
+        menu.addActions([self.act_rotate_free, self.act_rotate])
+        button = QToolButton()
+        button.setText(self.tr("Drehen"))
+        button.setMenu(menu)
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
+        button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        button.clicked.connect(self.act_rotate_free.trigger)
+        button.setToolTip(self.tr("Drehen um einen beliebigen Winkel; Pfeil: auch 90°-Schritte"))
+        self.btn_rotate = button
+        return button
 
     def _create_docks(self) -> None:
         self.layers_dock = LayersDock(self, self)
@@ -671,6 +702,8 @@ class MainWindow(QMainWindow):
             lambda: (self.canvas.grid_spacing(), self.canvas.snap_spacing),
             self._set_grid_spacing,
             self._set_snap_spacing,
+            lambda: self.canvas.polar_increment,
+            self._set_polar_increment,
         )
         self.lbl_position = QLabel()
         width = self.lbl_position.fontMetrics().horizontalAdvance(
@@ -1452,6 +1485,7 @@ class MainWindow(QMainWindow):
             self.canvas.osnap_modes = frozenset(chosen)
         self.act_layer_cache.setChecked(settings.value("view/layer_cache", False, type=bool))
         self.act_dynamic_input.setChecked(settings.value("view/dynamic_input", True, type=bool))
+        self.canvas.polar_increment = settings.value("view/polar_increment", 15.0, type=float)
         self.canvas.set_dynamic_enabled(self.act_dynamic_input.isChecked())
         self.canvas.decimal_comma = i18n.ui_locale().decimalPoint() == ","
         workspace = str(settings.value(WORKSPACE_KEY, WORKSPACE_SLD))
@@ -1462,6 +1496,10 @@ class MainWindow(QMainWindow):
         if value > 0:
             self.canvas.set_grid_spacing(value)
             self._remember_workspace_grid()
+
+    def _set_polar_increment(self, value: float) -> None:
+        self.canvas.polar_increment = max(0.0, float(value))
+        QSettings().setValue("view/polar_increment", self.canvas.polar_increment)
 
     def _set_snap_spacing(self, value: float) -> None:
         if value > 0:
