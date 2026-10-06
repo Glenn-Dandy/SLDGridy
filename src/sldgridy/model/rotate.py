@@ -95,6 +95,10 @@ def rotate_entity(e: Entity, center: Point, degrees: float) -> Entity | None:
             return replace(e, position=rot(e.position), direction=(e.direction + degrees) % 360)
         case JunctionMark():
             return replace(e, position=rot(e.position))
+        case Dimension() if e.orientation == "angular" and e.vertex is not None:
+            return replace(
+                e, p1=rot(e.p1), p2=rot(e.p2), position=rot(e.position), vertex=rot(e.vertex)
+            )
         case Dimension():
             # Turned off the axes, a horizontal or vertical dimension measures along its
             # turned points: it becomes an aligned one.

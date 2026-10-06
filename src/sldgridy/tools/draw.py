@@ -440,3 +440,65 @@ class DimensionTool(_DrawTool):
             d = self._make(self.cursor, PREVIEW_ID)
             return [d] if d is not None else []
         return []
+
+
+class AngularDimensionTool(DimensionTool):
+    """Angle: vertex, a point on each leg, then where the arc goes."""
+
+    def __init__(self, ctx) -> None:
+        super().__init__(ctx)
+        self._vertex: Point | None = None
+
+    def prompt(self) -> str:
+        if self._vertex is None:
+            return tr("Winkel bemaßen: Scheitelpunkt angeben")
+        if not self._points:
+            return tr("Winkel bemaßen: Punkt auf dem ersten Schenkel angeben")
+        if len(self._points) == 1:
+            return tr("Winkel bemaßen: Punkt auf dem zweiten Schenkel angeben")
+        return tr("Winkel bemaßen: Lage des Maßbogens angeben")
+
+    def _make(self, position: Point, entity_id: str) -> Dimension | None:
+        p1, p2 = self._points
+        v = self._vertex
+        if v is None or position == v:
+            return None
+        return Dimension(
+            id=entity_id,
+            layer=self.ctx.current_layer,
+            lineweight=DIMENSION_LINEWEIGHT,
+            p1=p1,
+            p2=p2,
+            position=position,
+            orientation="angular",
+            vertex=v,
+            height=self._height(v),
+        )
+
+    def pick(self, p: Point) -> None:
+        if self._vertex is None:
+            self._vertex = p
+            return
+        if len(self._points) < 2:
+            if p != self._vertex:
+                self._points.append(p)
+            return
+        dimension = self._make(p, new_id())
+        if dimension is not None:
+            self._add(dimension, tr("Winkel bemaßen"))
+        self._vertex = None
+        self._points = []
+
+    def base_point(self) -> Point | None:
+        return self._vertex if self._vertex is not None and len(self._points) < 2 else None
+
+    def preview(self) -> list[Entity]:
+        if self.cursor is None or self._vertex is None:
+            return []
+        if len(self._points) < 2:
+            return [
+                Line(id=f"{PREVIEW_ID}{i}", layer=self.ctx.current_layer, p1=self._vertex, p2=q)
+                for i, q in enumerate([*self._points, self.cursor])
+            ]
+        d = self._make(self.cursor, PREVIEW_ID)
+        return [d] if d is not None else []

@@ -417,7 +417,11 @@ def test_first_digit_after_a_click_is_kept(window):
 
 def test_dimension_button_offers_parallel(window):
     button = window.btn_dimension
-    assert button.menu().actions() == [window.act_dimension, window.act_dimension_aligned]
+    assert button.menu().actions() == [
+        window.act_dimension,
+        window.act_dimension_aligned,
+        window.act_dimension_angle,
+    ]
     assert window.act_dimension_aligned in window.draw_menu.actions()
     window.act_osnap.setChecked(False)
     window.act_dimension_aligned.trigger()  # as chosen from the drop-down
@@ -436,4 +440,20 @@ def test_dimension_button_offers_parallel(window):
     line = next(p for p in dimension_geometry(d) if p.id.endswith(":line"))
     # Parallel to the measured line 0,0 to 30,40.
     assert (line.p2.x - line.p1.x) * 40 == pytest.approx((line.p2.y - line.p1.y) * 30)
+    window.act_undo.trigger()
+
+
+def test_angle_dimension_tool(window):
+    from sldgridy.model.dimensions import measured
+    from sldgridy.model.entities import Dimension
+
+    window.act_osnap.setChecked(False)
+    window.act_dimension_angle.trigger()
+    click(window, 0, 0)  # vertex
+    click(window, 50, 0)
+    click(window, 0, -50)
+    click(window, 20, -20)
+    (d,) = [e for e in window.document.model_space if isinstance(e, Dimension)]
+    assert d.orientation == "angular" and d.vertex == Point(0, 0)
+    assert measured(d) == pytest.approx(90)
     window.act_undo.trigger()

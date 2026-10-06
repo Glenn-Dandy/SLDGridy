@@ -671,5 +671,12 @@
  "&Kopie, Original bleibt": "Keep original, &copy",
  "Spiegeln (Kopie)": "Mirror (copy)",
  "Modell auf Blatt &ausrichten": "&Align model on sheet",
- "Ausrichten auf {name}": "Align on {name}"
+ "Ausrichten auf {name}": "Align on {name}",
+ "Bemaßen &Winkel": "Dimension &angle",
+ "Scheitelpunkt, je ein Punkt auf beiden Schenkeln, dann der Maßbogen": "Vertex, a point on each leg, then the dimension arc",
+ "Winkel bemaßen: Scheitelpunkt angeben": "Angle dimension: specify vertex",
+ "Winkel bemaßen: Punkt auf dem ersten Schenkel angeben": "Angle dimension: specify point on first leg",
+ "Winkel bemaßen: Punkt auf dem zweiten Schenkel angeben": "Angle dimension: specify point on second leg",
+ "Winkel bemaßen: Lage des Maßbogens angeben": "Angle dimension: specify arc location",
+ "Winkel bemaßen": "Angle dimension"
 }

@@ -91,3 +91,54 @@ def test_value_is_never_upside_down(p1, p2):
     d = dim(p1, p2, ((p1[0] + p2[0]) / 2 - 10, (p1[1] + p2[1]) / 2))
     (text,) = [e for e in dimension_geometry(d) if e.id.endswith(":text")]
     assert -90 < text.rotation <= 90
+
+
+def angle_dim(position, p1=(50, 0), p2=(30, -40)):
+    return Dimension(
+        id="a",
+        p1=Point(*p1),
+        p2=Point(*p2),
+        position=Point(*position),
+        orientation="angular",
+        vertex=Point(0, 0),
+    )
+
+
+def test_angle_between_legs_and_across_the_vertex():
+    from sldgridy.model.dimensions import measured_text
+
+    assert measured(angle_dim((20, -10))) == pytest.approx(53.130102)
+    assert measured_text(angle_dim((20, -10))) == "53,1°"
+    # Dragged to the other side of a leg: the supplementary angle.
+    assert measured(angle_dim((-20, -20))) == pytest.approx(180 - 53.130102)
+    # Across the vertex: the opposite angle, same size.
+    assert measured(angle_dim((-20, 10))) == pytest.approx(53.130102)
+
+
+def test_angle_geometry_arc_arrows_and_text():
+    from sldgridy.model.entities import Arc
+
+    d = angle_dim((20, -10))
+    parts = dimension_geometry(d)
+    (arc,) = [p for p in parts if isinstance(p, Arc)]
+    assert arc.radius == pytest.approx(22.36068, abs=1e-4)
+    assert (arc.start_angle, arc.end_angle) == pytest.approx((0, 53.130102))
+    assert len([p for p in parts if ":arrow" in p.id]) == 4
+    (text,) = [p for p in parts if isinstance(p, Text)]
+    assert text.text == "53,1°" and -90 < text.rotation <= 90
+    # The arc is inside both legs (50 mm long): no extension lines.
+    assert not [p for p in parts if ":ext" in p.id]
+    far = dimension_geometry(angle_dim((80, -40)))
+    assert len([p for p in far if ":ext" in p.id]) == 2
+
+
+def test_angle_dimension_follows_moves_rotation_and_mirroring():
+    from sldgridy.model.rotate import rotate_entity
+
+    d = angle_dim((20, -10))
+    moved = d.translated(10, 5)
+    assert moved.vertex == Point(10, 5) and measured(moved) == pytest.approx(measured(d))
+    turned = rotate_entity(d, Point(0, 0), 30)
+    assert turned.orientation == "angular" and measured(turned) == pytest.approx(measured(d))
+    assert measured(d.rotated(Point(0, 0), 1)) == pytest.approx(measured(d))
+    assert measured(d.mirrored(Point(0, 0), True)) == pytest.approx(measured(d))

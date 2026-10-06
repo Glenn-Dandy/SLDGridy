@@ -106,6 +106,8 @@ def entity_to_dict(e: Entity) -> dict[str, Any]:
         case Dimension():
             d["p1"], d["p2"], d["position"] = _pt(e.p1), _pt(e.p2), _pt(e.position)
             d["orientation"], d["height"] = e.orientation, e.height
+            if e.vertex is not None:
+                d["vertex"] = _pt(e.vertex)
             if e.text:
                 d["text"] = e.text
         case Wire():
@@ -196,7 +198,11 @@ def entity_from_dict(d: dict[str, Any]) -> Entity:
             )
         case "dimension":
             orientation = str(d.get("orientation", "aligned"))
+            vertex = _to_pt(d["vertex"]) if "vertex" in d else None
+            if orientation == "angular" and vertex is None:
+                orientation = "aligned"
             return Dimension(
+                vertex=vertex,
                 p1=_to_pt(d["p1"]),
                 p2=_to_pt(d["p2"]),
                 position=_to_pt(d["position"]),

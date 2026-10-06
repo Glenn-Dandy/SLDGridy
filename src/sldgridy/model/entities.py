@@ -347,14 +347,17 @@ class Viewport(Entity):
         )
 
 
-DIMENSION_ORIENTATIONS = ("horizontal", "vertical", "aligned")
+DIMENSION_ORIENTATIONS = ("horizontal", "vertical", "aligned", "angular")
 
 
 @dataclass(frozen=True, kw_only=True)
 class Dimension(Entity):
     """Linear dimension between ``p1`` and ``p2``; the dimension line passes through
     ``position``. ``orientation`` measures the horizontal or vertical distance, or the
-    true distance ("aligned"). ``text`` replaces the measured value when not empty."""
+    true distance ("aligned"). ``text`` replaces the measured value when not empty.
+
+    "angular" measures the angle at ``vertex`` between the legs through ``p1`` and
+    ``p2``; the arc passes through ``position`` and lies in the sector containing it."""
 
     p1: Point
     p2: Point
@@ -362,10 +365,11 @@ class Dimension(Entity):
     orientation: str = "aligned"
     text: str = ""
     height: float = 2.5
+    vertex: Point | None = None
 
     def _mapped(self, fn, quarters):
         orientation = self.orientation
-        if quarters % 2 and orientation != "aligned":
+        if quarters % 2 and orientation in ("horizontal", "vertical"):
             orientation = "vertical" if orientation == "horizontal" else "horizontal"
         return replace(
             self,
@@ -373,6 +377,7 @@ class Dimension(Entity):
             p2=fn(self.p2),
             position=fn(self.position),
             orientation=orientation,
+            vertex=fn(self.vertex) if self.vertex is not None else None,
         )
 
 

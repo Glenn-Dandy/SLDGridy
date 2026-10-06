@@ -21,4 +21,12 @@ def sample_entities():
             lineweight=0.18,
         ),
         Dimension(id="d2", p1=Point(0, 0), p2=Point(30, 40), position=Point(-5, 5), text="ca. 5 m"),
+        Dimension(
+            id="d3",
+            p1=Point(50, 0),
+            p2=Point(30, -40),
+            position=Point(20, -10),
+            orientation="angular",
+            vertex=Point(0, 0),
+        ),
     ]

@@ -46,7 +46,7 @@ from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.i18n import ui_locale
 from sldgridy.model.blocks import BlockDefinition, BlockError, expand, world_connections
 from sldgridy.model.container import EntityContainer
-from sldgridy.model.dimensions import dimension_geometry, format_value, measured, scale_at
+from sldgridy.model.dimensions import dimension_geometry, format_value, measured_text, scale_at
 from sldgridy.model.document import Document
 from sldgridy.model.entities import (
     TEXT_HEIGHTS,
@@ -66,6 +66,7 @@ from sldgridy.printing.output import export_pdf, export_png, export_svg
 from sldgridy.tools.controller import ToolController, ToolFactory
 from sldgridy.tools.coord_input import CoordinateError, parse_coordinate
 from sldgridy.tools.draw import (
+    AngularDimensionTool,
     ArcTool,
     BusbarTool,
     CircleTool,
@@ -407,6 +408,12 @@ class MainWindow(QMainWindow):
         self.act_dimension_aligned = self._tool_action(
             self.tr("Bemaßen &parallel"), lambda ctx: DimensionTool(ctx, aligned=True)
         )
+        self.act_dimension_angle = self._tool_action(
+            self.tr("Bemaßen &Winkel"), AngularDimensionTool
+        )
+        self.act_dimension_angle.setToolTip(
+            self.tr("Scheitelpunkt, je ein Punkt auf beiden Schenkeln, dann der Maßbogen")
+        )
         self.act_dimension_aligned.setToolTip(
             self.tr("Parallel zur Strecke zwischen den Punkten, misst die wahre Länge")
         )
@@ -425,6 +432,7 @@ class MainWindow(QMainWindow):
             self.act_text,
             self.act_dimension,
             self.act_dimension_aligned,
+            self.act_dimension_angle,
             self.act_module_field,
         ]
 
@@ -652,7 +660,11 @@ class MainWindow(QMainWindow):
             bar.setObjectName(f"toolbar_{name}")
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
             for action in actions:
-                if action in (self.act_rotate_free, self.act_dimension_aligned):
+                if action in (
+                    self.act_rotate_free,
+                    self.act_dimension_aligned,
+                    self.act_dimension_angle,
+                ):
                     continue
                 if action is self.act_rotate:
                     bar.addWidget(self._rotate_button())
@@ -678,10 +690,10 @@ class MainWindow(QMainWindow):
         return button
 
     def _dimension_button(self) -> QToolButton:
-        """ "Bemaßen" with a drop-down: horizontal/vertical or parallel; the click
+        """ "Bemaßen" with a drop-down: horizontal/vertical, parallel or angle; the click
         repeats the variant chosen last."""
         menu = QMenu(self)
-        menu.addActions([self.act_dimension, self.act_dimension_aligned])
+        menu.addActions([self.act_dimension, self.act_dimension_aligned, self.act_dimension_angle])
         button = QToolButton()
         button.setMenu(menu)
         button.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
@@ -1353,9 +1365,7 @@ class MainWindow(QMainWindow):
         form = QFormLayout(box)
         text = QLineEdit(dim.text)
         text.setPlaceholderText(
-            self.tr("gemessen: {value}").format(
-                value=format_value(measured(dim), self.canvas.decimal_comma)
-            )
+            self.tr("gemessen: {value}").format(value=measured_text(dim, self.canvas.decimal_comma))
         )
         text.setToolTip(self.tr("Leer lassen für den gemessenen Wert"))
         height = QDoubleSpinBox()
@@ -1380,7 +1390,10 @@ class MainWindow(QMainWindow):
         orientation.setCurrentIndex(max(orientation.findData(dim.orientation), 0))
         form.addRow(self.tr("Maßtext:"), text)
         form.addRow(self.tr("Texthöhe:"), height)
-        form.addRow(self.tr("Richtung:"), orientation)
+        if dim.orientation != "angular":
+            form.addRow(self.tr("Richtung:"), orientation)
+        else:
+            orientation.hide()
         layout.addWidget(box)
 
         def apply(**changes) -> None:
