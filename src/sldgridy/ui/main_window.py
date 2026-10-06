@@ -1109,7 +1109,10 @@ class MainWindow(QMainWindow):
         self._set_document(document, backup.original)
         self.undo_stack.resetClean()  # recovered content counts as unsaved
         self._update_title()
-        remove_backup(backup)
+        # The old backup goes only once this instance holds its own copy: ending now
+        # (closed terminal, crash) must not lose the recovered work.
+        if self.autosave.save_now():
+            remove_backup(backup)
         return True
 
     # -- printing and export ------------------------------------------------

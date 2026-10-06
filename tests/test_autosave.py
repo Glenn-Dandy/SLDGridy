@@ -68,4 +68,9 @@ def test_orphans_from_dead_processes_are_offered(window, tmp_path):
     assert window.restore_backup(backup)
     assert len(window.document.model_space) == 1
     assert window.isWindowModified()
+    # Removed only because our own backup of the recovered drawing exists now.
+    assert window.autosave.path.exists()
     assert not backup.path.exists()
+    assert orphaned_backups(tmp_path) == []
+    # Kept aside, not deleted.
+    assert len(list((tmp_path / "alt").glob("*.sldg"))) == 1

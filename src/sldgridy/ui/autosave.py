@@ -56,7 +56,23 @@ def orphaned_backups(directory: Path | None = None) -> list[Backup]:
     return result
 
 
+KEEP_OLD = 10  # discarded or recovered backups kept in the "alt" folder
+
+
 def remove_backup(backup: Backup) -> None:
+    """Take a backup out of the recovery list. The drawing is moved to ``alt/`` next to
+    it (the newest KEEP_OLD stay), so a wrong click never loses work for good."""
+    old = backup.path.parent / "alt"
+    try:
+        if backup.path.exists():
+            old.mkdir(exist_ok=True)
+            stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            name = backup.original.stem if backup.original else "Unbenannt"
+            backup.path.replace(old / f"{stamp}_{name}.sldg")
+            for stale in sorted(old.glob("*.sldg"))[:-KEEP_OLD]:
+                stale.unlink(missing_ok=True)
+    except OSError:
+        pass
     backup.path.unlink(missing_ok=True)
     backup.meta.unlink(missing_ok=True)
     backup.path.with_name(backup.path.name + ".bak").unlink(missing_ok=True)
