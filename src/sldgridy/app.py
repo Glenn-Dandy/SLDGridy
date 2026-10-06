@@ -8,7 +8,7 @@ from pathlib import Path
 from PyQt6.QtCore import QSettings
 from PyQt6.QtWidgets import QApplication
 
-from sldgridy import __version__, i18n, platform_choice
+from sldgridy import __version__, i18n, memwatch, platform_choice
 from sldgridy.fileio.paths import cache_dir
 from sldgridy.ui.main_window import APP_NAME, MainWindow
 
@@ -38,6 +38,7 @@ def enable_crash_log() -> None:
     log.flush()
     faulthandler.enable(log, all_threads=True)
     _crash_log.append(log)  # keep the file object alive
+    memwatch.start(log)
 
 
 _crash_log: list = []
