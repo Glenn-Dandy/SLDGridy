@@ -6,7 +6,7 @@ from dataclasses import replace
 from functools import partial
 from pathlib import Path
 
-from PyQt6.QtCore import QEvent, QPointF, QRectF, QSettings, Qt
+from PyQt6.QtCore import QElapsedTimer, QEvent, QEventLoop, QPoint, QPointF, QRectF, QSettings, Qt
 from PyQt6.QtGui import (
     QAction,
     QActionGroup,
@@ -112,6 +112,15 @@ from sldgridy.view.render import Style
 from sldgridy.view.scene_sync import SceneSync
 
 APP_NAME = "SLDGridy"
+
+
+def wait_for_mouse_release() -> None:
+    """Before a popup opened from a mouse press: let go of the button first, else the
+    release lands on the item under the cursor and picks it at once (seen on Wayland)."""
+    timer = QElapsedTimer()
+    timer.start()
+    while QApplication.mouseButtons() != Qt.MouseButton.NoButton and timer.elapsed() < 3000:
+        QApplication.processEvents(QEventLoop.ProcessEventsFlag.AllEvents, 20)
 
 
 WORKSPACE_KEY = "ui/workspace"
@@ -334,7 +343,8 @@ class MainWindow(QMainWindow):
         actions = [menu.addAction(text) for text in options]
         if 0 <= last < len(actions):
             menu.setActiveAction(actions[last])
-        chosen = menu.exec(QCursor.pos())
+        wait_for_mouse_release()
+        chosen = menu.exec(QCursor.pos() + QPoint(8, 8))
         if chosen not in actions:
             return None
         index = actions.index(chosen)

@@ -7,7 +7,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PyQt6.QtCore import QObject, QPointF, QRectF, Qt
+from PyQt6.QtCore import QObject, QPoint, QPointF, QRectF, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont, QPainter, QPen
 from PyQt6.QtWidgets import (
     QCheckBox,
@@ -174,6 +174,7 @@ class SheetController(QObject):
         self.tabs.currentChanged.connect(self._on_tab_changed)
         self.tabs.tabMoved.connect(self._on_tab_moved)
         self.tabs.customContextMenuRequested.connect(self._tab_menu)
+        self.tabs.tabBarClicked.connect(self._on_tab_clicked)
 
     def tr(self, text: str) -> str:  # noqa: D102 - stable translation context
         return self.w.tr(text)
@@ -217,6 +218,8 @@ class SheetController(QObject):
         m.addActions([self.act_format, self.act_fields, self.act_viewport])
         m.addSeparator()
         m.addActions([self.act_save_template, self.act_outlines])
+        self.align_menu = m.addMenu(self.tr("Modell auf Blatt &ausrichten"))
+        self.align_menu.aboutToShow.connect(lambda: self._fill_align_menu(self.align_menu))
         self.menu = m
         self._update_actions()
 
@@ -233,12 +236,60 @@ class SheetController(QObject):
         if index != self.tabs.currentIndex():
             self.tabs.setCurrentIndex(index)
         menu = QMenu(self.tabs)
+        if index == 0:
+            self._fill_align_menu(menu)
+            menu.addSeparator()
         menu.addActions([self.act_new, self.act_from_template])
         if index > 0:
             menu.addSeparator()
             menu.addActions([self.act_rename, self.act_duplicate, self.act_delete, self.act_format])
             menu.addActions([self.act_fields, self.act_save_template])
         menu.exec(self.tabs.mapToGlobal(pos))
+
+    # -- aligning the model view on a sheet ----------------------------------
+
+    def sheet_model_rect(self, sheet: SheetLayout) -> QRectF | None:
+        """Model area all viewports of ``sheet`` show together; None without viewports."""
+        rect: QRectF | None = None
+        for vp in sheet.viewports():
+            a, b = vp.model_rect()
+            r = QRectF(a.x, a.y, b.x - a.x, b.y - a.y)
+            rect = r if rect is None else rect.united(r)
+        return rect
+
+    def align_model_on(self, sheet_id: str) -> None:
+        """Model view showing exactly what ``sheet_id`` shows."""
+        sheet = next((s for s in self.doc.sheets if s.id == sheet_id), None)
+        rect = self.sheet_model_rect(sheet) if sheet is not None else None
+        if rect is None:
+            return
+        if self.w.space is not self.w.model_view:
+            self.w.activate_space(self.w.model_view)
+        self.w.canvas.fit_rect(rect, margin=0.02)
+
+    def _fill_align_menu(self, menu: QMenu) -> None:
+        """One entry per sheet: "Ausrichten auf Blatt 1", …"""
+        menu.clear()
+        for sheet in self.doc.sheets:
+            action = menu.addAction(
+                self.tr("Ausrichten auf {name}").format(name=sheet.name),
+                partial(self.align_model_on, sheet.id),
+            )
+            action.setEnabled(self.sheet_model_rect(sheet) is not None)
+
+    def _on_tab_clicked(self, index: int) -> None:
+        # A click on the model tab while the model is shown offers the sheets.
+        if index == 0 and self.tabs.currentIndex() == 0 and self.doc.sheets:
+            QTimer.singleShot(0, self._show_align_popup)
+
+    def _show_align_popup(self) -> None:
+        from sldgridy.ui.main_window import wait_for_mouse_release
+
+        wait_for_mouse_release()
+        menu = QMenu(self.tabs)
+        self._fill_align_menu(menu)
+        rect = self.tabs.tabRect(0)
+        menu.exec(self.tabs.mapToGlobal(rect.topLeft()) - QPoint(0, menu.sizeHint().height()))
 
     def _toggle_outlines(self, checked: bool) -> None:
         self.show_outlines = checked

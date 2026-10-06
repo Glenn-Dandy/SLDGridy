@@ -95,11 +95,11 @@ def dimension_geometry(d: Dimension, decimal_comma: bool = True) -> list[Entity]
                 parts.append(Line(id=f"{d.id}:arrow{k}{j}", p1=tip, p2=wing, **style))
     # Value: readable from below or from the right, above the dimension line.
     angle = math.degrees(math.atan2(-(b.y - a.y), b.x - a.x)) if span > EPS else 0.0
-    angle = (angle + 180) % 360 - 180
-    if angle > 90 or angle <= -90:
-        angle = (angle + 180) % 360 - 180
-    if abs(angle - (-90)) < 1e-6:
-        angle = 90.0
+    angle = (angle + 180) % 360 - 180  # -180 < angle <= 180
+    if angle > 90 + 1e-6:
+        angle -= 180
+    elif angle <= -90 + 1e-6:
+        angle += 180  # vertical reads from the right: 90°
     r = math.radians(angle)
     up = (-math.sin(r), -math.cos(r))
     mid = Point((a.x + b.x) / 2, (a.y + b.y) / 2)

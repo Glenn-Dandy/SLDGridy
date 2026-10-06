@@ -183,3 +183,25 @@ def test_viewport_corner_fields_and_origin_button(window):
     window.act_undo.trigger()
     window.act_undo.trigger()
     assert sheet.entities.get(v.id).center == v.center
+
+
+def test_align_model_on_sheet(window, qapp):
+    sheets = window.sheets
+    sheet = window.document.sheets[0]
+    rect = sheets.sheet_model_rect(sheet)
+    assert rect is not None and not rect.isEmpty()
+    window.canvas.set_view(5.0, QPointF(5000, 5000))  # model looks elsewhere
+    sheets.tabs.setCurrentIndex(1)
+    sheets.align_model_on(sheet.id)
+    qapp.processEvents()
+    assert window.space.kind == MODEL and sheets.tabs.currentIndex() == 0
+    view = window.canvas.viewport().rect()
+    for corner in (rect.topLeft(), rect.bottomRight()):
+        assert view.contains(window.canvas.map_from_scene_f(corner).toPoint())
+    # Fills the view: a larger rectangle would not fit any more.
+    a = window.canvas.map_from_scene_f(rect.topLeft())
+    b = window.canvas.map_from_scene_f(rect.bottomRight())
+    assert max((b.x() - a.x()) / view.width(), (b.y() - a.y()) / view.height()) > 0.9
+    menu = sheets.align_menu
+    sheets._fill_align_menu(menu)
+    assert [a.text() for a in menu.actions()] == ["Ausrichten auf Blatt 1"]

@@ -73,3 +73,21 @@ def test_dimension_height_follows_the_viewport_scale():
     inside = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
     assert default_height(doc.sheets, inside) == pytest.approx(125)  # 2.5 mm on paper
     assert default_height(doc.sheets, Point(b.x + 1e6, 0)) == pytest.approx(2.5)
+
+
+@pytest.mark.parametrize(
+    ("p1", "p2"),
+    [
+        ((0, 0), (40, -60)),
+        ((40, -60), (0, 0)),
+        ((40, -60), (80, 0)),
+        ((80, 0), (40, -60)),
+        ((0, 0), (0, -50)),
+        ((0, -50), (0, 0)),
+        ((0, 0), (-50, 0)),
+    ],
+)
+def test_value_is_never_upside_down(p1, p2):
+    d = dim(p1, p2, ((p1[0] + p2[0]) / 2 - 10, (p1[1] + p2[1]) / 2))
+    (text,) = [e for e in dimension_geometry(d) if e.id.endswith(":text")]
+    assert -90 < text.rotation <= 90

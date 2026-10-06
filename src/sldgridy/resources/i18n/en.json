@@ -669,5 +669,7 @@
  "Parallel zur Strecke zwischen den Punkten, misst die wahre Länge": "Parallel to the line between the points, measures the true length",
  "Original &ersetzen": "&Replace original",
  "&Kopie, Original bleibt": "Keep original, &copy",
- "Spiegeln (Kopie)": "Mirror (copy)"
+ "Spiegeln (Kopie)": "Mirror (copy)",
+ "Modell auf Blatt &ausrichten": "&Align model on sheet",
+ "Ausrichten auf {name}": "Align on {name}"
 }
