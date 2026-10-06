@@ -230,12 +230,12 @@ def circle_hits(center: Point, radius: float, entities: Iterable[Entity]) -> lis
         if isinstance(e, Circle):
             hits += _circle_circle(center, radius, e.center, e.radius)
             continue
-        for a, b in _edges_of(e):
+        for a, b in edges_of(e):
             hits += _circle_segment(center, radius, a, b)
     return hits
 
 
-def _edges_of(e: Entity) -> list[tuple[Point, Point]]:
+def edges_of(e: Entity) -> list[tuple[Point, Point]]:
     if isinstance(e, Line | Busbar):
         return [(e.p1, e.p2)]
     if isinstance(e, Rectangle):

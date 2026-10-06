@@ -457,3 +457,21 @@ def test_angle_dimension_tool(window):
     assert d.orientation == "angular" and d.vertex == Point(0, 0)
     assert measured(d) == pytest.approx(90)
     window.act_undo.trigger()
+
+
+def test_angle_dimension_snaps_onto_sloped_leg(window):
+    from sldgridy.model.dimensions import measured
+    from sldgridy.model.entities import Dimension, Line
+
+    ms = window.document.model_space
+    ms.add(Line(id="base", p1=Point(0, 0), p2=Point(80, 0)))
+    ms.add(Line(id="left", p1=Point(0, 0), p2=Point(30, -50)))
+    window.act_dimension_angle.trigger()
+    click(window, 0, 0)
+    click(window, 80, 0)
+    click(window, 20, -30)  # grid point beside the leg (the leg passes 18, -30)
+    click(window, 15, -10)
+    (d,) = [e for e in ms if isinstance(e, Dimension)]
+    assert d.p2 == Point(30, -50)
+    assert measured(d) == pytest.approx(59.036243)
+    window.act_undo.trigger()

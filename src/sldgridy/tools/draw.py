@@ -19,6 +19,7 @@ from sldgridy.model.entities import (
     new_id,
 )
 from sldgridy.model.geometry import Point, angle_deg, distance, ortho
+from sldgridy.model.snap import edges_of
 from sldgridy.model.wires import elbow, simplify
 from sldgridy.tools.base import PREVIEW_ID, Tool, tr
 
@@ -442,8 +443,14 @@ class DimensionTool(_DrawTool):
         return []
 
 
+LEG_TOLERANCE = 6.0  # degrees: a leg point this close in direction snaps onto the leg
+
+
 class AngularDimensionTool(DimensionTool):
-    """Angle: vertex, a point on each leg, then where the arc goes."""
+    """Angle: vertex, a point on each leg, then where the arc goes.
+
+    A leg point snaps onto a drawn edge running through the vertex when it points
+    roughly the same way, so clicking near a sloped line is enough."""
 
     def __init__(self, ctx) -> None:
         super().__init__(ctx)
@@ -475,11 +482,48 @@ class AngularDimensionTool(DimensionTool):
             height=self._height(v),
         )
 
+    def _legs(self) -> list[Point]:
+        """Far ends of the drawn edges that start at or pass through the vertex."""
+        v = self._vertex
+        assert v is not None
+        ends: list[Point] = []
+        for e in self.ctx.container:
+            if isinstance(e, Dimension):
+                continue
+            for a, b in edges_of(e):
+                length = distance(a, b)
+                if length <= 1e-9:
+                    continue
+                da, db = distance(v, a), distance(v, b)
+                if da <= 1e-6:
+                    ends.append(b)
+                elif db <= 1e-6:
+                    ends.append(a)
+                elif abs(da + db - length) <= 1e-6:
+                    ends.extend((a, b))  # vertex inside the edge: both directions
+        return ends
+
+    def _on_leg(self, p: Point) -> Point:
+        v = self._vertex
+        if v is None or len(self._points) >= 2 or distance(v, p) <= 1e-9:
+            return p
+        aim = angle_deg(v, p)
+        best, best_diff = p, LEG_TOLERANCE
+        for end in self._legs():
+            diff = abs((angle_deg(v, end) - aim + 180) % 360 - 180)
+            if diff < best_diff:
+                best, best_diff = end, diff
+        return best
+
+    def hover(self, p: Point) -> None:
+        self.cursor = self._on_leg(p)
+
     def pick(self, p: Point) -> None:
         if self._vertex is None:
             self._vertex = p
             return
         if len(self._points) < 2:
+            p = self._on_leg(p)
             if p != self._vertex:
                 self._points.append(p)
             return
