@@ -612,5 +612,7 @@
  "Updates kommen automatisch über den Snap Store.": "Updates come automatically from the Snap Store.",
  "&README": "&README",
  "README": "README",
- "Die Anleitung liegt unter https://github.com/Glenn-Dandy/SLDGridy": "The user guide is at https://github.com/Glenn-Dandy/SLDGridy"
+ "Die Anleitung liegt unter https://github.com/Glenn-Dandy/SLDGridy": "The user guide is at https://github.com/Glenn-Dandy/SLDGridy",
+ "Maßeingabe am Fadenkreuz": "Dimension input at the cursor",
+ "Beim Zeichnen Länge und Winkel (bzw. X/Y, Breite/Höhe) direkt am Fadenkreuz eintippen; Tab wechselt das Feld, Enter setzt den Punkt.": "While drawing, type length and angle (or X/Y, width/height) right at the cursor; Tab switches the field, Enter sets the point."
 }

@@ -75,5 +75,11 @@ class Tool:
         """Reference point for ortho mode and the rubber band line."""
         return None
 
+    def dynamic_mode(self) -> tuple[str, Point | None]:
+        """Fields for typed values at the cursor: X/Y before a base point, else length
+        and angle from it (tools.dynamic_input)."""
+        base = self.base_point()
+        return ("polar", base) if base is not None else ("xy", None)
+
     def preview(self) -> list[Entity]:
         return []

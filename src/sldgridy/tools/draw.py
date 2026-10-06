@@ -103,6 +103,10 @@ class RectangleTool(_DrawTool):
             return tr("Rechteck: Erste Ecke angeben")
         return tr("Rechteck: Gegenüberliegende Ecke angeben")
 
+    def dynamic_mode(self) -> tuple[str, Point | None]:
+        # Width and height instead of length and angle.
+        return ("size", self._corner) if self._corner is not None else ("xy", None)
+
     def pick(self, p: Point) -> None:
         if self._corner is None:
             self._corner = p

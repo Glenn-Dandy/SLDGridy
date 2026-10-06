@@ -416,6 +416,15 @@ class MainWindow(QMainWindow):
             )
         )
         self.act_layer_cache.toggled.connect(self.canvas.set_layer_cache_enabled)
+        self.act_dynamic_input = self._action(self.tr("Maßeingabe am Fadenkreuz"), lambda: None)
+        self.act_dynamic_input.setCheckable(True)
+        self.act_dynamic_input.setToolTip(
+            self.tr(
+                "Beim Zeichnen Länge und Winkel (bzw. X/Y, Breite/Höhe) direkt am Fadenkreuz "
+                "eintippen; Tab wechselt das Feld, Enter setzt den Punkt."
+            )
+        )
+        self.act_dynamic_input.toggled.connect(self.canvas.set_dynamic_enabled)
         self.osnap_menu = OsnapMenu(
             self, self.act_osnap, lambda: self.canvas.osnap_modes, self._set_osnap_modes
         )
@@ -479,6 +488,7 @@ class MainWindow(QMainWindow):
         m.addActions([self.act_grid_settings, self.act_osnap_settings])
         m.addSeparator()
         m.addAction(self.act_layer_cache)
+        m.addAction(self.act_dynamic_input)
         m.addSeparator()
         # Deliberately bilingual: findable whatever language is active.
         language_menu = display_menu.addMenu("Sprache / Language")
@@ -1313,6 +1323,9 @@ class MainWindow(QMainWindow):
             chosen |= {m for m in SnapMode if m.value not in known_set}
             self.canvas.osnap_modes = frozenset(chosen)
         self.act_layer_cache.setChecked(settings.value("view/layer_cache", False, type=bool))
+        self.act_dynamic_input.setChecked(settings.value("view/dynamic_input", True, type=bool))
+        self.canvas.set_dynamic_enabled(self.act_dynamic_input.isChecked())
+        self.canvas.decimal_comma = i18n.ui_locale().decimalPoint() == ","
         grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
         snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
         if grid > 0:
@@ -1330,6 +1343,7 @@ class MainWindow(QMainWindow):
         settings.setValue("view/osnap_enabled", self.act_osnap.isChecked())
         settings.setValue("view/otrack_enabled", self.act_otrack.isChecked())
         settings.setValue("view/layer_cache", self.act_layer_cache.isChecked())
+        settings.setValue("view/dynamic_input", self.act_dynamic_input.isChecked())
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/osnap_known", sorted(m.value for m in SnapMode))
         settings.setValue("view/grid_spacing", self.canvas.grid_spacing())

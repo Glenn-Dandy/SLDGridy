@@ -78,5 +78,10 @@ class ToolController(QObject):
     def selecting(self) -> bool:
         return self._tool is not None and self._tool.selecting
 
+    def dynamic_mode(self) -> tuple[str, Point | None] | None:
+        if self._tool is None or self._tool.selecting:
+            return None
+        return self._tool.dynamic_mode()
+
     def preview(self) -> list[Entity]:
         return self._tool.preview() if self._tool else []

@@ -3,7 +3,7 @@
 import json
 from collections.abc import Callable
 
-from PyQt6.QtCore import QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import QEvent, QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
     QColor,
@@ -23,6 +23,7 @@ from sldgridy.model.grips import grip_kinds, grip_points
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, find_snap
 from sldgridy.model.tracking import TrackLine, toggle_acquired, track
 from sldgridy.tools.controller import ToolController
+from sldgridy.tools.dynamic_input import DynamicInput
 from sldgridy.tools.edit import GripEditTool, MoveTool
 from sldgridy.view.grid import grid_lines, visible_grid_step
 from sldgridy.view.items import SELECTION_COLOR, EntityItem, StyleResolver
@@ -104,6 +105,10 @@ class Canvas(QGraphicsView):
     def __init__(self, scene: QGraphicsScene | None = None, parent=None) -> None:
         super().__init__(parent)
         self._initial_view: Callable[[], None] | None = None
+        # Typed length/angle (or X/Y, width/height) shown at the cursor.
+        self.dynamic = DynamicInput()
+        self.dynamic_enabled = True
+        self.decimal_comma = True
         self._layer: QPixmap | None = None
         # Switched by Settings > Fast display (off until the user switches it on).
         self.layer_cache_enabled = False
@@ -436,6 +441,13 @@ class Canvas(QGraphicsView):
             self._cursor_scene = self.map_to_scene_f(view_pos)
         else:
             self._cursor_scene = self.constrain(self.map_to_scene_f(view_pos))
+            mode = self._dynamic_mode()
+            if mode is not None:
+                self.dynamic.set_mode(mode[0])
+                if self.dynamic.has_input():
+                    # Typed values win; the mouse only decides the remaining ones.
+                    fixed = self.dynamic.constrain(mode[1], mpt(self._cursor_scene))
+                    self._cursor_scene = qpt(fixed)
         self._watch_hover()
         self.cursor_moved.emit(self._cursor_scene)
         if self.controller:
@@ -637,6 +649,7 @@ class Canvas(QGraphicsView):
             if not self._selecting():
                 picked = mpt(self._cursor_scene)
                 self._forget_tracking_point(picked)
+                self.dynamic.clear()
                 self.controller.pick(picked)
             elif not self._tool_active() and (grip := self.grip_at(pos)) is not None:
                 entity_id, index = grip
@@ -799,8 +812,61 @@ class Canvas(QGraphicsView):
         self.viewport().update()
         super().leaveEvent(event)
 
+    # -- typed values at the cursor -------------------------------------------
+
+    def _dynamic_mode(self) -> tuple[str, Point | None] | None:
+        if not self.dynamic_enabled or self.controller is None:
+            return None
+        return self.controller.dynamic_mode()
+
+    def set_dynamic_enabled(self, enabled: bool) -> None:
+        self.dynamic_enabled = enabled
+        self.dynamic.clear()
+        self.viewport().update()
+
+    def event(self, event) -> bool:
+        # Tab moves between the fields instead of moving the keyboard focus.
+        if (
+            event.type() == QEvent.Type.KeyPress
+            and event.key() == Qt.Key.Key_Tab
+            and self._dynamic_mode() is not None
+        ):
+            self.dynamic.next_field()
+            self.viewport().update()
+            return True
+        return super().event(event)
+
+    def _dynamic_key(self, event: QKeyEvent) -> bool:
+        """Typing into the fields at the cursor; True if the key was used."""
+        mode = self._dynamic_mode()
+        if mode is None or event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            return False
+        key, text = event.key(), event.text()
+        if key == Qt.Key.Key_Backspace and self.dynamic.has_input():
+            self.dynamic.backspace()
+        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter) and self.dynamic.has_input():
+            raw = self.map_to_scene_f(self._cursor_view) if self._cursor_view else QPointF()
+            point = self.dynamic.constrain(mode[1], mpt(self._cursor_scene or raw))
+            self.dynamic.clear()
+            self._forget_tracking_point(point)
+            self.controller.hover(point)
+            self.controller.pick(point)
+        elif key == Qt.Key.Key_Escape and self.dynamic.has_input():
+            self.dynamic.clear()
+        elif text and self.dynamic.type(text):
+            pass
+        else:
+            return False
+        if self._cursor_view is not None:
+            self._update_cursor(self._cursor_view)
+        return True
+
     def keyPressEvent(self, event: QKeyEvent) -> None:
         self._initial_view = None
+        if self._dynamic_key(event):
+            event.accept()
+            self.viewport().update()
+            return
         key = event.key()
         controller = self.controller
         text = event.text()
@@ -911,6 +977,7 @@ class Canvas(QGraphicsView):
         self._draw_tracking(painter)
         self._draw_snap_marker(painter)
         self._draw_crosshair(painter)
+        self._draw_dynamic_input(painter)
 
     def _paint_preview(self, painter: QPainter, entities: list[Entity], scale: float) -> None:
         for e in entities:
@@ -1032,6 +1099,57 @@ class Canvas(QGraphicsView):
         fill.setAlpha(40)
         painter.setBrush(QBrush(fill))
         painter.drawRect(QRectF(self._rubber_start, self._rubber_end).normalized())
+        painter.restore()
+
+    def _draw_dynamic_input(self, painter: QPainter) -> None:
+        """Boxes with length and angle (or X/Y, width/height) next to the rubber band."""
+        mode = self._dynamic_mode()
+        if mode is None or self._cursor_scene is None or self._cursor_view is None:
+            return
+        name, anchor = mode
+        self.dynamic.set_mode(name)  # the tool may have changed since the last mouse move
+        point = mpt(self._cursor_scene)
+        shown = self.dynamic.shown(anchor, point, self.decimal_comma)
+        cur = self.map_from_scene_f(self._cursor_scene)
+        boxes: dict[str, QPointF] = {}
+        if name == "polar" and anchor is not None:
+            a = self.map_from_scene_f(qpt(anchor))
+            mid = (a + cur) / 2
+            dx, dy = cur.x() - a.x(), cur.y() - a.y()
+            norm = max((dx * dx + dy * dy) ** 0.5, 1e-9)
+            # The length sits on the line, the angle next to the start point.
+            boxes["length"] = mid
+            boxes["angle"] = a + QPointF(-dy / norm, dx / norm) * 26 + QPointF(dx, dy) / norm * 26
+        elif name == "size" and anchor is not None:
+            a = self.map_from_scene_f(qpt(anchor))
+            boxes["width"] = QPointF((a.x() + cur.x()) / 2, cur.y() + 16)
+            boxes["height"] = QPointF(cur.x() + 34, (a.y() + cur.y()) / 2)
+        else:
+            boxes["x"] = cur + QPointF(52, 26)
+            boxes["y"] = cur + QPointF(52, 48)
+        painter.save()
+        painter.resetTransform()
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        font = QFont(self.font())
+        font.setPixelSize(12)
+        painter.setFont(font)
+        metrics = painter.fontMetrics()
+        for field, center in boxes.items():
+            label = shown[field]
+            if field in ("x", "y"):
+                label = f"{field.upper()}  {label}"
+            w = metrics.horizontalAdvance(label) + 12
+            h = metrics.height() + 6
+            rect = QRectF(center.x() - w / 2, center.y() - h / 2, w, h)
+            typed = bool(self.dynamic.texts.get(field))
+            active = field == self.dynamic.active_name
+            painter.setPen(
+                QPen(QColor("#1e88e5") if active else QColor("#8a8a8a"), 2 if active else 1)
+            )
+            painter.setBrush(QBrush(QColor("#fff3c4") if typed else QColor("#ffffff")))
+            painter.drawRoundedRect(rect, 3, 3)
+            painter.setPen(QColor("#202020"))
+            painter.drawText(rect, int(Qt.AlignmentFlag.AlignCenter), label)
         painter.restore()
 
     def _draw_crosshair(self, painter: QPainter) -> None:

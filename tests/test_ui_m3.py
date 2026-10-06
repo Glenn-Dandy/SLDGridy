@@ -113,6 +113,12 @@ def test_typed_coordinates_draw_line(window):
 def test_typing_on_canvas_goes_to_command_line(window):
     window.act_line.trigger()
     window.canvas.setFocus()
+    # Numbers go into the fields at the cursor; "@" starts command line input.
+    QTest.keyClicks(window.canvas, "@")
+    assert window.command_line.edit.text() == "@"
+    window.command_line.edit.clear()
+    window.canvas.set_dynamic_enabled(False)
+    window.canvas.setFocus()
     QTest.keyClicks(window.canvas, "5")
     assert window.command_line.edit.text() == "5"
 
@@ -250,3 +256,52 @@ def test_dock_context_menu_docks_to_area(window):
     bar.dock_to(Qt.DockWidgetArea.RightDockWidgetArea)
     assert not window.library_dock.isFloating()
     assert window.dockWidgetArea(window.library_dock) == Qt.DockWidgetArea.RightDockWidgetArea
+
+
+def test_line_by_typed_length_and_angle_at_the_cursor(window):
+    from sldgridy.model.entities import Line as LineEntity
+
+    window.act_osnap.setChecked(False)
+    window.act_line.trigger()
+    window.canvas.setFocus()
+    click(window, 10, 10)
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 40, 30))
+    QTest.keyClicks(window.canvas, "125,5")
+    QTest.keyClick(window.canvas, Qt.Key.Key_Tab)
+    QTest.keyClicks(window.canvas, "90")
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    lines = [e for e in window.document.model_space if isinstance(e, LineEntity)]
+    assert len(lines) == 1
+    assert lines[0].p1 == Point(10, 10)
+    assert lines[0].p2.x == pytest.approx(10) and lines[0].p2.y == pytest.approx(10 - 125.5)
+    # The next segment starts there, the fields are empty again.
+    assert not window.canvas.dynamic.has_input()
+
+
+def test_rectangle_by_typed_width_and_height(window):
+    from sldgridy.model.entities import Rectangle as RectangleEntity
+
+    window.act_osnap.setChecked(False)
+    window.act_rectangle.trigger()
+    window.canvas.setFocus()
+    click(window, 0, 0)
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 20, 20))
+    QTest.keyClicks(window.canvas, "60")
+    QTest.keyClick(window.canvas, Qt.Key.Key_Tab)
+    QTest.keyClicks(window.canvas, "25")
+    QTest.keyClick(window.canvas, Qt.Key.Key_Return)
+    (rect,) = [e for e in window.document.model_space if isinstance(e, RectangleEntity)]
+    assert {rect.p1, rect.p2} == {Point(0, 0), Point(60, 25)}
+
+
+def test_switching_tools_switches_the_fields_without_error(window):
+    window.act_osnap.setChecked(False)
+    window.act_line.trigger()
+    click(window, 10, 10)
+    QTest.mouseMove(window.canvas.viewport(), vp(window, 40, 30))
+    window.canvas.viewport().repaint()
+    window.tools.cancel()
+    window.act_rectangle.trigger()
+    click(window, 0, 0)
+    window.canvas.viewport().repaint()  # painted before the next mouse move
+    assert window.canvas.dynamic.mode == "size"
