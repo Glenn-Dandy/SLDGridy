@@ -226,3 +226,20 @@ def test_readme_links_jump_to_headings(window):
     assert dialog.jump_to_heading("deutsch")
     assert dialog.browser.textCursor().block().text() == "Deutsch"
     assert not dialog.jump_to_heading("gibt-es-nicht")
+
+
+def test_workspaces_switch_tools_and_grid(window):
+    from sldgridy.ui.main_window import WORKSPACE_DRAWING, WORKSPACE_SLD
+
+    assert window.workspace == WORKSPACE_SLD
+    assert window.act_wire.isVisible() and window.act_busbar.isVisible()
+    window.set_workspace(WORKSPACE_DRAWING)
+    assert not window.act_wire.isVisible() and not window.act_busbar.isVisible()
+    assert window.act_dimension.isVisible()
+    assert window.canvas.grid_spacing() == 100 and window.canvas.snap_spacing == 10
+    window.canvas.set_snap_spacing(50)  # remembered for the drawing workspace
+    window.set_workspace(WORKSPACE_SLD)
+    assert window.canvas.grid_spacing() == 5 and window.canvas.snap_spacing == 2.5
+    window.set_workspace(WORKSPACE_DRAWING)
+    assert window.canvas.snap_spacing == 50
+    assert window.workspace_box.currentData() == WORKSPACE_DRAWING

@@ -105,6 +105,11 @@ from sldgridy.view.scene_sync import SceneSync
 APP_NAME = "SLDGridy"
 
 
+WORKSPACE_KEY = "ui/workspace"
+WORKSPACE_SLD, WORKSPACE_DRAWING = "sld", "drawing"
+# Grid and snap spacing a workspace starts with (mm); changes are remembered per workspace.
+WORKSPACE_GRID = {WORKSPACE_SLD: (5.0, 2.5), WORKSPACE_DRAWING: (100.0, 10.0)}
+
 OPEN_VIEW_KEY = "view/on_open"
 OPEN_EXTENTS, OPEN_LAST, OPEN_ORIGIN = "extents", "last", "origin"
 LAST_VIEW_GROUP = "last_views"
@@ -575,6 +580,23 @@ class MainWindow(QMainWindow):
         m.addAction(self.act_about)
 
     def _create_toolbars(self) -> None:
+        bar = QToolBar(self.tr("Arbeitsbereich"), self)
+        bar.setObjectName("toolbar_workspace")
+        self.workspace_box = QComboBox()
+        self.workspace_box.addItem(self.tr("Schaltplan (SLD)"), WORKSPACE_SLD)
+        self.workspace_box.addItem(self.tr("Zeichnung"), WORKSPACE_DRAWING)
+        self.workspace_box.setToolTip(
+            self.tr(
+                "Arbeitsbereich: zeigt die passenden Werkzeuge und Raster. "
+                "Die Zeichnung selbst ändert sich dabei nicht."
+            )
+        )
+        self.workspace_box.activated.connect(
+            lambda _i: self.set_workspace(self.workspace_box.currentData())
+        )
+        bar.addWidget(self.workspace_box)
+        self.addToolBar(bar)
+        self.workspace = WORKSPACE_SLD
         for name, title, actions in (
             ("draw", self.tr("Zeichnen"), self.draw_actions),
             ("modify", self.tr("Ändern"), [*self.modify_actions, self.act_delete]),
@@ -1400,12 +1422,51 @@ class MainWindow(QMainWindow):
         self.act_dynamic_input.setChecked(settings.value("view/dynamic_input", True, type=bool))
         self.canvas.set_dynamic_enabled(self.act_dynamic_input.isChecked())
         self.canvas.decimal_comma = i18n.ui_locale().decimalPoint() == ","
-        grid = settings.value("view/grid_spacing", self.canvas.grid_spacing(), type=float)
-        snap = settings.value("view/snap_spacing", self.canvas.snap_spacing, type=float)
+        workspace = str(settings.value(WORKSPACE_KEY, WORKSPACE_SLD))
+        self.workspace = workspace if workspace in WORKSPACE_GRID else WORKSPACE_SLD
+        self._apply_workspace()
+
+    # -- workspaces ---------------------------------------------------------
+
+    def _workspace_grid(self, workspace: str) -> tuple[float, float]:
+        settings = QSettings()
+        grid, snap = WORKSPACE_GRID[workspace]
+        if workspace == WORKSPACE_SLD:
+            # Settings from before workspaces existed belong to the circuit diagram.
+            grid = settings.value("view/grid_spacing", grid, type=float)
+            snap = settings.value("view/snap_spacing", snap, type=float)
+        grid = settings.value(f"workspace/{workspace}/grid", grid, type=float)
+        snap = settings.value(f"workspace/{workspace}/snap", snap, type=float)
+        return grid, snap
+
+    def _remember_workspace_grid(self) -> None:
+        settings = QSettings()
+        settings.setValue(f"workspace/{self.workspace}/grid", self.canvas.grid_spacing())
+        settings.setValue(f"workspace/{self.workspace}/snap", self.canvas.snap_spacing)
+
+    def set_workspace(self, workspace: str) -> None:
+        """Circuit diagram or scaled drawing: tools and grid, not the drawing itself."""
+        if workspace not in WORKSPACE_GRID or workspace == self.workspace:
+            return
+        self.tools.cancel()
+        self._remember_workspace_grid()
+        self.workspace = workspace
+        QSettings().setValue(WORKSPACE_KEY, workspace)
+        self._apply_workspace()
+
+    def _apply_workspace(self) -> None:
+        grid, snap = self._workspace_grid(self.workspace)
         if grid > 0:
             self.canvas.set_grid_spacing(grid)
         if snap > 0:
             self.canvas.set_snap_spacing(snap)
+        sld = self.workspace == WORKSPACE_SLD
+        for action in (self.act_wire, self.act_busbar):
+            action.setVisible(sld)
+        self.workspace_box.setCurrentIndex(max(self.workspace_box.findData(self.workspace), 0))
+        self.message(
+            self.tr("Arbeitsbereich: {name}").format(name=self.workspace_box.currentText())
+        )
 
     def _save_settings(self) -> None:
         settings = QSettings()
@@ -1420,8 +1481,8 @@ class MainWindow(QMainWindow):
         settings.setValue("view/dynamic_input", self.act_dynamic_input.isChecked())
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/osnap_known", sorted(m.value for m in SnapMode))
-        settings.setValue("view/grid_spacing", self.canvas.grid_spacing())
-        settings.setValue("view/snap_spacing", self.canvas.snap_spacing)
+        self._remember_workspace_grid()
+        settings.setValue(WORKSPACE_KEY, self.workspace)
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
