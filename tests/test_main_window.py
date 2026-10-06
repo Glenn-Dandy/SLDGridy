@@ -236,10 +236,26 @@ def test_workspaces_switch_tools_and_grid(window):
     window.set_workspace(WORKSPACE_DRAWING)
     assert not window.act_wire.isVisible() and not window.act_busbar.isVisible()
     assert window.act_dimension.isVisible()
-    assert window.canvas.grid_spacing() == 100 and window.canvas.snap_spacing == 10
+    assert window.canvas.grid_spacing() == 5 and window.canvas.snap_spacing == 2.5
+    # Circuit diagram libraries are not offered for drawings.
+    titles = [lib.title for lib in window.library_dock.visible_libraries().values()]
+    assert not any("DIN EN 60617" in t for t in titles)
     window.canvas.set_snap_spacing(50)  # remembered for the drawing workspace
     window.set_workspace(WORKSPACE_SLD)
-    assert window.canvas.grid_spacing() == 5 and window.canvas.snap_spacing == 2.5
+    assert window.canvas.snap_spacing == 2.5
+    titles = [lib.title for lib in window.library_dock.visible_libraries().values()]
+    assert "Weitere SLD-Symbole (nicht nach DIN EN 60617)" in titles
     window.set_workspace(WORKSPACE_DRAWING)
     assert window.canvas.snap_spacing == 50
     assert window.workspace_box.currentData() == WORKSPACE_DRAWING
+
+
+def test_grid_and_snap_typed_in_the_status_bar_menu(window):
+    menu = window.grid_menu
+    menu.sync()
+    menu.grid_spin.setValue(10)
+    menu.snap_spin.setValue(1)
+    assert window.canvas.grid_spacing() == 10 and window.canvas.snap_spacing == 1
+    window.canvas.set_snap_spacing(2.5)
+    menu.sync()
+    assert menu.snap_spin.value() == 2.5

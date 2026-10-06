@@ -70,3 +70,12 @@ def save_library(blocks: list[BlockDefinition], path: Path, name: str = "") -> N
 
 def load_library(path: Path) -> tuple[str, list[BlockDefinition]]:
     return library_from_dict(_read_json(path))
+
+
+def library_workspace(path: Path) -> str:
+    """Workspace a library belongs to ("sld", "drawing"); empty means every workspace."""
+    try:
+        value = _read_json(path).get("workspace", "")
+    except (OSError, ValueError, AttributeError):
+        return ""
+    return value if isinstance(value, str) else ""

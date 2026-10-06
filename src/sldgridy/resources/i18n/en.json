@@ -538,7 +538,6 @@
  "A3 quer, Rahmen nach DIN EN ISO 5457": "A3 landscape, frame to DIN EN ISO 5457",
  "A4 hoch, Rahmen nach DIN EN ISO 5457": "A4 portrait, frame to DIN EN ISO 5457",
  "A4 quer, Rahmen nach DIN EN ISO 5457": "A4 landscape, frame to DIN EN ISO 5457",
- "Weitere Symbole (nicht nach DIN EN 60617)": "Further symbols (not to DIN EN 60617)",
  "Zählervorsicherung": "Meter pre-fuse",
  "Selektiver Hauptschalter netzunabhängig": "Selective main switch, grid-independent",
  "Selektiver Hauptschalter netzabhängig": "Selective main switch, grid-dependent",
@@ -636,5 +635,9 @@
  "Schaltplan (SLD)": "Circuit diagram (SLD)",
  "Zeichnung": "Drawing",
  "Arbeitsbereich: zeigt die passenden Werkzeuge und Raster. Die Zeichnung selbst ändert sich dabei nicht.": "Workspace: shows the matching tools and grid. The drawing itself does not change.",
- "Arbeitsbereich: {name}": "Workspace: {name}"
+ "Arbeitsbereich: {name}": "Workspace: {name}",
+ "Weitere SLD-Symbole (nicht nach DIN EN 60617)": "Further SLD symbols (not to DIN EN 60617)",
+ "Raster:": "Grid:",
+ "Fang:": "Snap:",
+ "{name}; verweilen oder Pfeil: Raster und Fang eintragen": "{name}; rest on it or use the arrow to enter grid and snap"
 }

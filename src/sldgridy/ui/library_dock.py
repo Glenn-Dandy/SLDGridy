@@ -19,7 +19,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from sldgridy.fileio.files import LIBRARY_SUFFIX, load_library
+from sldgridy.fileio.files import LIBRARY_SUFFIX, library_workspace, load_library
 from sldgridy.fileio.json_format import FileFormatError
 from sldgridy.fileio.paths import system_library_dir, user_library_dir
 from sldgridy.i18n import library_text
@@ -69,11 +69,20 @@ class _BlockList(QListWidget):
 
 
 class Library:
-    def __init__(self, path: Path, title: str, blocks: dict[str, BlockDefinition], shipped: bool):
+    def __init__(
+        self,
+        path: Path,
+        title: str,
+        blocks: dict[str, BlockDefinition],
+        shipped: bool,
+        workspace: str = "",
+    ):
         self.path = path
         self.title = title
         self.blocks = blocks
         self.shipped = shipped
+        # Workspace the library is meant for; empty: shown in every workspace.
+        self.workspace = workspace
 
 
 def library_files() -> list[tuple[Path, bool]]:
@@ -99,6 +108,7 @@ class LibraryDock(QDockWidget):
         self.setObjectName("dock_library")
         self._host = host
         self.libraries: dict[str, Library] = {}
+        self.workspace = ""
         self._icons: dict[tuple[str, str], object] = {}
 
         self.source = QComboBox()
@@ -163,14 +173,33 @@ class LibraryDock(QDockWidget):
                 )
                 continue
             self.libraries[str(path)] = Library(
-                path, title or path.stem, {b.name: b for b in blocks}, shipped
+                path,
+                title or path.stem,
+                {b.name: b for b in blocks},
+                shipped,
+                library_workspace(path),
             )
+        self._fill_sources()
+
+    def visible_libraries(self) -> dict[str, Library]:
+        """Libraries of the current workspace (and those for every workspace)."""
+        return {
+            key: lib
+            for key, lib in self.libraries.items()
+            if not lib.workspace or not self.workspace or lib.workspace == self.workspace
+        }
+
+    def set_workspace(self, workspace: str) -> None:
+        self.workspace = workspace
+        self._fill_sources()
+
+    def _fill_sources(self) -> None:
         current = self.source.currentData()
         self.source.blockSignals(True)
         self.source.clear()
         self.source.addItem(self.tr("Alle Bibliotheken"), ALL_LIBRARIES)
         self.source.addItem(self.tr("Blöcke der Zeichnung"), DOCUMENT_SOURCE)
-        for key, lib in self.libraries.items():
+        for key, lib in self.visible_libraries().items():
             self.source.addItem(library_text(lib.title), key)
         index = self.source.findData(current) if current is not None else 0
         self.source.setCurrentIndex(max(index, 0))
@@ -189,7 +218,11 @@ class LibraryDock(QDockWidget):
         source = self.source.currentData()
         if source == DOCUMENT_SOURCE:
             return [(DOCUMENT_SOURCE, b) for b in self._host.document.blocks.values()]
-        libs = self.libraries.values() if source == ALL_LIBRARIES else [self.libraries[source]]
+        visible = self.visible_libraries()
+        if source == ALL_LIBRARIES:
+            libs = list(visible.values())
+        else:
+            libs = [visible[source]] if source in visible else []
         return [(str(lib.path), b) for lib in libs for b in lib.blocks.values()]
 
     def _fill_categories(self, entries: list[tuple[str, BlockDefinition]]) -> None:

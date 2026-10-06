@@ -84,6 +84,7 @@ from sldgridy.ui.command_line import CommandLine
 from sldgridy.ui.dock_title import install_title_bar
 from sldgridy.ui.export_dialog import PDF, PNG, SVG, ExportDialog
 from sldgridy.ui.grid_dialog import GridDialog
+from sldgridy.ui.grid_menu import GridMenu
 from sldgridy.ui.layers_dock import LayersDock
 from sldgridy.ui.library_dock import LibraryDock
 from sldgridy.ui.osnap_dialog import OsnapDialog
@@ -108,7 +109,7 @@ APP_NAME = "SLDGridy"
 WORKSPACE_KEY = "ui/workspace"
 WORKSPACE_SLD, WORKSPACE_DRAWING = "sld", "drawing"
 # Grid and snap spacing a workspace starts with (mm); changes are remembered per workspace.
-WORKSPACE_GRID = {WORKSPACE_SLD: (5.0, 2.5), WORKSPACE_DRAWING: (100.0, 10.0)}
+WORKSPACE_GRID = {WORKSPACE_SLD: (5.0, 2.5), WORKSPACE_DRAWING: (5.0, 2.5)}
 
 OPEN_VIEW_KEY = "view/on_open"
 OPEN_EXTENTS, OPEN_LAST, OPEN_ORIGIN = "extents", "last", "origin"
@@ -659,6 +660,13 @@ class MainWindow(QMainWindow):
         self.resizeDocks([self.library_dock], [260], Qt.Orientation.Horizontal)
 
     def _create_status_bar(self) -> None:
+        self.grid_menu = GridMenu(
+            self,
+            [self.act_grid, self.act_snap],
+            lambda: (self.canvas.grid_spacing(), self.canvas.snap_spacing),
+            self._set_grid_spacing,
+            self._set_snap_spacing,
+        )
         self.lbl_position = QLabel()
         width = self.lbl_position.fontMetrics().horizontalAdvance(
             "X: -00000,00 mm   Y: -00000,00 mm"
@@ -675,10 +683,18 @@ class MainWindow(QMainWindow):
             self.act_osnap,
             self.act_otrack,
         ):
-            button = HoverMenuButton() if action is self.act_osnap else QToolButton()
+            with_menu = action in (self.act_osnap, self.act_grid, self.act_snap)
+            button = HoverMenuButton() if with_menu else QToolButton()
             button.setDefaultAction(action)
             button.setAutoRaise(True)
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            if action in (self.act_grid, self.act_snap):
+                button.setMenu(self.grid_menu)
+                button.setToolTip(
+                    self.tr("{name}; verweilen oder Pfeil: Raster und Fang eintragen").format(
+                        name=action.text().replace("&", "")
+                    )
+                )
             if action is self.act_osnap:
                 button.setMenu(self.osnap_menu)
                 button.setToolTip(
@@ -1426,6 +1442,16 @@ class MainWindow(QMainWindow):
         self.workspace = workspace if workspace in WORKSPACE_GRID else WORKSPACE_SLD
         self._apply_workspace()
 
+    def _set_grid_spacing(self, value: float) -> None:
+        if value > 0:
+            self.canvas.set_grid_spacing(value)
+            self._remember_workspace_grid()
+
+    def _set_snap_spacing(self, value: float) -> None:
+        if value > 0:
+            self.canvas.set_snap_spacing(value)
+            self._remember_workspace_grid()
+
     # -- workspaces ---------------------------------------------------------
 
     def _workspace_grid(self, workspace: str) -> tuple[float, float]:
@@ -1463,6 +1489,7 @@ class MainWindow(QMainWindow):
         sld = self.workspace == WORKSPACE_SLD
         for action in (self.act_wire, self.act_busbar):
             action.setVisible(sld)
+        self.library_dock.set_workspace(self.workspace)
         self.workspace_box.setCurrentIndex(max(self.workspace_box.findData(self.workspace), 0))
         self.message(
             self.tr("Arbeitsbereich: {name}").format(name=self.workspace_box.currentText())
