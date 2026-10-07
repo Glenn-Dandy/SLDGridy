@@ -9,7 +9,13 @@ from sldgridy.model.blocks import BlockDefinition, point_to_world
 from sldgridy.model.container import EntityContainer
 from sldgridy.model.entities import BlockReference, Circle, Entity, Polyline, Rectangle, new_id
 from sldgridy.model.geometry import Point
-from sldgridy.model.pv_layout import LayoutParams, contains, layout_modules, polygon_area
+from sldgridy.model.pv_layout import (
+    LayoutParams,
+    contains,
+    layout_modules,
+    polygon_area,
+    take_modules,
+)
 from sldgridy.tools.base import Tool, tr
 
 PORTRAIT, LANDSCAPE = "portrait", "landscape"
@@ -25,6 +31,7 @@ class ModuleSpec:
     gap: float = 20.0
     edge: float = 300.0
     obstacle_gap: float = 200.0
+    count: int = 0  # modules to place; 0: as many as fit
 
     @property
     def block_name(self) -> str:
@@ -120,6 +127,8 @@ class ModuleFieldTool(Tool):
         if not corners:
             self.ctx.message(tr("Auf dieser Fläche hat kein Modul Platz"))
             return
+        fitting = len(corners)
+        corners = take_modules(corners, int(spec.count))
         definition = module_block(spec)
         rotation = 90 if spec.orientation == LANDSCAPE else 0
         # Where the turned block lands relative to its insert point.
@@ -145,8 +154,13 @@ class ModuleFieldTool(Tool):
             self.ctx.push(AddBlockCommand(self.ctx.document, definition, tr("Modul anlegen")))
         self.ctx.push(AddEntitiesCommand(container, refs, tr("Modulfeld")))
         self.ctx.end_macro()
-        kwp = len(refs) * spec.power / 1000
-        self.ctx.message(
-            tr("{n} Module, {kwp} kWp").format(n=len(refs), kwp=f"{kwp:.2f}".replace(".", ","))
-        )
+        kwp = f"{len(refs) * spec.power / 1000:.2f}".replace(".", ",")
+        if spec.count > fitting:
+            self.ctx.message(
+                tr("Nur {n} von {wanted} Modulen haben Platz, {kwp} kWp").format(
+                    n=len(refs), wanted=int(spec.count), kwp=kwp
+                )
+            )
+        else:
+            self.ctx.message(tr("{n} Module, {kwp} kWp").format(n=len(refs), kwp=kwp))
         self.done = True

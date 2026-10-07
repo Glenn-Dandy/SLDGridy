@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QDoubleSpinBox,
     QFormLayout,
     QLabel,
+    QSpinBox,
 )
 
 from sldgridy.tools.pv import LANDSCAPE, PORTRAIT, ModuleSpec
@@ -22,7 +23,7 @@ def saved_spec() -> ModuleSpec:
     values = {}
     for f in fields(ModuleSpec):
         default = getattr(ModuleSpec(), f.name)
-        kind = str if isinstance(default, str) else float
+        kind = type(default)
         values[f.name] = settings.value(f"{SETTINGS_GROUP}/{f.name}", default, type=kind)
     return ModuleSpec(**values)
 
@@ -56,12 +57,20 @@ class ModuleFieldDialog(QDialog):
         self.gap_spin = _mm(spec.gap)
         self.edge_spin = _mm(spec.edge)
         self.obstacle_spin = _mm(spec.obstacle_gap)
+        self.count_spin = QSpinBox()
+        self.count_spin.setRange(0, 100000)
+        self.count_spin.setSpecialValueText(self.tr("so viele wie passen"))
+        self.count_spin.setValue(int(spec.count))
+        self.count_spin.setToolTip(
+            self.tr("Reihen von oben füllen; die letzte, angefangene Reihe sitzt mittig")
+        )
         form = QFormLayout(self)
         form.addRow(QLabel(self.tr("<b>Modul</b> (laut Datenblatt)")))
         form.addRow(self.tr("Breite (kurze Seite):"), self.width_spin)
         form.addRow(self.tr("Höhe (lange Seite):"), self.height_spin)
         form.addRow(self.tr("Leistung:"), self.power_spin)
         form.addRow(self.tr("Ausrichtung:"), self.orientation)
+        form.addRow(self.tr("Anzahl:"), self.count_spin)
         form.addRow(QLabel(self.tr("<b>Abstände</b>")))
         form.addRow(self.tr("Zwischen den Modulen:"), self.gap_spin)
         form.addRow(self.tr("Zur Dachkante:"), self.edge_spin)
@@ -94,4 +103,5 @@ class ModuleFieldDialog(QDialog):
             gap=self.gap_spin.value(),
             edge=self.edge_spin.value(),
             obstacle_gap=self.obstacle_spin.value(),
+            count=self.count_spin.value(),
         )

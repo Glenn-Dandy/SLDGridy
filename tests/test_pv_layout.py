@@ -7,6 +7,7 @@ from sldgridy.model.pv_layout import (
     layout_modules,
     polygon_area,
     rect_corners,
+    take_modules,
 )
 
 MODULE = (1134.0, 1762.0)  # width × height, portrait
@@ -72,3 +73,20 @@ def test_obstacle_keeps_its_distance():
 
 def test_roof_too_small_gives_nothing():
     assert layout_modules(rect(0, 0, 1000, 1000), [], LayoutParams(*MODULE)) == []
+
+
+def test_take_a_number_of_modules_rows_from_the_top():
+    # 3 rows of 6 on a 8 m × 7 m roof.
+    roof = rect(0, 0, 8000, 7000)
+    modules = layout_modules(roof, [], LayoutParams(*MODULE))
+    assert len(modules) == 18
+    assert take_modules(modules, 0) == modules and len(take_modules(modules, 99)) == 18
+    ten = take_modules(modules, 10)
+    assert len(ten) == 10
+    ys = sorted({p.y for p in modules})
+    top = [p for p in ten if p.y == ys[0]]
+    second = sorted((p for p in ten if p.y == ys[1]), key=lambda p: p.x)
+    assert len(top) == 6 and len(second) == 4 and not [p for p in ten if p.y == ys[2]]
+    # The partial row sits in the middle of its row.
+    row = sorted((p for p in modules if p.y == ys[1]), key=lambda p: p.x)
+    assert second == row[1:5]

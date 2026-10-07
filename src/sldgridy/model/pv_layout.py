@@ -105,6 +105,28 @@ def fits(
     return all(polygon_distance(module, o) >= params.obstacle_gap - EPS for o in obstacles)
 
 
+def take_modules(corners: list[Point], count: int) -> list[Point]:
+    """``count`` of the placed modules: whole rows from the top, the last (partial) row
+    centred in its row. ``count`` 0 or more than placed keeps all."""
+    if count <= 0 or count >= len(corners):
+        return list(corners)
+    rows: dict[float, list[Point]] = {}
+    for c in corners:
+        rows.setdefault(round(c.y, 3), []).append(c)
+    chosen: list[Point] = []
+    for y in sorted(rows):
+        row = sorted(rows[y], key=lambda c: c.x)
+        rest = count - len(chosen)
+        if rest <= 0:
+            break
+        if len(row) <= rest:
+            chosen.extend(row)
+        else:
+            start = (len(row) - rest) // 2
+            chosen.extend(row[start : start + rest])
+    return chosen
+
+
 def layout_modules(
     roof: Polygon, obstacles: Sequence[Polygon], params: LayoutParams
 ) -> list[Point]:

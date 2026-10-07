@@ -307,3 +307,20 @@ def test_module_field_fills_a_roof_with_a_chimney(window):
     window.start_tool(lambda ctx: ModuleFieldTool(ctx, spec))
     window.tools.pick(Point(1000, 1000))
     assert 0 < len([e for e in ms if isinstance(e, BlockReference)]) < 12
+
+
+def test_module_field_with_a_number_of_modules(window):
+    from sldgridy.model.entities import BlockReference, Rectangle
+    from sldgridy.tools.pv import ModuleFieldTool, ModuleSpec
+
+    ms = window.document.model_space
+    ms.add(Rectangle(id="roof", p1=Point(0, 0), p2=Point(8000, 5000)))
+    window.start_tool(lambda ctx: ModuleFieldTool(ctx, ModuleSpec(power=400, count=7)))
+    window.tools.pick(Point(4000, 2500))
+    assert len([e for e in ms if isinstance(e, BlockReference)]) == 7
+    assert "7 Module, 2,80 kWp" in window.statusBar().currentMessage()
+    window.act_undo.trigger()
+    window.start_tool(lambda ctx: ModuleFieldTool(ctx, ModuleSpec(power=400, count=20)))
+    window.tools.pick(Point(4000, 2500))
+    assert len([e for e in ms if isinstance(e, BlockReference)]) == 12
+    assert "Nur 12 von 20" in window.statusBar().currentMessage()
