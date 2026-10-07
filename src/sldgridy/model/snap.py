@@ -18,6 +18,7 @@ from sldgridy.model.entities import (
 )
 from sldgridy.model.geometry import Point, distance
 from sldgridy.model.primitives import (
+    ArcPrim,
     Segment,
     arc_endpoints,
     arc_midpoint,
@@ -36,6 +37,7 @@ class SnapMode(StrEnum):
     CENTER = "center"
     PERPENDICULAR = "perpendicular"
     BUSBAR = "busbar"
+    NEAREST = "nearest"
 
 
 ALL_MODES = frozenset(SnapMode)
@@ -49,6 +51,7 @@ _RANK = {
     SnapMode.MIDPOINT: 4,
     SnapMode.CENTER: 5,
     SnapMode.BUSBAR: 6,
+    SnapMode.NEAREST: 7,
 }
 
 
@@ -112,7 +115,12 @@ def _snap_value(v: float, grid: float | None) -> float:
 
 def on_busbar(cursor: Point, bar: Busbar, grid: float | None) -> Point:
     """Point of the bar nearest to the cursor, on the grid along axis-parallel bars."""
-    a, b = bar.p1, bar.p2
+    return on_segment(cursor, bar.p1, bar.p2, grid)
+
+
+def on_segment(cursor: Point, a: Point, b: Point, grid: float | None) -> Point:
+    """Point of segment a-b nearest to the cursor; along an axis-parallel segment the
+    free coordinate stays on the grid (circuit diagrams keep their grid)."""
     if a.y == b.y:
         lo, hi = sorted((a.x, b.x))
         return Point(min(max(_snap_value(cursor.x, grid), lo), hi), a.y)
@@ -171,6 +179,14 @@ def find_snap(
                     foot = perpendicular_foot(base, prim.a, prim.b)
                     if foot is not None and distance(foot, base) > 1e-9:
                         hits.append(SnapHit(foot, SnapMode.PERPENDICULAR))
+        if SnapMode.NEAREST in modes and not isinstance(e, Busbar):
+            for prim in primitives(e):
+                if isinstance(prim, Segment):
+                    hits.append(SnapHit(on_segment(cursor, prim.a, prim.b, grid), SnapMode.NEAREST))
+                else:
+                    on_arc = _nearest_on_arc(cursor, prim)
+                    if on_arc is not None:
+                        hits.append(SnapHit(on_arc, SnapMode.NEAREST))
     if SnapMode.INTERSECTION in modes:
         prims = [p for e in simple for p in primitives(e)]
         for i, p in enumerate(prims):
@@ -185,11 +201,24 @@ def find_snap(
         {SnapMode.PERPENDICULAR},
         {SnapMode.ENDPOINT, SnapMode.INTERSECTION, SnapMode.MIDPOINT, SnapMode.CENTER},
         {SnapMode.BUSBAR},
+        {SnapMode.NEAREST},
     ):
         pool = [h for h in near if h.mode in group]
         if pool:
             return min(pool, key=lambda h: (round(distance(h.point, cursor), 9), _RANK[h.mode]))
     return None
+
+
+def _nearest_on_arc(cursor: Point, arc: ArcPrim) -> Point | None:
+    dx, dy = cursor.x - arc.center.x, cursor.y - arc.center.y
+    d = math.hypot(dx, dy)
+    if d <= 1e-12 or arc.radius <= 0:
+        return None
+    angle = math.degrees(math.atan2(-dy, dx)) % 360
+    if not arc.contains_angle(angle):
+        return None
+    k = arc.radius / d
+    return Point(arc.center.x + dx * k, arc.center.y + dy * k)
 
 
 def _circle_segment(center: Point, r: float, a: Point, b: Point) -> list[Point]:

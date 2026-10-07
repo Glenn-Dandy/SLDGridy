@@ -91,6 +91,15 @@ class PolylineTool(_DrawTool):
     def base_point(self) -> Point | None:
         return self._points[-1] if self._points else None
 
+    def snap_entities(self) -> list[Entity]:
+        if len(self._points) < 2:
+            return []
+        return [
+            Polyline(
+                id="drawing-polyline", layer=self.ctx.current_layer, points=tuple(self._points)
+            )
+        ]
+
     def preview(self) -> list[Entity]:
         if not self._points or self.cursor is None:
             return []

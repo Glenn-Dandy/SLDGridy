@@ -77,3 +77,22 @@ def test_connection_points_have_priority():
 
     hit = find_snap(Point(10.1, 0), [line], aperture=2, extra=extra)
     assert hit.mode is SnapMode.CONNECTION
+
+
+def test_nearest_on_a_sloped_line_and_a_circle():
+    line = Line(id="l", p1=Point(0, 0), p2=Point(40, -30))
+    hit = find_snap(Point(29, -20), [line], aperture=3, grid=2.5)
+    assert hit.mode is SnapMode.NEAREST
+    # Exactly on the line, the foot of the cursor (not a grid point beside it).
+    assert hit.point.x * -30 == pytest.approx(hit.point.y * 40)
+    assert hit.point.x == pytest.approx(28.16)
+    circle = Circle(id="c", center=Point(0, 0), radius=10)
+    hit = find_snap(Point(7.5, 7.5), [circle], aperture=3)
+    assert hit.mode is SnapMode.NEAREST
+    assert (hit.point.x**2 + hit.point.y**2) == pytest.approx(100)
+
+
+def test_characteristic_points_beat_nearest():
+    line = Line(id="l", p1=Point(0, 0), p2=Point(40, -30))
+    hit = find_snap(Point(1, -1.5), [line], aperture=3)
+    assert hit.mode is SnapMode.ENDPOINT

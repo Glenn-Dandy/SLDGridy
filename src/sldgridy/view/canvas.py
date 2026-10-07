@@ -331,6 +331,8 @@ class Canvas(QGraphicsView):
         aperture = SNAP_APERTURE_PX / self.transform().m11()
         entities = self._visible_entities_near(scene_pos, aperture)
         tool = self.controller.active if self.controller else None
+        if tool is not None:
+            entities += tool.snap_entities()  # e.g. the polyline being drawn
         ignored = tool.snap_ignored_ids() if tool is not None else set()
         if ignored:
             # E.g. while a grip is dragged: its own object would only pull it back.
@@ -1158,6 +1160,18 @@ class Canvas(QGraphicsView):
             case SnapMode.INTERSECTION:
                 painter.drawLine(QPointF(x - r, y - r), QPointF(x + r, y + r))
                 painter.drawLine(QPointF(x - r, y + r), QPointF(x + r, y - r))
+            case SnapMode.NEAREST:
+                # Hourglass: a free point on the object.
+                painter.drawPolygon(
+                    QPolygonF(
+                        [
+                            QPointF(x - r, y - r),
+                            QPointF(x + r, y - r),
+                            QPointF(x - r, y + r),
+                            QPointF(x + r, y + r),
+                        ]
+                    )
+                )
             case SnapMode.CONNECTION:
                 painter.drawEllipse(c, r, r)
                 painter.drawLine(QPointF(x - r, y), QPointF(x + r, y))

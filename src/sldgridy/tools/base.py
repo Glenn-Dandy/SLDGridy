@@ -75,6 +75,11 @@ class Tool:
         """Objects the object snap leaves out while this tool runs."""
         return set()
 
+    def snap_entities(self) -> list[Entity]:
+        """Objects not yet in the drawing the object snap should offer (e.g. the
+        segments of a polyline being drawn, so it can be closed on its start)."""
+        return []
+
     def base_point(self) -> Point | None:
         """Reference point for ortho mode and the rubber band line."""
         return None

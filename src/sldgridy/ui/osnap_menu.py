@@ -24,6 +24,7 @@ def mode_labels() -> dict[SnapMode, str]:
         SnapMode.INTERSECTION: tr("Schnittpunkt"),
         SnapMode.CENTER: tr("Zentrum"),
         SnapMode.BUSBAR: tr("Sammelschiene (beliebiger Punkt im Raster)"),
+        SnapMode.NEAREST: tr("Nächster Punkt (auf Linie, Kreis, Bogen)"),
     }
 
 

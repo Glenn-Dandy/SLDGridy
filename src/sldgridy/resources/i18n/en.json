@@ -687,5 +687,6 @@
  "so viele wie passen": "as many as fit",
  "Reihen von oben füllen; die letzte, angefangene Reihe sitzt mittig": "Fills rows from the top; the last, partial row is centred",
  "Anzahl:": "Number:",
- "Nur {n} von {wanted} Modulen haben Platz, {kwp} kWp": "Only {n} of {wanted} modules fit, {kwp} kWp"
+ "Nur {n} von {wanted} Modulen haben Platz, {kwp} kWp": "Only {n} of {wanted} modules fit, {kwp} kWp",
+ "Nächster Punkt (auf Linie, Kreis, Bogen)": "Nearest (on line, circle, arc)"
 }

@@ -32,7 +32,11 @@ def test_perpendicular_onto_wire_and_needs_base():
     wire = W("w", (0, 20), (50, 20))  # midpoint at 25, away from the foot at 30
     hit = find_snap(Point(30.4, 21), [wire], aperture=2, base=Point(30, 0))
     assert hit.mode is SnapMode.PERPENDICULAR and hit.point == Point(30, 20)
-    assert find_snap(Point(30.4, 21), [wire], aperture=2) is None
+    without_nearest = frozenset(m for m in SnapMode if m is not SnapMode.NEAREST)
+    assert find_snap(Point(30.4, 21), [wire], aperture=2, modes=without_nearest) is None
+    # Nearest: on the wire, the free coordinate on the grid.
+    hit = find_snap(Point(30.4, 21), [wire], aperture=2, grid=2.5)
+    assert hit.mode is SnapMode.NEAREST and hit.point == Point(30, 20)
 
 
 def test_connection_points_still_win():

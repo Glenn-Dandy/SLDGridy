@@ -567,3 +567,19 @@ def test_text_height_can_be_typed_freely(window):
     box.setEditText("abc")  # not a number: back to the old value, nothing changes
     box.lineEdit().editingFinished.emit()
     assert ms.get("t").height == 125 and box.currentText() == "125 mm"
+
+
+def test_polyline_snaps_to_its_own_start_and_closes(window):
+    from sldgridy.model.entities import Polyline
+
+    window.act_snap.setChecked(False)
+    window.act_osnap.setChecked(True)
+    window.act_polyline.trigger()
+    click(window, 0, 0)
+    click(window, 40, 0)
+    click(window, 40, -30)
+    # Slightly beside the start: the object snap of the unfinished polyline catches it.
+    click(window, 0.6, 0.4)
+    (poly,) = [e for e in window.document.model_space if isinstance(e, Polyline)]
+    assert poly.closed and poly.points[0] == Point(0, 0) and len(poly.points) == 3
+    window.act_undo.trigger()

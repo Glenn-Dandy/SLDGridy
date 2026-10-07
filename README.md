@@ -81,7 +81,7 @@ After that a double click opens `.sldg` files in SLDGridy. The `.deb` package do
 
 Modify commands without a selection first ask for objects: select them and press Enter.
 
-**Choosing snap modes:** rest on the **OSNAP** button at the bottom or click its small arrow, or **Shift+right click** on the drawing. **Perpendicular** snaps the right-angle point from the last point, e.g. a wire straight onto the bus bar.
+**Choosing snap modes:** rest on the **OSNAP** button at the bottom or click its small arrow, or **Shift+right click** on the drawing. **Nearest** catches any point on a line, also a sloped one, or on a circle or arc (hourglass marker). While drawing a polyline its own points snap too, so it can be closed on its start point. **Perpendicular** snaps the right-angle point from the last point, e.g. a wire straight onto the bus bar.
 
 **Right click on a point** (no command running): **Connect** places a connection dot, **Separate** suppresses an automatic dot (shown on screen as an orange ring, not printed), **Remove point** deletes a bend or corner of a wire or polyline, **Extend** continues drawing at an end.
 
@@ -233,7 +233,7 @@ Danach öffnet ein Doppelklick `.sldg`-Dateien in SLDGridy. Das `.deb`-Paket erl
 
 Ändern-Befehle ohne Auswahl fragen zuerst nach Objekten: wählen und mit Enter bestätigen.
 
-**Objektfang wählen:** am Knopf **OFANG** unten kurz verweilen oder den kleinen Pfeil anklicken, oder **Umschalt+Rechtsklick** auf der Zeichenfläche. Der **Lotfußpunkt** fängt den rechtwinkligen Punkt vom letzten Punkt aus, z. B. eine Leitung senkrecht auf die Sammelschiene.
+**Objektfang wählen:** am Knopf **OFANG** unten kurz verweilen oder den kleinen Pfeil anklicken, oder **Umschalt+Rechtsklick** auf der Zeichenfläche. **Nächster Punkt** fängt jeden Punkt auf einer Linie, auch einer schrägen, oder auf Kreis und Bogen (Sanduhr-Markierung). Beim Zeichnen einer Polylinie fangen auch ihre eigenen Punkte, so lässt sie sich am Startpunkt schließen. Der **Lotfußpunkt** fängt den rechtwinkligen Punkt vom letzten Punkt aus, z. B. eine Leitung senkrecht auf die Sammelschiene.
 
 **Rechtsklick auf einen Punkt** (ohne laufenden Befehl): **Verbinden** setzt einen Verbindungspunkt, **Trennen** unterdrückt einen automatischen Punkt (am Bildschirm als oranger Ring sichtbar, nicht im Druck), **Punkt entfernen** löscht einen Knick oder Eckpunkt einer Leitung oder Polylinie, **Verlängern** zeichnet an einem Ende weiter.
 
