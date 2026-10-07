@@ -123,7 +123,6 @@ def wait_for_mouse_release() -> None:
         QApplication.processEvents(QEventLoop.ProcessEventsFlag.AllEvents, 20)
 
 
-WORKSPACE_KEY = "ui/workspace"
 WORKSPACE_SLD, WORKSPACE_DRAWING = "sld", "drawing"
 # Grid and snap spacing a workspace starts with (mm); changes are remembered per workspace.
 WORKSPACE_GRID = {WORKSPACE_SLD: (5.0, 2.5), WORKSPACE_DRAWING: (5.0, 2.5)}
@@ -1635,8 +1634,8 @@ class MainWindow(QMainWindow):
         self.canvas.polar_increment = settings.value("view/polar_increment", 15.0, type=float)
         self.canvas.set_dynamic_enabled(self.act_dynamic_input.isChecked())
         self.canvas.decimal_comma = i18n.ui_locale().decimalPoint() == ","
-        workspace = str(settings.value(WORKSPACE_KEY, WORKSPACE_SLD))
-        self.workspace = workspace if workspace in WORKSPACE_GRID else WORKSPACE_SLD
+        # Every start begins in the circuit diagram (Florian's wish), whatever was used last.
+        self.workspace = WORKSPACE_SLD
         self._apply_workspace()
 
     def _set_grid_spacing(self, value: float) -> None:
@@ -1678,7 +1677,6 @@ class MainWindow(QMainWindow):
         self.tools.cancel()
         self._remember_workspace_grid()
         self.workspace = workspace
-        QSettings().setValue(WORKSPACE_KEY, workspace)
         self._apply_workspace()
 
     def _apply_workspace(self) -> None:
@@ -1718,7 +1716,6 @@ class MainWindow(QMainWindow):
         settings.setValue("view/osnap_modes", sorted(m.value for m in self.canvas.osnap_modes))
         settings.setValue("view/osnap_known", sorted(m.value for m in SnapMode))
         self._remember_workspace_grid()
-        settings.setValue(WORKSPACE_KEY, self.workspace)
 
     def showEvent(self, event) -> None:
         super().showEvent(event)

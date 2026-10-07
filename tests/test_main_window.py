@@ -340,3 +340,17 @@ def test_deleting_many_selected_objects_refreshes_the_dock_once(window):
     assert len(ms) == 0 and len(calls) <= 2  # not once per object
     window.act_undo.trigger()
     assert len(ms) == 60
+
+
+def test_every_start_begins_in_the_circuit_diagram(qapp):
+    from sldgridy.ui.main_window import WORKSPACE_DRAWING, WORKSPACE_SLD, MainWindow
+
+    first = MainWindow()
+    first.set_workspace(WORKSPACE_DRAWING)
+    first.undo_stack.setClean()
+    first.close()
+    second = MainWindow()
+    assert second.workspace == WORKSPACE_SLD
+    assert second.workspace_box.currentData() == WORKSPACE_SLD
+    second.undo_stack.setClean()
+    second.close()
