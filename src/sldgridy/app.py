@@ -5,7 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-from PyQt6.QtCore import QSettings
+from PyQt6.QtCore import QSettings, QTimer
 from PyQt6.QtWidgets import QApplication
 
 from sldgridy import __version__, i18n, memwatch, platform_choice
@@ -60,6 +60,10 @@ def main(argv: list[str] | None = None) -> int:
     app = create_application(sys.argv if argv is None else argv)
     window = MainWindow()
     window.show()
+    beat = QTimer(app)  # lets the memory watch notice a hanging user interface
+    beat.timeout.connect(memwatch.heartbeat)
+    beat.start(1000)
+    memwatch.heartbeat()
     files = [a for a in app.arguments()[1:] if not a.startswith("-")]
     if files:
         window.open_path(Path(files[0]))

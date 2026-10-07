@@ -6,6 +6,10 @@ writes the Python stacks of all threads to the crash log (again after every furt
 ``step_gb``). At ``limit`` it writes a last report and ends the program, before the
 system starts swapping and the kernel kills it anyway (the desktop stays usable; the
 automatic backup is offered on the next start).
+
+It also watches for hangs: the user interface calls ``heartbeat()`` every second; when
+that stops for ``HANG_SECONDS`` the stacks go to the crash log once (shows where the
+program is stuck when the desktop reports it as not responding).
 """
 
 import faulthandler
@@ -15,6 +19,15 @@ import time
 from typing import TextIO
 
 GB = 1024**3
+HANG_SECONDS = 10.0
+
+_last_beat: float | None = None
+
+
+def heartbeat() -> None:
+    """Called regularly from the event loop of the user interface."""
+    global _last_beat
+    _last_beat = time.monotonic()
 
 
 def rss_bytes() -> int | None:
@@ -49,7 +62,13 @@ def report(log: TextIO, used: int, note: str) -> None:
     log.flush()
 
 
-def start(log: TextIO, first_gb: float = 2.0, step_gb: float = 2.0, limit: int | None = None):
+def start(
+    log: TextIO,
+    first_gb: float = 2.0,
+    step_gb: float = 2.0,
+    limit: int | None = None,
+    hang_seconds: float = HANG_SECONDS,
+):
     """Start the watch thread; returns it (None where /proc is missing)."""
     if rss_bytes() is None:
         return None
@@ -57,8 +76,20 @@ def start(log: TextIO, first_gb: float = 2.0, step_gb: float = 2.0, limit: int |
 
     def run() -> None:
         next_report = first_gb * GB
+        hang_reported = False
         while True:
             time.sleep(1.0)
+            beat = _last_beat
+            if beat is not None:
+                quiet = time.monotonic() - beat
+                if quiet >= hang_seconds and not hang_reported:
+                    log.write(f"--- Keine Reaktion seit {quiet:.0f} s\n")
+                    log.flush()
+                    faulthandler.dump_traceback(log, all_threads=True)
+                    log.flush()
+                    hang_reported = True
+                elif quiet < hang_seconds:
+                    hang_reported = False
             used = rss_bytes()
             if used is None:
                 continue

@@ -35,3 +35,21 @@ def test_limit_ends_the_program_with_a_report(tmp_path: Path):
     assert result.returncode == 70
     text = log.read_text()
     assert "Grenze erreicht" in text and "busy" in text
+
+
+def test_a_hang_is_reported(tmp_path: Path):
+    log = tmp_path / "crash.log"
+    code = (
+        "import time\n"
+        "from sldgridy import memwatch\n"
+        f"log = open({str(log)!r}, 'w')\n"
+        "memwatch.start(log, hang_seconds=1.5)\n"
+        "memwatch.heartbeat()\n"
+        "def stuck():\n"
+        "    time.sleep(4)\n"
+        "stuck()\n"
+    )
+    subprocess.run([sys.executable, "-c", code], timeout=30, check=True)
+    text = log.read_text()
+    assert "Keine Reaktion seit" in text and "stuck" in text
+    assert text.count("Keine Reaktion") == 1
