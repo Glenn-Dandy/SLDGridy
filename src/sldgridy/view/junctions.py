@@ -36,7 +36,7 @@ class JunctionItem(QGraphicsItem):
     def detach(self) -> None:
         self._container.unsubscribe(self._on_change)
 
-    def _on_change(self, _event: str, _entity: Entity) -> None:
+    def _on_change(self, _event: str, _entity: Entity | None) -> None:
         # Many changes come at once (paste, open, move of a selection): compute once,
         # when control is back in the event loop.
         if not self._pending:

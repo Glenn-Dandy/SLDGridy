@@ -90,3 +90,14 @@ def test_take_a_number_of_modules_rows_from_the_top():
     # The partial row sits in the middle of its row.
     row = sorted((p for p in modules if p.y == ys[1]), key=lambda p: p.x)
     assert second == row[1:5]
+
+
+def test_big_field_is_fast():
+    import time
+
+    # About 1200 modules: used to take over two minutes and froze the program.
+    roof = rect(0, 0, 62000, 42000)
+    start = time.perf_counter()
+    modules = layout_modules(roof, [rect(20000, 20000, 800, 800)], LayoutParams(*MODULE))
+    assert len(modules) > 1150
+    assert time.perf_counter() - start < 15  # a few seconds even on slow CI machines

@@ -15,12 +15,14 @@ class AddEntitiesCommand(QUndoCommand):
         self._entities = list(entities)
 
     def redo(self) -> None:
-        for e in self._entities:
-            self._container.add(e)
+        with self._container.batch():
+            for e in self._entities:
+                self._container.add(e)
 
     def undo(self) -> None:
-        for e in reversed(self._entities):
-            self._container.remove(e.id)
+        with self._container.batch():
+            for e in reversed(self._entities):
+                self._container.remove(e.id)
 
 
 class RemoveEntitiesCommand(QUndoCommand):
@@ -31,12 +33,14 @@ class RemoveEntitiesCommand(QUndoCommand):
         self._removed: list[tuple[int, Entity]] = []
 
     def redo(self) -> None:
-        self._removed = [self._container.remove(i) for i in self._ids]
+        with self._container.batch():
+            self._removed = [self._container.remove(i) for i in self._ids]
 
     def undo(self) -> None:
         # Reinsert in reverse removal order so every index is valid again.
-        for index, entity in reversed(self._removed):
-            self._container.add(entity, index)
+        with self._container.batch():
+            for index, entity in reversed(self._removed):
+                self._container.add(entity, index)
         self._removed = []
 
 
@@ -53,13 +57,15 @@ class ReplaceEntitiesCommand(QUndoCommand):
         self._old = [container.get(e.id) for e in self._new]
 
     def redo(self) -> None:
-        for e in self._new:
-            self._container.replace(e)
-        for e in self._added:
-            self._container.add(e)
+        with self._container.batch():
+            for e in self._new:
+                self._container.replace(e)
+            for e in self._added:
+                self._container.add(e)
 
     def undo(self) -> None:
-        for e in reversed(self._added):
-            self._container.remove(e.id)
-        for e in self._old:
-            self._container.replace(e)
+        with self._container.batch():
+            for e in reversed(self._added):
+                self._container.remove(e.id)
+            for e in self._old:
+                self._container.replace(e)

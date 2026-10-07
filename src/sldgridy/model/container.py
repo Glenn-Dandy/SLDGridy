@@ -1,11 +1,13 @@
 """Ordered entity collection with change notification."""
 
 from collections.abc import Callable, Iterable, Iterator
+from contextlib import contextmanager
 
 from sldgridy.model.entities import Entity
 
-# Listener signature: (event, entity) with event in {"added", "removed", "changed"}.
-Listener = Callable[[str, Entity], None]
+# Listener signature: (event, entity) with event in {"added", "removed", "changed"};
+# around many changes at once also "batch_start" and "batch_end" with entity None.
+Listener = Callable[[str, Entity | None], None]
 
 
 class EntityContainer:
@@ -15,6 +17,7 @@ class EntityContainer:
         # constant time, drawings with hundreds of modules stay fast).
         self._index: dict[str, int] | None = {}
         self._listeners: list[Listener] = []
+        self._batch_depth = 0
         for e in entities:
             self.add(e)
 
@@ -30,7 +33,24 @@ class EntityContainer:
     def unsubscribe(self, listener: Listener) -> None:
         self._listeners.remove(listener)
 
-    def _notify(self, event: str, entity: Entity) -> None:
+    @contextmanager
+    def batch(self):
+        """Many changes as one: listeners may defer work until "batch_end"."""
+        if self._batch_depth == 0:
+            self._notify("batch_start", None)
+        self._batch_depth += 1
+        try:
+            yield
+        finally:
+            self._batch_depth -= 1
+            if self._batch_depth == 0:
+                self._notify("batch_end", None)
+
+    @property
+    def in_batch(self) -> bool:
+        return self._batch_depth > 0
+
+    def _notify(self, event: str, entity: Entity | None) -> None:
         for listener in list(self._listeners):
             listener(event, entity)
 

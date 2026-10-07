@@ -873,7 +873,9 @@ class MainWindow(QMainWindow):
     def _on_sheets_changed(self) -> None:
         self.sheets.on_sheets_changed()
 
-    def _on_model_changed(self, _event: str, _entity: Entity) -> None:
+    def _on_model_changed(self, event: str, _entity: Entity | None) -> None:
+        if self.document.model_space.in_batch:
+            return  # once at "batch_end"
         if hasattr(self, "sheets"):
             self.sheets.refresh_viewports()
 

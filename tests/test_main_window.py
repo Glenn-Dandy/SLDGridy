@@ -324,3 +324,19 @@ def test_module_field_with_a_number_of_modules(window):
     window.tools.pick(Point(4000, 2500))
     assert len([e for e in ms if isinstance(e, BlockReference)]) == 12
     assert "Nur 12 von 20" in window.statusBar().currentMessage()
+
+
+def test_deleting_many_selected_objects_refreshes_the_dock_once(window):
+    from sldgridy.model.entities import Line as LineEntity
+
+    ms = window.document.model_space
+    for i in range(60):
+        ms.add(LineEntity(id=f"l{i}", p1=Point(i, 0), p2=Point(i, 10)))
+    window.select_all()
+    calls = []
+    original = window.properties_dock.refresh
+    window.properties_dock.refresh = lambda: (calls.append(1), original())[1]
+    window.delete_selection()
+    assert len(ms) == 0 and len(calls) <= 2  # not once per object
+    window.act_undo.trigger()
+    assert len(ms) == 60

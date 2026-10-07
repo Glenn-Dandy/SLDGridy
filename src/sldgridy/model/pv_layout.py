@@ -3,8 +3,8 @@
 The roof is a simple polygon (rectangle, trapezoid, triangle, hip roof face).
 Modules are axis-parallel rectangles in a regular grid. A module is placed when it
 lies inside the roof, keeps the edge distance to every roof edge and the obstacle
-distance to every obstacle. Several grid offsets are tried; the one with the most
-modules wins, ties go to the most centred field.
+distance to every obstacle. Several grid offsets are tried (12 × 12, fewer for very big
+fields); the one with the most modules wins, ties go to the most centred field.
 """
 
 import math
@@ -16,6 +16,7 @@ from sldgridy.model.geometry import Point
 Polygon = Sequence[Point]
 EPS = 1e-6
 OFFSET_STEPS = 12  # grid offsets tried per direction
+CELL_BUDGET = 40000  # big fields try fewer offsets (a 1400 module field stays a few seconds)
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,11 @@ def contains(poly: Polygon, p: Point) -> bool:
     n = len(poly)
     for i in range(n):
         a, b = poly[i], poly[(i + 1) % n]
-        if _point_segment_distance(p, a, b) <= EPS:
+        if (
+            min(a.x, b.x) - EPS <= p.x <= max(a.x, b.x) + EPS
+            and min(a.y, b.y) - EPS <= p.y <= max(a.y, b.y) + EPS
+            and _point_segment_distance(p, a, b) <= EPS
+        ):
             return True
         if (a.y > p.y) != (b.y > p.y):
             x = a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y)
@@ -97,12 +102,39 @@ def fits(
 ) -> bool:
     if not all(contains(roof, p) for p in module):
         return False
-    if any(_segments_cross(p, q, r, s) for p, q in _edges(module) for r, s in _edges(roof)):
-        return False
-    edge = min(_segment_distance(p, q, r, s) for p, q in _edges(module) for r, s in _edges(roof))
-    if edge < params.edge - EPS:
-        return False
-    return all(polygon_distance(module, o) >= params.obstacle_gap - EPS for o in obstacles)
+    # Only edges reaching into the module's box widened by the edge distance can be too
+    # close or cross it; all others keep the distance for sure (big fields: most modules
+    # lie far from every edge, the exact distance is skipped).
+    x0, y0, x1, y1 = _box(module)
+    e = params.edge
+    near = [
+        (r, s)
+        for r, s in _edges(roof)
+        if max(r.x, s.x) >= x0 - e
+        and min(r.x, s.x) <= x1 + e
+        and max(r.y, s.y) >= y0 - e
+        and min(r.y, s.y) <= y1 + e
+    ]
+    if near:
+        if any(_segments_cross(p, q, r, s) for p, q in _edges(module) for r, s in near):
+            return False
+        edge = min(_segment_distance(p, q, r, s) for p, q in _edges(module) for r, s in near)
+        if edge < params.edge - EPS:
+            return False
+    g = params.obstacle_gap
+    for o in obstacles:
+        ox0, oy0, ox1, oy1 = _box(o)
+        if ox0 > x1 + g or ox1 < x0 - g or oy0 > y1 + g or oy1 < y0 - g:
+            continue  # boxes already farther apart than the gap
+        if polygon_distance(module, o) < g - EPS:
+            return False
+    return True
+
+
+def _box(poly: Polygon) -> tuple[float, float, float, float]:
+    xs = [p.x for p in poly]
+    ys = [p.y for p in poly]
+    return min(xs), min(ys), max(xs), max(ys)
 
 
 def take_modules(corners: list[Point], count: int) -> list[Point]:
@@ -140,10 +172,12 @@ def layout_modules(
     centre = Point((min_x + max_x) / 2, (min_y + max_y) / 2)
     best: list[Point] = []
     best_key: tuple[int, float] = (0, 0.0)
-    for i in range(OFFSET_STEPS):
-        for j in range(OFFSET_STEPS):
-            ox = min_x + params.edge + step_x * i / OFFSET_STEPS
-            oy = min_y + params.edge + step_y * j / OFFSET_STEPS
+    cells = max(1.0, (max_x - min_x) / step_x) * max(1.0, (max_y - min_y) / step_y)
+    steps = max(3, min(OFFSET_STEPS, int(math.sqrt(CELL_BUDGET / cells))))
+    for i in range(steps):
+        for j in range(steps):
+            ox = min_x + params.edge + step_x * i / steps
+            oy = min_y + params.edge + step_y * j / steps
             placed: list[Point] = []
             y = oy
             while y + params.height <= max_y - params.edge + EPS:

@@ -34,6 +34,10 @@ class SceneSync:
         self._resolve_style = resolve_style
         self._items: dict[str, EntityItem] = {}
         self._next_z = 0
+        # During a batch: scene signals held back, selection change and restack once.
+        self._batch_blocked: bool | None = None
+        self._batch_selection = False
+        self._batch_restack = False
         for e in container:
             self._add(e)
         self._restack()
@@ -70,16 +74,35 @@ class SceneSync:
             self._items[e.id].setZValue(z)
         self._next_z = len(self._container)
 
-    def _on_change(self, event: str, e: Entity) -> None:
+    def _on_change(self, event: str, e: Entity | None) -> None:
+        if event == "batch_start":
+            self._batch_blocked = self._scene.blockSignals(True)
+            self._batch_selection = self._batch_restack = False
+            return
+        if event == "batch_end":
+            self._scene.blockSignals(bool(self._batch_blocked))
+            self._batch_blocked = None
+            if self._batch_restack:
+                self._restack()
+            if self._batch_selection:
+                self._scene.selectionChanged.emit()
+            self._scene.update()
+            return
+        assert e is not None
+        batch = self._batch_blocked is not None
         if event == "added":
             self._add(e)
             if self._container.index_of(e.id) == len(self._container) - 1:
                 self._items[e.id].setZValue(self._next_z)
                 self._next_z += 1
+            elif batch:
+                self._batch_restack = True
             else:
                 self._restack()
         elif event == "removed":
             item = self._items.pop(e.id)
+            if batch and item.isSelected():
+                self._batch_selection = True
             self._scene.removeItem(item)
         elif event == "changed":
             item = self._items[e.id]
