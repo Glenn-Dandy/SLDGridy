@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from PyQt6.QtCore import QTimer
 
 from sldgridy.commands.entities import AddEntitiesCommand, ReplaceEntitiesCommand
-from sldgridy.model.entities import Entity, JunctionMark, new_id
+from sldgridy.model.entities import Busbar, Entity, JunctionMark, Wire, new_id
 from sldgridy.model.geometry import Point, quarters_towards
 from sldgridy.model.grips import grip_kinds, grip_points, move_grip
 from sldgridy.model.rotate import quarter_turns, rotate_entity
@@ -27,8 +27,10 @@ def with_followers(
     """
     blocks = getattr(ctx, "block_definitions", {})
     entities = list(ctx.container)
-    by_id = {e.id: e for e in entities}
     result = list(new)
+    if not any(isinstance(e, Wire | Busbar) for e in entities):
+        return result  # nothing can follow (e.g. a roof plan full of modules)
+    by_id = {e.id: e for e in entities}
     taken = {e.id for e in result}
     # Changes travel along: a wire pulled by a block pulls its branches, and so on.
     step_old, step_new = list(old), list(new)

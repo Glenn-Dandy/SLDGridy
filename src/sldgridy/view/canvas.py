@@ -3,6 +3,7 @@
 import json
 import math
 from collections.abc import Callable
+from dataclasses import replace
 
 from PyQt6.QtCore import QEvent, QPoint, QPointF, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import (
@@ -12,13 +13,14 @@ from PyQt6.QtGui import (
     QKeyEvent,
     QPainter,
     QPen,
+    QPicture,
     QPixmap,
     QPolygonF,
     QWheelEvent,
 )
 from PyQt6.QtWidgets import QFrame, QGraphicsScene, QGraphicsView
 
-from sldgridy.model.entities import Entity
+from sldgridy.model.entities import BlockReference, Entity
 from sldgridy.model.geometry import Point, distance, ortho, snap_to_grid
 from sldgridy.model.grips import grip_kinds, grip_points
 from sldgridy.model.snap import ALL_MODES, SnapHit, SnapMode, circle_hits, find_snap
@@ -37,7 +39,7 @@ MM_PER_INCH = 25.4
 SCENE_EXTENT_MM = 1_000_000.0
 
 # Zoom is relative to physical size: 1.0 shows 1 mm as 1 mm on screen.
-MIN_ZOOM = 0.005
+MIN_ZOOM = 0.0005  # a 1400 px wide view shows about 740 m (large roofs, sites)
 MAX_ZOOM = 50.0
 WHEEL_ZOOM_STEP = 1.2
 
@@ -85,6 +87,23 @@ EMPTY_EXTENTS = QRectF(0.0, 0.0, 420.0, 297.0)
 INITIAL_VIEW_MS = 2000  # how long the opening view follows window size changes
 
 
+def select_items(scene: QGraphicsScene, items: list) -> None:
+    """Select many items with a single selectionChanged (not one per item: the
+    properties dock rebuilds on each, hundreds of modules took seconds)."""
+    blocked = scene.blockSignals(True)
+    changed = False
+    try:
+        for item in items:
+            if not item.isSelected():
+                item.setSelected(True)
+                changed = True
+    finally:
+        scene.blockSignals(blocked)
+    if changed and not blocked:
+        scene.selectionChanged.emit()
+    scene.update()
+
+
 class Canvas(QGraphicsView):
     """View onto a scene where 1 scene unit = 1 mm and Y points down."""
 
@@ -113,6 +132,7 @@ class Canvas(QGraphicsView):
         # Directions snap to multiples of this angle near the cursor (0: off).
         self.polar_increment = 15.0
         self._polar_ray: tuple[Point, float] | None = None
+        self._preview_blocks: dict[tuple[Entity, float], QPicture] = {}
         self._layer: QPixmap | None = None
         # Switched by Settings > Fast display (off until the user switches it on).
         self.layer_cache_enabled = False
@@ -489,9 +509,14 @@ class Canvas(QGraphicsView):
         )
         if not add:
             self.scene().clearSelection()
-        for item in self.scene().items(rect.normalized(), mode):
-            if isinstance(item, EntityItem) and item.isVisible():
-                item.setSelected(True)
+        select_items(
+            self.scene(),
+            [
+                item
+                for item in self.scene().items(rect.normalized(), mode)
+                if isinstance(item, EntityItem) and item.isVisible()
+            ],
+        )
 
     def _click_select(self, view_pos: QPointF, toggle: bool) -> EntityItem | None:
         items = self.entity_items_at(view_pos)
@@ -1046,9 +1071,15 @@ class Canvas(QGraphicsView):
                 painter.setPen(pen)
                 painter.drawLine(qpt(base), self._cursor_scene)
             previews = self.controller.preview()
-            if self.expand is not None:
-                previews = [part for e in previews for part in self.expand(e)]
-            self._paint_preview(painter, previews, scale)
+            if not previews:
+                self._preview_blocks.clear()  # block definitions may change between commands
+            simple: list[Entity] = []
+            for e in previews:
+                if isinstance(e, BlockReference) and self.expand is not None:
+                    self._paint_block_preview(painter, e, scale)
+                else:
+                    simple += self.expand(e) if self.expand is not None else [e]
+            self._paint_preview(painter, simple, scale)
         self._paint_preview(painter, self._drag_preview_entities(), scale)
         if not self._tool_active():
             self._draw_grips(painter)
@@ -1058,6 +1089,23 @@ class Canvas(QGraphicsView):
         self._draw_polar_ray(painter)
         self._draw_crosshair(painter)
         self._draw_dynamic_input(painter)
+
+    def _paint_block_preview(self, painter: QPainter, ref: BlockReference, scale: float) -> None:
+        """A block in the preview: recorded once at the origin, then only replayed
+        shifted (moving hundreds of modules stays fluid)."""
+        key = (replace(ref, id="", insert=Point(0.0, 0.0)), scale)
+        picture = self._preview_blocks.get(key)
+        if picture is None:
+            if len(self._preview_blocks) > 2000:
+                self._preview_blocks.clear()
+            parts = self.expand(key[0]) if self.expand is not None else [key[0]]
+            picture = QPicture()
+            recorder = QPainter(picture)
+            recorder.setRenderHints(painter.renderHints())
+            self._paint_preview(recorder, parts, scale)
+            recorder.end()
+            self._preview_blocks[key] = picture
+        painter.drawPicture(QPointF(ref.insert.x, ref.insert.y), picture)
 
     def _paint_preview(self, painter: QPainter, entities: list[Entity], scale: float) -> None:
         for e in entities:

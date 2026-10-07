@@ -104,7 +104,7 @@ from sldgridy.ui.sheet_controller import SheetController
 from sldgridy.ui.space import BLOCK, MODEL, SHEET, Space
 from sldgridy.ui.styles import MIXED, HeightCombo
 from sldgridy.ui.text_dialog import TextDialog
-from sldgridy.view.canvas import BACKGROUND_COLOR, EMPTY_EXTENTS, Canvas
+from sldgridy.view.canvas import BACKGROUND_COLOR, EMPTY_EXTENTS, Canvas, select_items
 from sldgridy.view.display import title_labels
 from sldgridy.view.items import EntityItem
 from sldgridy.view.junctions import JunctionItem
@@ -1189,13 +1189,16 @@ class MainWindow(QMainWindow):
         self.undo_group.redo()
 
     def select_all(self) -> None:
-        for item in self.scene.items():
-            if (
-                isinstance(item, EntityItem)
+        select_items(
+            self.scene,
+            [
+                item
+                for item in self.scene.items()
+                if isinstance(item, EntityItem)
                 and item.isVisible()
                 and item.flags() & item.GraphicsItemFlag.ItemIsSelectable
-            ):
-                item.setSelected(True)
+            ],
+        )
 
     def delete_selection(self) -> None:
         ids = self.selected_ids()
@@ -1584,7 +1587,8 @@ class MainWindow(QMainWindow):
         )
 
     def _show_zoom(self, zoom: float) -> None:
-        percent = self._locale.toString(zoom * 100, "f", 0 if zoom >= 0.1 else 1)
+        digits = 0 if zoom >= 0.1 else 1 if zoom >= 0.01 else 2
+        percent = self._locale.toString(zoom * 100, "f", digits)
         self.lbl_zoom.setText(self.tr("Zoom: {percent} %").format(percent=percent))
 
     def _show_about(self) -> None:
